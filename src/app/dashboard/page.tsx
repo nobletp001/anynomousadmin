@@ -4,12 +4,12 @@ import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api-client'
 import { motion, type Variants } from 'framer-motion'
-import { Button, Badge } from '@/components/ui'
+import { Button } from '@/components/ui'
 import {
   Users,
   MessageSquare,
   GitMerge,
-  CreditCard,
+  ClipboardList,
   TrendingUp,
   AlertCircle,
   RefreshCw,
@@ -21,15 +21,7 @@ interface StatsResponse {
     totalUsers: number
     totalMessages: number
     totalReferrals: number
-    pendingPayouts: number
   }
-  recentPayouts: Array<{
-    id: number
-    username: string
-    amount: number
-    status: string
-    createdAt: string
-  }>
 }
 
 const cardVariants: Variants = {
@@ -56,21 +48,6 @@ export default function DashboardPage() {
     refetchOnWindowFocus: true,
   })
 
-  const formatAmount = (num: number) =>
-    new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
-      minimumFractionDigits: 0,
-    }).format(num)
-
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -90,7 +67,7 @@ export default function DashboardPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
@@ -109,7 +86,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <motion.div
               custom={0}
               initial="hidden"
@@ -177,78 +154,6 @@ export default function DashboardPage() {
               </span>
             </motion.div>
 
-            <motion.div
-              custom={3}
-              initial="hidden"
-              animate="visible"
-              variants={cardVariants}
-              className="backdrop-blur-md bg-zinc-900/50 border border-zinc-800/80 rounded-2xl p-6 shadow-xl relative overflow-hidden group hover:border-amber-500/30 transition-all duration-300"
-            >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl group-hover:bg-amber-500/10 transition-all duration-300" />
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-zinc-500 text-sm font-semibold tracking-wide uppercase">Pending Payouts</span>
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                  <CreditCard className="w-5 h-5" />
-                </div>
-              </div>
-              <span className="text-3xl font-extrabold text-zinc-100 tracking-tight block">
-                {data?.stats.pendingPayouts}
-              </span>
-              <span className="text-xs text-amber-400 font-medium flex items-center gap-1 mt-2">
-                <span>Awaiting administrator action</span>
-              </span>
-            </motion.div>
-          </div>
-
-          <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 shadow-xl">
-            <div className="mb-6">
-              <h3 className="text-lg font-bold text-zinc-100">Recent Payout Claims</h3>
-              <p className="text-xs text-zinc-500 mt-1">Review the latest requests submitted by referrers</p>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm border-collapse">
-                <thead>
-                  <tr className="border-b border-zinc-800 text-zinc-400 font-semibold">
-                    <th className="pb-3.5 font-semibold text-xs uppercase tracking-wider">User</th>
-                    <th className="pb-3.5 font-semibold text-xs uppercase tracking-wider">Amount</th>
-                    <th className="pb-3.5 font-semibold text-xs uppercase tracking-wider">Status</th>
-                    <th className="pb-3.5 font-semibold text-xs uppercase tracking-wider">Submitted</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/50">
-                  {data?.recentPayouts?.length ? (
-                    data.recentPayouts.map((claim) => (
-                      <tr key={claim.id} className="text-zinc-300 hover:bg-zinc-800/20 transition-colors">
-                        <td className="py-4 font-medium text-zinc-100">@{claim.username}</td>
-                        <td className="py-4 font-semibold text-zinc-200">{formatAmount(claim.amount)}</td>
-                        <td className="py-4">
-                          <Badge
-                            variant={
-                              claim.status === 'completed'
-                                ? 'success'
-                                : claim.status === 'in review' || claim.status === 'pending'
-                                ? 'warning'
-                                : 'danger'
-                            }
-                            dot
-                          >
-                            {claim.status}
-                          </Badge>
-                        </td>
-                        <td className="py-4 text-zinc-500 text-xs">{formatDate(claim.createdAt)}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="py-8 text-center text-zinc-500 text-sm">
-                        No recent payout claims found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
           </div>
         </>
       )}

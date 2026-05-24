@@ -40,6 +40,7 @@ interface Submission {
   username: string
   proof: string
   proofType: string
+  textResponse: string | null
   status: string
   rejectionReason: string | null
   deductedAmount: number
@@ -235,6 +236,7 @@ export default function TaskSubmissionsPage() {
                       <th className="px-6 py-4 font-semibold">User</th>
                       <th className="px-6 py-4 font-semibold">Balance</th>
                       <th className="px-6 py-4 font-semibold">Proof</th>
+                      <th className="px-6 py-4 font-semibold">Text</th>
                       <th className="px-6 py-4 font-semibold">Status</th>
                       <th className="px-6 py-4 font-semibold">Submitted</th>
                       <th className="px-6 py-4 font-semibold">Actions</th>
@@ -256,6 +258,15 @@ export default function TaskSubmissionsPage() {
                         </td>
                         <td className="px-6 py-4 text-xs font-semibold text-emerald-400">
                           {formatAmount(sub.userBalance)}
+                        </td>
+                        <td className="px-6 py-4">
+                          {sub.textResponse ? (
+                            <span className="inline-block max-w-40 truncate text-xs text-zinc-300 bg-zinc-800/60 border border-zinc-700/40 rounded-lg px-2.5 py-1 font-medium" title={sub.textResponse}>
+                              {sub.textResponse}
+                            </span>
+                          ) : (
+                            <span className="text-zinc-700 text-xs">—</span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           {sub.proofType === 'link' ? (
@@ -284,7 +295,7 @@ export default function TaskSubmissionsPage() {
                           <div>
                             <Badge variant={statusVariant(sub.status)} dot>{sub.status}</Badge>
                             {sub.status === 'rejected' && sub.rejectionReason && (
-                              <p className="text-[10px] text-zinc-600 mt-0.5 max-w-[140px] truncate" title={sub.rejectionReason}>
+                              <p className="text-[10px] text-zinc-600 mt-0.5 max-w-35 truncate" title={sub.rejectionReason}>
                                 {sub.rejectionReason}
                               </p>
                             )}

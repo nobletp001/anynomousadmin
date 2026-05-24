@@ -31,6 +31,7 @@ const PLATFORMS = [
   { value: 'x', label: 'X (Twitter)' },
   { value: 'instagram', label: 'Instagram' },
   { value: 'youtube', label: 'YouTube' },
+  { value: 'other', label: 'Other' },
 ]
 
 const HOUR_MS = 60 * 60 * 1000
@@ -63,6 +64,10 @@ type AudienceFilter = {
   maxAge: string
 }
 
+type ImageEntry = { file: File; preview: string }
+
+const MAX_IMAGES = 5
+
 function toggle(arr: string[], val: string) {
   return arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val]
 }
@@ -85,6 +90,7 @@ export default function CreateTaskPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [caption, setCaption] = useState('')
+  const [link, setLink] = useState('')
   const [instructions, setInstructions] = useState<string[]>([''])
   const [taskType, setTaskType] = useState('follow')
   const [targetPlatform, setTargetPlatform] = useState('instagram')
@@ -94,10 +100,11 @@ export default function CreateTaskPage() {
   const [adminContact, setAdminContact] = useState('')
   const [targetCount, setTargetCount] = useState('')
 
-  const [bannerFile, setBannerFile] = useState<File | null>(null)
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null)
+  const [images, setImages] = useState<ImageEntry[]>([])
   const [uploadError, setUploadError] = useState('')
   const [proofType, setProofType] = useState<'banner' | 'url'>('banner')
+  const [acceptText, setAcceptText] = useState(false)
+  const [textLabel, setTextLabel] = useState('')
   const [noExpiry, setNoExpiry] = useState(false)
   const [enableTargeting, setEnableTargeting] = useState(false)
   const [audience, setAudience] = useState<AudienceFilter>({ gender: [], employmentStatus: [], educationLevel: [], state: [], minAge: '', maxAge: '' })
@@ -105,7 +112,7 @@ export default function CreateTaskPage() {
   const isJetpot = taskType === 'jetpot'
   const isViews = taskType === 'views'
 
-  const uploadBanner = useMutation({
+  const uploadImage = useMutation({
     mutationFn: ({ base64, mimeType }: { base64: string; mimeType: string }) =>
       apiClient.post('/admin/upload', { base64, mimeType }) as any,
   })
@@ -118,36 +125,36 @@ export default function CreateTaskPage() {
     },
   })
 
-  function handleFileChange(file: File) {
-    if (file.size > 10 * 1024 * 1024) {
-      setUploadError('File too large. Max 10 MB.')
+  function handleFiles(files: FileList | File[]) {
+    const arr = Array.from(files)
+    const remaining = MAX_IMAGES - images.length
+    if (remaining <= 0) return
+    setUploadError('')
+
+    const toAdd = arr.slice(0, remaining)
+    const oversized = toAdd.find(f => f.size > 10 * 1024 * 1024)
+    if (oversized) {
+      setUploadError('Each image must be under 10 MB.')
       return
     }
+
+    toAdd.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = e => {
+        setImages(prev => [...prev, { file, preview: e.target?.result as string }])
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  function removeImage(idx: number) {
+    setImages(prev => prev.filter((_, i) => i !== idx))
     setUploadError('')
-    setBannerFile(file)
-    const reader = new FileReader()
-    reader.onload = (e) => setBannerPreview(e.target?.result as string)
-    reader.readAsDataURL(file)
   }
 
-  function removeBanner() {
-    setBannerFile(null)
-    setBannerPreview(null)
-    setUploadError('')
-    if (fileRef.current) fileRef.current.value = ''
-  }
-
-  function addInstruction() {
-    setInstructions(prev => [...prev, ''])
-  }
-
-  function updateInstruction(idx: number, val: string) {
-    setInstructions(prev => prev.map((s, i) => (i === idx ? val : s)))
-  }
-
-  function removeInstruction(idx: number) {
-    setInstructions(prev => prev.filter((_, i) => i !== idx))
-  }
+  function addInstruction() { setInstructions(prev => [...prev, '']) }
+  function updateInstruction(idx: number, val: string) { setInstructions(prev => prev.map((s, i) => (i === idx ? val : s))) }
+  function removeInstruction(idx: number) { setInstructions(prev => prev.filter((_, i) => i !== idx)) }
 
   const canSubmit =
     title.trim() &&
@@ -161,16 +168,20 @@ export default function CreateTaskPage() {
     e.preventDefault()
     if (!canSubmit) return
 
-    let bannerUrl: string | null = null
+    let uploadedUrls: string[] = []
 
-    if (bannerFile && bannerPreview) {
+    if (images.length > 0) {
       try {
-        const [header, base64] = bannerPreview.split(',')
-        const mimeType = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg'
-        const result: any = await uploadBanner.mutateAsync({ base64, mimeType })
-        bannerUrl = result.url
+        const results = await Promise.all(
+          images.map(({ preview }) => {
+            const [header, base64] = preview.split(',')
+            const mimeType = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg'
+            return uploadImage.mutateAsync({ base64, mimeType })
+          })
+        )
+        uploadedUrls = results.map((r: any) => r.url)
       } catch {
-        setUploadError('Image upload failed. Please try again.')
+        setUploadError('One or more image uploads failed. Please try again.')
         return
       }
     }
@@ -182,11 +193,14 @@ export default function CreateTaskPage() {
       title: title.trim(),
       description: description.trim(),
       caption: caption.trim() || undefined,
+      link: link.trim() || undefined,
       instructions: filteredInstructions.length ? filteredInstructions : undefined,
-      banner: bannerUrl || undefined,
+      images: uploadedUrls.length ? uploadedUrls : undefined,
       taskType,
       targetPlatform,
       proofType,
+      acceptText,
+      textLabel: acceptText ? textLabel.trim() || undefined : undefined,
       lifeline: noExpiry,
       amount,
       numberOfUsersNeeded,
@@ -206,7 +220,7 @@ export default function CreateTaskPage() {
     })
   }
 
-  const isPending = uploadBanner.isPending || createTask.isPending
+  const isPending = uploadImage.isPending || createTask.isPending
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -246,7 +260,7 @@ export default function CreateTaskPage() {
           </div>
 
           <div>
-            <FieldLabel>Caption <span className="text-zinc-600 font-normal">(text users copy and post)</span></FieldLabel>
+            <FieldLabel>Caption <span className="text-zinc-600 font-normal">(optional — text users copy and post)</span></FieldLabel>
             <textarea
               value={caption}
               onChange={e => setCaption(e.target.value)}
@@ -256,38 +270,63 @@ export default function CreateTaskPage() {
             />
           </div>
 
-          {/* Banner upload */}
           <div>
-            <FieldLabel>Banner image <span className="text-zinc-600 font-normal">(optional)</span></FieldLabel>
-            {bannerPreview ? (
-              <div className="relative rounded-xl overflow-hidden border border-zinc-700/60 group">
-                <img src={bannerPreview} alt="Banner preview" className="w-full max-h-48 object-cover" />
-                <button
-                  type="button"
-                  onClick={removeBanner}
-                  className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 text-zinc-300 hover:text-red-400 hover:bg-red-500/20 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+            <FieldLabel>Link <span className="text-zinc-600 font-normal">(optional — profile, post, or page to act on)</span></FieldLabel>
+            <input
+              value={link}
+              onChange={e => setLink(e.target.value)}
+              placeholder="https://..."
+              type="url"
+              className={inputCls}
+            />
+          </div>
+
+          {/* Multi-image upload */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <FieldLabel>Images <span className="text-zinc-600 font-normal">(optional — up to {MAX_IMAGES})</span></FieldLabel>
+              {images.length > 0 && (
+                <span className="text-[11px] text-zinc-500">{images.length} / {MAX_IMAGES}</span>
+              )}
+            </div>
+
+            {images.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                {images.map((img, idx) => (
+                  <div key={idx} className="relative rounded-xl overflow-hidden border border-zinc-700/60 group aspect-video">
+                    <img src={img.preview} alt={`Image ${idx + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-1.5 right-1.5 p-1 rounded-lg bg-black/60 text-zinc-300 hover:text-red-400 hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
               </div>
-            ) : (
+            )}
+
+            {images.length < MAX_IMAGES && (
               <div
                 onClick={() => fileRef.current?.click()}
                 onDragOver={e => e.preventDefault()}
-                onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFileChange(f) }}
-                className="flex flex-col items-center justify-center gap-2 h-28 rounded-xl border border-dashed border-zinc-700/60 bg-zinc-800/30 cursor-pointer hover:border-purple-500/40 hover:bg-zinc-800/50 transition-colors"
+                onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files) }}
+                className="flex flex-col items-center justify-center gap-2 h-24 rounded-xl border border-dashed border-zinc-700/60 bg-zinc-800/30 cursor-pointer hover:border-purple-500/40 hover:bg-zinc-800/50 transition-colors"
               >
                 <Upload className="w-5 h-5 text-zinc-500" />
-                <p className="text-xs text-zinc-500 font-medium">Click or drag to upload banner</p>
-                <p className="text-[11px] text-zinc-600">PNG · JPG · SVG · up to 10 MB</p>
+                <p className="text-xs text-zinc-500 font-medium">Click or drag to add images</p>
+                <p className="text-[11px] text-zinc-600">PNG · JPG · SVG · up to 10 MB each</p>
               </div>
             )}
+
             <input
               ref={fileRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
-              onChange={e => { const f = e.target.files?.[0]; if (f) handleFileChange(f) }}
+              onChange={e => { if (e.target.files) handleFiles(e.target.files); e.target.value = '' }}
             />
             {uploadError && <p className="text-xs text-red-400 mt-1">{uploadError}</p>}
           </div>
@@ -375,7 +414,7 @@ export default function CreateTaskPage() {
             </div>
           </div>
 
-          {/* Proof type toggle */}
+          {/* Proof method */}
           <div>
             <FieldLabel>Proof method</FieldLabel>
             <div className="grid grid-cols-2 gap-2">
@@ -412,6 +451,35 @@ export default function CreateTaskPage() {
             </div>
           </div>
 
+          {/* Collect additional text */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-zinc-400 font-medium">Collect Text</p>
+                <p className="text-[11px] text-zinc-600 mt-0.5">Ask users to also submit a WhatsApp number, username, etc.</p>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+                <span className={`text-xs font-semibold transition-colors ${acceptText ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                  {acceptText ? 'On' : 'Off'}
+                </span>
+                <div
+                  onClick={() => { setAcceptText(v => !v); if (acceptText) setTextLabel('') }}
+                  className={`relative w-9 h-5 rounded-full transition-all ${acceptText ? 'bg-emerald-500' : 'bg-zinc-700'}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${acceptText ? 'translate-x-4' : 'translate-x-0'}`} />
+                </div>
+              </label>
+            </div>
+            {acceptText && (
+              <input
+                value={textLabel}
+                onChange={e => setTextLabel(e.target.value)}
+                placeholder="e.g. WhatsApp Number, TikTok Username, Full Name..."
+                className={inputCls}
+              />
+            )}
+          </div>
+
           {isViews && (
             <div>
               <FieldLabel required>Number of views needed</FieldLabel>
@@ -437,7 +505,6 @@ export default function CreateTaskPage() {
 
         {/* Target Audience */}
         <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 space-y-4">
-          {/* Header row with toggle */}
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-zinc-300">Target Audience</h2>
@@ -456,7 +523,6 @@ export default function CreateTaskPage() {
             </label>
           </div>
 
-          {/* Settings box — shown only when targeting is enabled */}
           {enableTargeting && (
             <div className="border border-zinc-700/60 rounded-xl bg-zinc-800/30 p-5 space-y-5">
               <div className="flex items-center justify-between">
@@ -472,115 +538,57 @@ export default function CreateTaskPage() {
                 )}
               </div>
 
-              {/* Age Range */}
               <div>
                 <FieldLabel>Age Range</FieldLabel>
                 <div className="flex items-center gap-3">
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={audience.minAge}
-                    onChange={e => setAudience(a => ({ ...a, minAge: e.target.value }))}
-                    placeholder="Min age"
-                    className={`${inputCls} flex-1`}
-                  />
+                  <input type="number" min="1" max="100" value={audience.minAge} onChange={e => setAudience(a => ({ ...a, minAge: e.target.value }))} placeholder="Min age" className={`${inputCls} flex-1`} />
                   <span className="text-zinc-600 font-bold shrink-0">→</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={audience.maxAge}
-                    onChange={e => setAudience(a => ({ ...a, maxAge: e.target.value }))}
-                    placeholder="Max age"
-                    className={`${inputCls} flex-1`}
-                  />
+                  <input type="number" min="1" max="100" value={audience.maxAge} onChange={e => setAudience(a => ({ ...a, maxAge: e.target.value }))} placeholder="Max age" className={`${inputCls} flex-1`} />
                 </div>
-                {(audience.minAge || audience.maxAge) && (
-                  <p className="text-[11px] text-zinc-500 mt-1">
-                    Users aged {audience.minAge || '…'} – {audience.maxAge || '…'} will qualify
-                  </p>
-                )}
               </div>
 
-              {/* Gender */}
               <div>
                 <FieldLabel>Gender</FieldLabel>
                 <div className="flex flex-wrap gap-2">
                   {[['male','👨 Male'],['female','👩 Female'],['prefer_not_to_say','🤔 Prefer not to say']].map(([val, label]) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setAudience(a => ({ ...a, gender: toggle(a.gender, val) }))}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                        audience.gender.includes(val)
-                          ? 'bg-purple-500/15 border-purple-500/50 text-purple-300'
-                          : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
-                      }`}
-                    >
+                    <button key={val} type="button" onClick={() => setAudience(a => ({ ...a, gender: toggle(a.gender, val) }))}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${audience.gender.includes(val) ? 'bg-purple-500/15 border-purple-500/50 text-purple-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}`}>
                       {label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Employment Status */}
               <div>
                 <FieldLabel>Employment Status</FieldLabel>
                 <div className="flex flex-wrap gap-2">
                   {[['student','🎓 Student'],['working','💼 Working'],['self_employed','🧑‍💻 Self-employed'],['unemployed','🔍 Unemployed']].map(([val, label]) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setAudience(a => ({ ...a, employmentStatus: toggle(a.employmentStatus, val) }))}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                        audience.employmentStatus.includes(val)
-                          ? 'bg-blue-500/15 border-blue-500/50 text-blue-300'
-                          : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
-                      }`}
-                    >
+                    <button key={val} type="button" onClick={() => setAudience(a => ({ ...a, employmentStatus: toggle(a.employmentStatus, val) }))}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${audience.employmentStatus.includes(val) ? 'bg-blue-500/15 border-blue-500/50 text-blue-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}`}>
                       {label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Education Level */}
               <div>
                 <FieldLabel>Education Level</FieldLabel>
                 <div className="flex flex-wrap gap-2">
                   {[['ssce','📝 SSCE/WAEC'],['university','🏛️ University'],['polytechnic','🔧 Polytechnic'],['college','📚 College of Edu.']].map(([val, label]) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setAudience(a => ({ ...a, educationLevel: toggle(a.educationLevel, val) }))}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                        audience.educationLevel.includes(val)
-                          ? 'bg-amber-500/15 border-amber-500/50 text-amber-300'
-                          : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
-                      }`}
-                    >
+                    <button key={val} type="button" onClick={() => setAudience(a => ({ ...a, educationLevel: toggle(a.educationLevel, val) }))}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${audience.educationLevel.includes(val) ? 'bg-amber-500/15 border-amber-500/50 text-amber-300' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'}`}>
                       {label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* State */}
               <div>
                 <FieldLabel>State of Residence</FieldLabel>
                 <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
                   {NIGERIAN_STATES.map(state => (
-                    <button
-                      key={state}
-                      type="button"
-                      onClick={() => setAudience(a => ({ ...a, state: toggle(a.state, state) }))}
-                      className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${
-                        audience.state.includes(state)
-                          ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-300'
-                          : 'bg-zinc-800/50 border-zinc-700/40 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300'
-                      }`}
-                    >
+                    <button key={state} type="button" onClick={() => setAudience(a => ({ ...a, state: toggle(a.state, state) }))}
+                      className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${audience.state.includes(state) ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-300' : 'bg-zinc-800/50 border-zinc-700/40 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300'}`}>
                       {state}
                     </button>
                   ))}
@@ -611,14 +619,9 @@ export default function CreateTaskPage() {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <FieldLabel>Task Duration</FieldLabel>
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <span className={`text-xs font-semibold transition-colors ${noExpiry ? 'text-violet-400' : 'text-zinc-500'}`}>
-                  No expiry
-                </span>
-                <div
-                  onClick={() => setNoExpiry(v => !v)}
-                  className={`relative w-9 h-5 rounded-full transition-all ${noExpiry ? 'bg-violet-500' : 'bg-zinc-700'}`}
-                >
+              <label className="flex items-center gap-2 cursor-pointer">
+                <span className={`text-xs font-semibold transition-colors ${noExpiry ? 'text-violet-400' : 'text-zinc-500'}`}>No expiry</span>
+                <div onClick={() => setNoExpiry(v => !v)} className={`relative w-9 h-5 rounded-full transition-all ${noExpiry ? 'bg-violet-500' : 'bg-zinc-700'}`}>
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-all shadow ${noExpiry ? 'translate-x-4' : 'translate-x-0'}`} />
                 </div>
                 <Infinity className={`w-4 h-4 transition-colors ${noExpiry ? 'text-violet-400' : 'text-zinc-600'}`} />
@@ -665,7 +668,7 @@ export default function CreateTaskPage() {
             Cancel
           </Button>
           <Button variant="primary" size="md" type="submit" isLoading={isPending} disabled={!canSubmit}>
-            {uploadBanner.isPending ? 'Uploading image…' : createTask.isPending ? 'Creating task…' : 'Create Task'}
+            {uploadImage.isPending ? 'Uploading images…' : createTask.isPending ? 'Creating task…' : 'Create Task'}
           </Button>
         </div>
       </form>

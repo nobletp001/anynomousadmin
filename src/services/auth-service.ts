@@ -10,13 +10,17 @@ export interface AdminUser {
 
 export interface LoginResponse {
   success: boolean
-  token: string
-  user: AdminUser
+  data: {
+    token: string
+    user: AdminUser
+  }
 }
 
 export interface MeResponse {
   success: boolean
-  user: AdminUser
+  data: {
+    user: AdminUser
+  }
 }
 
 export const authService = {

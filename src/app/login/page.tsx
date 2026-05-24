@@ -34,12 +34,12 @@ export default function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
       const response = await authService.login(email, password)
-      if (!response.success || !ADMIN_ROLES.includes(response.user.role as any)) {
+      if (!response.success || !ADMIN_ROLES.includes(response.data.user.role as any)) {
         throw new Error('Access denied. Admin privileges required.')
       }
-      localStorage.setItem('admin_token', response.token)
-      localStorage.setItem('admin_user', JSON.stringify(response.user))
-      return response.user
+      localStorage.setItem('admin_token', response.data.token)
+      localStorage.setItem('admin_user', JSON.stringify(response.data.user))
+      return response.data.user
     },
     onSuccess: (userData) => {
       queryClient.setQueryData(authQueryKey, userData)

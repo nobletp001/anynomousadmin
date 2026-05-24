@@ -10,9 +10,9 @@ export const authQueryFn = async () => {
 
   try {
     const response = await authService.getMe()
-    if (response.success && ADMIN_ROLES.includes(response.user.role as any)) {
-      localStorage.setItem('admin_user', JSON.stringify(response.user))
-      return response.user
+    if (response.success && ADMIN_ROLES.includes(response.data.user.role as any)) {
+      localStorage.setItem('admin_user', JSON.stringify(response.data.user))
+      return response.data.user
     }
     localStorage.removeItem('admin_token')
     localStorage.removeItem('admin_user')
