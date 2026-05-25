@@ -30,9 +30,9 @@ interface SidebarItem {
 const SIDEBAR_ITEMS: SidebarItem[] = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare, roles: ['super-admin'] },
-  { name: 'Users', href: '/dashboard/users', icon: Users },
-  { name: 'Payout Claims', href: '/dashboard/payouts', icon: CreditCard },
-  { name: 'Tasks', href: '/dashboard/tasks', icon: ClipboardList },
+  { name: 'Users', href: '/dashboard/users', icon: Users, roles: ['super-admin', 'admin'] },
+  { name: 'Payout Claims', href: '/dashboard/payouts', icon: CreditCard, roles: ['super-admin', 'admin', 'accountant'] },
+  { name: 'Tasks', href: '/dashboard/tasks', icon: ClipboardList, roles: ['super-admin', 'admin', 'task-officer'] },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
@@ -55,12 +55,16 @@ function SidebarContent({
         </div>
         <div>
           <span className="font-bold text-zinc-100 tracking-tight block">PayFluence</span>
-          <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider block">Admin</span>
+          <span className="text-[10px] text-zinc-550 font-semibold uppercase tracking-wider block">Admin</span>
         </div>
       </div>
 
       <nav className="flex-1 py-6 px-4 space-y-1.5 overflow-y-auto">
-        {SIDEBAR_ITEMS.filter(item => !item.roles || item.roles.includes(user.role)).map((item) => {
+        {SIDEBAR_ITEMS.filter(item => {
+          if (!item.roles) return true
+          const userRoles = user.role.split(',').map(r => r.trim())
+          return userRoles.some(r => item.roles!.includes(r))
+        }).map((item) => {
           const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
           return (
             <button
@@ -156,6 +160,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (!isLoading && !user) router.replace('/login')
   }, [isLoading, user, router])
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      const activeItem = SIDEBAR_ITEMS.find(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)))
+      if (activeItem?.roles) {
+        const userRoles = user.role.split(',').map(r => r.trim())
+        const hasAccess = userRoles.some(r => activeItem.roles!.includes(r))
+        if (!hasAccess) {
+          router.replace('/dashboard')
+        }
+      }
+    }
+  }, [pathname, user, isLoading, router])
 
   const confirmLogout = () => {
     localStorage.removeItem('admin_token')
