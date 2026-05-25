@@ -94,6 +94,10 @@ export default function TaskSubmissionsPage() {
   const [feedback, setFeedback] = useState('')
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null)
   const [activeImagesList, setActiveImagesList] = useState<string[]>([])
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [bulkRating, setBulkRating] = useState<number | null>(null)
+  const [bulkRejectReason, setBulkRejectReason] = useState('')
+  const [bulkMode, setBulkMode] = useState<'none' | 'approve' | 'reject'>('none')
 
   React.useEffect(() => {
     if (viewingSub) {
@@ -151,6 +155,18 @@ export default function TaskSubmissionsPage() {
     mutationFn: (newStatus: 'active' | 'closed') =>
       apiClient.patch(`/admin/tasks/${taskId}/status`, { status: newStatus }) as any,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['task-submissions', taskId] }),
+  })
+
+  const bulkAction = useMutation({
+    mutationFn: (payload: { ids: number[]; action: string; rating?: number; rejectionReason?: string; deductedAmount?: number }) =>
+      apiClient.post(`/admin/tasks/${taskId}/submissions/bulk`, payload) as any,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['task-submissions', taskId] })
+      setSelectedIds(new Set())
+      setBulkMode('none')
+      setBulkRating(null)
+      setBulkRejectReason('')
+    },
   })
 
   const closeRejectModal = () => {
@@ -326,6 +342,27 @@ export default function TaskSubmissionsPage() {
                 <table className="w-full text-sm text-left">
                   <thead>
                     <tr className="border-b border-zinc-800 text-zinc-500 text-xs uppercase tracking-wider">
+                      {(() => {
+                        const selectableSubmissions = submissions.filter(s => s.status === 'pending' || s.status === 'needs_correction')
+                        if (selectableSubmissions.length === 0) return <th className="px-4 py-4 w-10" />
+                        const allSelected = selectableSubmissions.length > 0 && selectableSubmissions.every(s => selectedIds.has(s.id))
+                        return (
+                          <th className="px-4 py-4 w-10">
+                            <input
+                              type="checkbox"
+                              checked={allSelected}
+                              onChange={() => {
+                                if (allSelected) {
+                                  setSelectedIds(new Set())
+                                } else {
+                                  setSelectedIds(new Set(selectableSubmissions.map(s => s.id)))
+                                }
+                              }}
+                              className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 accent-purple-500 cursor-pointer"
+                            />
+                          </th>
+                        )
+                      })()}
                       <th className="px-6 py-4 font-semibold">User</th>
                       <th className="px-6 py-4 font-semibold">Balance</th>
                       <th className="px-6 py-4 font-semibold">Submission Proof &amp; Inputs</th>
@@ -336,7 +373,26 @@ export default function TaskSubmissionsPage() {
                   </thead>
                   <tbody className="divide-y divide-zinc-800/40">
                     {submissions.map((sub) => (
-                      <tr key={sub.id} className="hover:bg-zinc-800/20 transition-colors">
+                      <tr key={sub.id} className={`hover:bg-zinc-800/20 transition-colors ${selectedIds.has(sub.id) ? 'bg-purple-500/5' : ''}`}>
+                        <td className="px-4 py-4 w-10">
+                          {(sub.status === 'pending' || sub.status === 'needs_correction') ? (
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.has(sub.id)}
+                              onChange={() => {
+                                setSelectedIds(prev => {
+                                  const next = new Set(prev)
+                                  if (next.has(sub.id)) next.delete(sub.id)
+                                  else next.add(sub.id)
+                                  return next
+                                })
+                              }}
+                              className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 accent-purple-500 cursor-pointer"
+                            />
+                          ) : (
+                            <span className="text-zinc-700 text-xs">—</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700/60 flex items-center justify-center text-xs font-bold text-purple-400 shrink-0">
@@ -453,6 +509,100 @@ export default function TaskSubmissionsPage() {
             )}
           </div>
         </>
+      )}
+
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center px-4 pb-4 pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-3xl bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl shadow-black/40 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <span className="text-sm font-bold text-zinc-200 shrink-0">{selectedIds.size} selected</span>
+
+            {bulkMode === 'none' && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => setBulkMode('approve')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                >
+                  Bulk Approve
+                </button>
+                <button
+                  onClick={() => setBulkMode('reject')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                >
+                  Bulk Reject
+                </button>
+                <button
+                  onClick={() => setSelectedIds(new Set())}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
+                >
+                  Clear selection
+                </button>
+              </div>
+            )}
+
+            {bulkMode === 'approve' && (
+              <div className="flex flex-1 flex-wrap items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider">Rating:</span>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setBulkRating(star)}
+                      className={`text-xl transition-all ${bulkRating !== null && star <= bulkRating ? 'text-amber-400 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  {bulkRating !== null && <span className="text-xs text-zinc-400 font-mono">({bulkRating}.0)</span>}
+                </div>
+                <button
+                  onClick={() => {
+                    if (bulkRating === null) return
+                    bulkAction.mutate({ ids: Array.from(selectedIds), action: 'approve', rating: bulkRating })
+                  }}
+                  disabled={bulkRating === null || bulkAction.isPending}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-zinc-950 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {bulkAction.isPending ? 'Approving...' : 'Confirm Approve'}
+                </button>
+                <button
+                  onClick={() => { setBulkMode('none'); setBulkRating(null) }}
+                  className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {bulkMode === 'reject' && (
+              <div className="flex flex-1 flex-wrap items-center gap-3">
+                <textarea
+                  value={bulkRejectReason}
+                  onChange={e => setBulkRejectReason(e.target.value)}
+                  placeholder="Rejection reason for all selected..."
+                  rows={2}
+                  className="flex-1 min-w-48 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-red-500/50 resize-none"
+                />
+                <button
+                  onClick={() => {
+                    if (!bulkRejectReason.trim()) return
+                    bulkAction.mutate({ ids: Array.from(selectedIds), action: 'reject', rejectionReason: bulkRejectReason })
+                  }}
+                  disabled={!bulkRejectReason.trim() || bulkAction.isPending}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {bulkAction.isPending ? 'Rejecting...' : 'Confirm Reject'}
+                </button>
+                <button
+                  onClick={() => { setBulkMode('none'); setBulkRejectReason('') }}
+                  className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {rejectModal && (

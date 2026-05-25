@@ -18,6 +18,8 @@ import {
   Shield,
   Loader2,
   AlertTriangle,
+  BarChart2,
+  UserCheck,
 } from 'lucide-react'
 
 interface SidebarItem {
@@ -29,10 +31,12 @@ interface SidebarItem {
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart2, roles: ['super-admin', 'admin'] },
   { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare, roles: ['super-admin'] },
   { name: 'Users', href: '/dashboard/users', icon: Users, roles: ['super-admin', 'admin'] },
   { name: 'Payout Claims', href: '/dashboard/payouts', icon: CreditCard, roles: ['super-admin', 'admin', 'accountant'] },
   { name: 'Tasks', href: '/dashboard/tasks', icon: ClipboardList, roles: ['super-admin', 'admin', 'task-officer'] },
+  { name: 'My Users', href: '/dashboard/my-users', icon: UserCheck, roles: ['account-manager', 'super-admin', 'admin'] },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
