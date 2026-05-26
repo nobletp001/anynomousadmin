@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/services/api-client'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui'
-import { Users, AlertCircle, ChevronLeft, ChevronRight, ShieldOff, Ban, CreditCard, ClipboardX, X } from 'lucide-react'
+import { Users, AlertCircle, ChevronLeft, ChevronRight, ShieldOff, Ban, CreditCard, ClipboardX, X, Copy, Check, AlertTriangle } from 'lucide-react'
 
 function formatAmount(n: number) {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(n)
@@ -43,6 +43,23 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
   })
+}
+
+function formatDateTime(d: string) {
+  return new Date(d).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  })
+}
+
+interface AdminAction {
+  id: number
+  username: string
+  actionType: 'warning' | 'deducted' | 'additional' | 'strike' | 'not_supported'
+  message: string
+  amount: number
+  referenceId: string
+  createdAt: string
 }
 
 function Toggle({
@@ -89,6 +106,24 @@ export default function UsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const queryClient = useQueryClient()
+
+  // Admin action states
+  const [actionType, setActionType] = useState('warning')
+  const [actionMessage, setActionMessage] = useState('')
+  const [actionAmount, setActionAmount] = useState('')
+  const [actionSubmitting, setActionSubmitting] = useState(false)
+  const [actionError, setActionError] = useState('')
+  const [actionSuccess, setActionSuccess] = useState('')
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  // Reset admin action states when selected user changes
+  React.useEffect(() => {
+    setActionType('warning')
+    setActionMessage('')
+    setActionAmount('')
+    setActionError('')
+    setActionSuccess('')
+  }, [selectedUser])
 
   React.useEffect(() => {
     const handler = setTimeout(() => {
@@ -144,6 +179,49 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-users', page] })
     },
   })
+
+  const handleSendAction = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedUser) return
+    if (!actionMessage.trim()) {
+      setActionError('Message is required')
+      return
+    }
+    const amountVal = actionAmount ? parseFloat(actionAmount) : 0
+    if ((actionType === 'deducted' || actionType === 'additional') && (isNaN(amountVal) || amountVal <= 0)) {
+      setActionError('A valid positive amount is required for deductions or additions.')
+      return
+    }
+
+    try {
+      setActionSubmitting(true)
+      setActionError('')
+      setActionSuccess('')
+      await apiClient.post(`/admin/users/${selectedUser}/actions`, {
+        actionType,
+        message: actionMessage.trim(),
+        amount: amountVal,
+      })
+      setActionSuccess('Action recorded successfully!')
+      setActionMessage('')
+      setActionAmount('')
+      // Invalidate the query to refresh user details
+      queryClient.invalidateQueries({ queryKey: ['admin-user-detail', selectedUser] })
+      // Invalidate the users list so statistics/available balances match
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    } catch (err: any) {
+      console.error(err)
+      setActionError(err.response?.data?.error || err.message || 'Failed to submit action')
+    } finally {
+      setActionSubmitting(false)
+    }
+  }
+
+  const handleCopyRef = (refId: string) => {
+    navigator.clipboard.writeText(refId)
+    setCopiedId(refId)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
 
   const totalPages = data ? Math.ceil(data.total / data.limit) : 1
 
@@ -405,7 +483,13 @@ export default function UsersPage() {
                 <p className="text-zinc-500 text-center py-6 text-sm">Failed to load user details.</p>
               ) : (
                 (() => {
-                  const { user, profile, bankDetails, stats } = userDetail.data
+                  const { user, profile, bankDetails, stats, actions } = userDetail.data as {
+                    user: User
+                    profile: any
+                    bankDetails: any
+                    actions: AdminAction[]
+                    stats: any
+                  }
                   return (
                     <div className="space-y-6">
                       {/* Top Header details */}
@@ -521,6 +605,155 @@ export default function UsersPage() {
                               <span className="text-zinc-200">{bankDetails?.whatsappNumber || '—'}</span>
                             </div>
                           </div>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="h-px bg-zinc-800 my-4" />
+
+                      {/* Admin Actions Section */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                        {/* History Log */}
+                        <div className="space-y-3">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500">Admin Actions History</h4>
+                          <div className="border border-zinc-800 rounded-xl bg-zinc-950/20 p-4 space-y-4 max-h-[320px] overflow-y-auto">
+                            {!actions || actions.length === 0 ? (
+                              <p className="text-zinc-500 text-xs text-center py-8">No admin actions recorded for this user.</p>
+                            ) : (
+                              actions.map((act) => (
+                                <div key={act.id} className="border border-zinc-800/60 bg-zinc-900/30 rounded-lg p-3 space-y-2 text-xs">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <Badge
+                                      variant={
+                                        act.actionType === 'warning' ? 'warning' :
+                                        act.actionType === 'strike' ? 'danger' :
+                                        act.actionType === 'deducted' ? 'danger' :
+                                        act.actionType === 'additional' ? 'success' : 'default'
+                                      }
+                                    >
+                                      {act.actionType === 'warning' ? 'Warning' :
+                                       act.actionType === 'strike' ? 'Strike' :
+                                       act.actionType === 'deducted' ? 'Penalty Deduction' :
+                                       act.actionType === 'additional' ? 'Bonus Addition' : 'Support Notice'}
+                                    </Badge>
+                                    <span className="text-[10px] text-zinc-550 font-mono">{formatDateTime(act.createdAt)}</span>
+                                  </div>
+
+                                  <p className="text-zinc-300 leading-relaxed break-words">{act.message}</p>
+
+                                  {act.amount > 0 && (
+                                    <div className="text-[11px] font-bold">
+                                      {act.actionType === 'deducted' ? (
+                                        <span className="text-red-400">Deduction: -{formatAmount(act.amount)}</span>
+                                      ) : (
+                                        <span className="text-emerald-400">Addition: +{formatAmount(act.amount)}</span>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  <div className="flex items-center justify-between border-t border-zinc-800/40 pt-2 text-[10px] text-zinc-550 font-mono">
+                                    <span>ID: {act.referenceId}</span>
+                                    <button
+                                      onClick={() => handleCopyRef(act.referenceId)}
+                                      className="p-1 hover:text-zinc-350 rounded hover:bg-zinc-800 transition-colors"
+                                      title="Copy Reference ID"
+                                    >
+                                      {copiedId === act.referenceId ? (
+                                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                      ) : (
+                                        <Copy className="w-3.5 h-3.5" />
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Send New Action Form */}
+                        <div className="space-y-3">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500">Send Action / Penalty</h4>
+                          <form onSubmit={handleSendAction} className="border border-zinc-800 rounded-xl bg-zinc-900/40 p-4 space-y-3.5 text-xs">
+                            {actionError && (
+                              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-2.5 rounded-lg flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 shrink-0" />
+                                <span>{actionError}</span>
+                              </div>
+                            )}
+
+                            {actionSuccess && (
+                              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-2.5 rounded-lg">
+                                {actionSuccess}
+                              </div>
+                            )}
+
+                            <div className="space-y-1.5">
+                              <label className="text-zinc-400 font-semibold">Action Type</label>
+                              <select
+                                value={actionType}
+                                onChange={e => {
+                                  setActionType(e.target.value)
+                                  setActionError('')
+                                }}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 focus:outline-none focus:border-purple-500/50 transition-colors"
+                              >
+                                <option value="warning">Warning Notice</option>
+                                <option value="strike">Account Strike</option>
+                                <option value="deducted">Deduct Penalty Funds</option>
+                                <option value="additional">Add Bonus Funds</option>
+                                <option value="not_supported">Not Supported (Contact CEO)</option>
+                              </select>
+                            </div>
+
+                            {(actionType === 'deducted' || actionType === 'additional') && (
+                              <div className="space-y-1.5">
+                                <label className="text-zinc-400 font-semibold">Amount (NGN)</label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  placeholder="e.g. 500"
+                                  value={actionAmount}
+                                  onChange={e => {
+                                    setActionAmount(e.target.value)
+                                    setActionError('')
+                                  }}
+                                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 font-mono focus:outline-none focus:border-purple-500/50 transition-colors"
+                                  required
+                                />
+                              </div>
+                            )}
+
+                            <div className="space-y-1.5">
+                              <label className="text-zinc-400 font-semibold">Message Description</label>
+                              <textarea
+                                placeholder={
+                                  actionType === 'warning' ? "Explain what rule was violated..." :
+                                  actionType === 'strike' ? "Provide details for the strike..." :
+                                  actionType === 'deducted' ? "Explain the penalty / deduction reasoning..." :
+                                  actionType === 'additional' ? "Explain the bonus reason..." :
+                                  "Provide contact instructions or details for this support request..."
+                                }
+                                value={actionMessage}
+                                onChange={e => {
+                                  setActionMessage(e.target.value)
+                                  setActionError('')
+                                }}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 focus:outline-none focus:border-purple-500/50 transition-colors min-h-[70px] resize-none"
+                                required
+                              />
+                            </div>
+
+                            <Button
+                              type="submit"
+                              size="sm"
+                              variant={actionType === 'additional' ? 'primary' : actionType === 'deducted' || actionType === 'strike' ? 'danger' : 'secondary'}
+                              isLoading={actionSubmitting}
+                              fullWidth
+                            >
+                              Submit Action
+                            </Button>
+                          </form>
                         </div>
                       </div>
                     </div>
