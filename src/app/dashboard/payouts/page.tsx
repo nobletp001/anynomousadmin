@@ -1,56 +1,65 @@
-'use client'
+"use client";
 
-import React, { useState, useCallback } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/services/api-client'
-import { Button } from '@/components/ui'
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/services/api-client";
+import { Button } from "@/components/ui";
 import {
-  AlertCircle, Wallet, Building2, Phone, Copy, CheckCircle,
-  Clock, CircleCheck, XCircle, History, Calendar, DollarSign,
-  TrendingUp, Activity
-} from 'lucide-react'
+  AlertCircle,
+  Wallet,
+  Building2,
+  Phone,
+  Copy,
+  CheckCircle,
+  CircleCheck,
+  History,
+  Calendar,
+  DollarSign,
+  TrendingUp,
+  Activity,
+} from "lucide-react";
 
 interface BankDetail {
-  accountName: string
-  accountNumber: string
-  bankName: string
-  whatsappNumber: string
+  accountName: string;
+  accountNumber: string;
+  bankName: string;
+  whatsappNumber: string;
 }
 
 interface PayoutClaim {
-  id: number
-  username: string
-  amount: number
-  status: string
-  paidBy: string | null
-  paidByRole: string | null
-  paidAt: string | null
-  createdAt: string
-  bankDetail: BankDetail | null
+  id: number;
+  username: string;
+  amount: number;
+  status: string;
+  paidBy: string | null;
+  paidByRole: string | null;
+  paidAt: string | null;
+  createdAt: string;
+  bankDetail: BankDetail | null;
 }
 
 function fmt(n: number) {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency', currency: 'NGN', minimumFractionDigits: 0,
-  }).format(n)
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 0,
+  }).format(n);
 }
 
 function CopyBtn({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false);
   return (
     <button
       onClick={() => {
-        navigator.clipboard.writeText(text)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
       }}
       className="text-zinc-650 hover:text-zinc-300 transition-colors cursor-pointer"
     >
-      {copied
-        ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-        : <Copy className="w-3.5 h-3.5" />}
+      {copied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
     </button>
-  )
+  );
 }
 
 function BankCard({ bd }: { bd: BankDetail }) {
@@ -61,7 +70,9 @@ function BankCard({ bd }: { bd: BankDetail }) {
         {bd.bankName}
       </div>
       <div className="flex items-center gap-1.5 text-xs">
-        <span className="font-mono font-bold text-zinc-100 tracking-wider bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800">{bd.accountNumber}</span>
+        <span className="font-mono font-bold text-zinc-100 tracking-wider bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800">
+          {bd.accountNumber}
+        </span>
         <CopyBtn text={bd.accountNumber} />
         <span className="text-zinc-700 px-0.5">|</span>
         <span className="text-zinc-400 truncate max-w-40 font-medium">{bd.accountName}</span>
@@ -72,93 +83,95 @@ function BankCard({ bd }: { bd: BankDetail }) {
         <CopyBtn text={bd.whatsappNumber} />
       </div>
     </div>
-  )
+  );
 }
 
 export default function PayoutsPage() {
-  const [tab, setTab] = useState<'requests' | 'history'>('requests')
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'yesterday' | '3days' | '4days' | '5days' | 'custom'>('all')
-  const [customDate, setCustomDate] = useState<string>('')
-  const [actionError, setActionError] = useState<string | null>(null)
+  const [tab, setTab] = useState<"requests" | "history">("requests");
+  const [dateFilter, setDateFilter] = useState<"all" | "today" | "yesterday" | "3days" | "4days" | "5days" | "custom">(
+    "all"
+  );
+  const [customDate, setCustomDate] = useState<string>("");
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const { data, isLoading, error, refetch } = useQuery<{ success: boolean; data: PayoutClaim[] }>({
-    queryKey: ['admin-payout-claims'],
-    queryFn: () => apiClient.get('/admin/payouts') as any,
-  })
+    queryKey: ["admin-payout-claims"],
+    queryFn: () => apiClient.get("/admin/payouts") as any,
+  });
 
   const updateStatus = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: 'paid' | 'rejected' }) =>
+    mutationFn: ({ id, status }: { id: number; status: "paid" | "rejected" }) =>
       apiClient.patch(`/admin/payouts/${id}/status`, { status }) as Promise<any>,
     onSuccess: () => {
-      setActionError(null)
-      queryClient.invalidateQueries({ queryKey: ['admin-payout-claims'] })
+      setActionError(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-payout-claims"] });
     },
     onError: (err: any) => {
-      setActionError(err?.message || 'Failed to update status')
-    }
-  })
+      setActionError(err?.message || "Failed to update status");
+    },
+  });
 
-  const claims = data?.data ?? []
+  const claims = data?.data ?? [];
 
   // Filter requests (status is 'in review')
-  const requests = claims.filter(c => c.status === 'in review')
+  const requests = claims.filter((c) => c.status === "in review");
 
   // Date boundary helper calculations
-  const now = new Date()
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   // Filter paid payouts (status is 'paid')
   const paidHistory = claims.filter((c) => {
-    if (c.status !== 'paid') return false
-    if (!c.paidAt) return false
-    
-    const paidDate = new Date(c.paidAt)
-    
-    if (dateFilter === 'today') {
-      return paidDate >= startOfToday
+    if (c.status !== "paid") return false;
+    if (!c.paidAt) return false;
+
+    const paidDate = new Date(c.paidAt);
+
+    if (dateFilter === "today") {
+      return paidDate >= startOfToday;
     }
-    if (dateFilter === 'yesterday') {
-      const startOfYesterday = new Date(startOfToday)
-      startOfYesterday.setDate(startOfYesterday.getDate() - 1)
-      return paidDate >= startOfYesterday && paidDate < startOfToday
+    if (dateFilter === "yesterday") {
+      const startOfYesterday = new Date(startOfToday);
+      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+      return paidDate >= startOfYesterday && paidDate < startOfToday;
     }
-    if (dateFilter === '3days') {
-      const limit = new Date(startOfToday)
-      limit.setDate(limit.getDate() - 2)
-      return paidDate >= limit
+    if (dateFilter === "3days") {
+      const limit = new Date(startOfToday);
+      limit.setDate(limit.getDate() - 2);
+      return paidDate >= limit;
     }
-    if (dateFilter === '4days') {
-      const limit = new Date(startOfToday)
-      limit.setDate(limit.getDate() - 3)
-      return paidDate >= limit
+    if (dateFilter === "4days") {
+      const limit = new Date(startOfToday);
+      limit.setDate(limit.getDate() - 3);
+      return paidDate >= limit;
     }
-    if (dateFilter === '5days') {
-      const limit = new Date(startOfToday)
-      limit.setDate(limit.getDate() - 4)
-      return paidDate >= limit
+    if (dateFilter === "5days") {
+      const limit = new Date(startOfToday);
+      limit.setDate(limit.getDate() - 4);
+      return paidDate >= limit;
     }
-    if (dateFilter === 'custom') {
-      if (!customDate) return true
-      const [y, m, d] = customDate.split('-').map(Number)
-      const targetDate = new Date(y, m - 1, d)
-      const targetDateEnd = new Date(y, m - 1, d + 1)
-      return paidDate >= targetDate && paidDate < targetDateEnd
+    if (dateFilter === "custom") {
+      if (!customDate) return true;
+      const [y, m, d] = customDate.split("-").map(Number);
+      const targetDate = new Date(y, m - 1, d);
+      const targetDateEnd = new Date(y, m - 1, d + 1);
+      return paidDate >= targetDate && paidDate < targetDateEnd;
     }
-    return true // 'all'
-  })
+    return true; // 'all'
+  });
 
   // Calculate statistics metrics based on filtered history
-  const totalPaid = paidHistory.reduce((sum, c) => sum + c.amount, 0)
-  const payoutCount = paidHistory.length
-  const avgPayout = payoutCount > 0 ? totalPaid / payoutCount : 0
-  const maxPayout = paidHistory.length > 0 ? Math.max(...paidHistory.map((c) => c.amount)) : 0
+  const totalPaid = paidHistory.reduce((sum, c) => sum + c.amount, 0);
+  const payoutCount = paidHistory.length;
+  const avgPayout = payoutCount > 0 ? totalPaid / payoutCount : 0;
+  const maxPayout = paidHistory.length > 0 ? Math.max(...paidHistory.map((c) => c.amount)) : 0;
 
-  const handleAction = (id: number, status: 'paid' | 'rejected') => {
-    setActionError(null)
-    updateStatus.mutate({ id, status })
-  }
+  const handleAction = (id: number, status: "paid" | "rejected") => {
+    setActionError(null);
+    updateStatus.mutate({ id, status });
+  };
 
   if (isLoading) {
     return (
@@ -183,7 +196,7 @@ export default function PayoutsPage() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -192,9 +205,11 @@ export default function PayoutsPage() {
         <AlertCircle className="w-10 h-10 text-red-500" />
         <h3 className="text-sm font-bold text-zinc-200">Failed to load payout data</h3>
         <p className="text-zinc-550 text-xs max-w-sm">Please check your network connection and try again.</p>
-        <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-2">Retry</Button>
+        <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-2">
+          Retry
+        </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -208,21 +223,21 @@ export default function PayoutsPage() {
         {/* Tab switcher */}
         <div className="flex gap-1 p-1 bg-zinc-900/60 border border-zinc-800/80 rounded-xl">
           <button
-            onClick={() => setTab('requests')}
+            onClick={() => setTab("requests")}
             className={`px-5 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
-              tab === 'requests'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20'
-                : 'text-zinc-400 hover:text-zinc-250'
+              tab === "requests"
+                ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+                : "text-zinc-400 hover:text-zinc-250"
             }`}
           >
             Requests ({requests.length})
           </button>
           <button
-            onClick={() => setTab('history')}
+            onClick={() => setTab("history")}
             className={`px-5 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
-              tab === 'history'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20'
-                : 'text-zinc-400 hover:text-zinc-250'
+              tab === "history"
+                ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+                : "text-zinc-400 hover:text-zinc-250"
             }`}
           >
             History
@@ -237,7 +252,7 @@ export default function PayoutsPage() {
         </div>
       )}
 
-      {tab === 'requests' ? (
+      {tab === "requests" ? (
         /* PENDING REQUESTS PANEL */
         <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
           {requests.length === 0 ? (
@@ -264,11 +279,15 @@ export default function PayoutsPage() {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-zinc-100">@{r.username}</p>
-                      <p className="text-base font-black text-emerald-400 leading-tight mt-0.5">
-                        {fmt(r.amount)}
-                      </p>
+                      <p className="text-base font-black text-emerald-400 leading-tight mt-0.5">{fmt(r.amount)}</p>
                       <p className="text-[10px] text-zinc-650 mt-1">
-                        Requested: {new Date(r.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        Requested:{" "}
+                        {new Date(r.createdAt).toLocaleDateString("en-NG", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </p>
                     </div>
                   </div>
@@ -290,7 +309,7 @@ export default function PayoutsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAction(r.id, 'paid')}
+                      onClick={() => handleAction(r.id, "paid")}
                       disabled={updateStatus.isPending}
                       className="border-emerald-500/30 text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500 hover:text-white"
                     >
@@ -299,7 +318,7 @@ export default function PayoutsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAction(r.id, 'rejected')}
+                      onClick={() => handleAction(r.id, "rejected")}
                       disabled={updateStatus.isPending}
                       className="border-red-500/30 text-red-400 bg-red-500/5 hover:bg-red-500 hover:text-white"
                     >
@@ -314,7 +333,6 @@ export default function PayoutsPage() {
       ) : (
         /* PAID HISTORY PANEL WITH FILTERS & STATISTICS */
         <div className="space-y-6">
-          
           {/* Filters controls */}
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md">
             <div className="flex flex-wrap items-center gap-1.5">
@@ -322,21 +340,21 @@ export default function PayoutsPage() {
                 <Calendar className="w-3.5 h-3.5" /> Date Filter:
               </span>
               {[
-                { val: 'all', label: 'All Time' },
-                { val: 'today', label: 'Today' },
-                { val: 'yesterday', label: 'Yesterday' },
-                { val: '3days', label: '3 Days' },
-                { val: '4days', label: '4 Days' },
-                { val: '5days', label: '5 Days' },
-                { val: 'custom', label: 'Custom Date' }
+                { val: "all", label: "All Time" },
+                { val: "today", label: "Today" },
+                { val: "yesterday", label: "Yesterday" },
+                { val: "3days", label: "3 Days" },
+                { val: "4days", label: "4 Days" },
+                { val: "5days", label: "5 Days" },
+                { val: "custom", label: "Custom Date" },
               ].map((opt) => (
                 <button
                   key={opt.val}
                   onClick={() => setDateFilter(opt.val as any)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     dateFilter === opt.val
-                      ? 'bg-zinc-800 text-purple-400 border border-zinc-700/60'
-                      : 'bg-zinc-950/20 text-zinc-400 border border-transparent hover:text-zinc-200'
+                      ? "bg-zinc-800 text-purple-400 border border-zinc-700/60"
+                      : "bg-zinc-950/20 text-zinc-400 border border-transparent hover:text-zinc-200"
                   }`}
                 >
                   {opt.label}
@@ -344,7 +362,7 @@ export default function PayoutsPage() {
               ))}
             </div>
 
-            {dateFilter === 'custom' && (
+            {dateFilter === "custom" && (
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold text-zinc-500 uppercase">Select Date:</span>
                 <input
@@ -430,12 +448,16 @@ export default function PayoutsPage() {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-zinc-100">@{c.username}</p>
-                        <p className="text-base font-black text-emerald-400 leading-tight mt-0.5">
-                          {fmt(c.amount)}
-                        </p>
+                        <p className="text-base font-black text-emerald-400 leading-tight mt-0.5">{fmt(c.amount)}</p>
                         {c.paidAt && (
                           <p className="text-[10px] text-zinc-600 mt-1">
-                            Paid: {new Date(c.paidAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            Paid:{" "}
+                            {new Date(c.paidAt).toLocaleDateString("en-NG", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </p>
                         )}
                       </div>
@@ -462,12 +484,10 @@ export default function PayoutsPage() {
                         </span>
                         {c.paidBy ? (
                           <p className="text-[10px] text-zinc-500 mt-1.5 font-medium leading-none">
-                            by <span className="text-zinc-300 font-bold">@{c.paidBy}</span> ({c.paidByRole || 'Admin'})
+                            by <span className="text-zinc-300 font-bold">@{c.paidBy}</span> ({c.paidByRole || "Admin"})
                           </p>
                         ) : (
-                          <p className="text-[10px] text-zinc-600 mt-1.5 font-medium leading-none">
-                            by unknown admin
-                          </p>
+                          <p className="text-[10px] text-zinc-600 mt-1.5 font-medium leading-none">by unknown admin</p>
                         )}
                       </div>
                     </div>
@@ -479,5 +499,5 @@ export default function PayoutsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

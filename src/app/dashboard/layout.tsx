@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { usePathname, useRouter } from 'next/navigation'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { authQueryKey, authQueryFn } from '@/lib/auth'
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { usePathname, useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { authQueryKey, authQueryFn } from "@/lib/auth";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -20,25 +20,35 @@ import {
   AlertTriangle,
   BarChart2,
   UserCheck,
-} from 'lucide-react'
+} from "lucide-react";
 
 interface SidebarItem {
-  name: string
-  href: string
-  icon: React.ComponentType<any>
-  roles?: string[]
+  name: string;
+  href: string;
+  icon: React.ComponentType<any>;
+  roles?: string[];
 }
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
-  { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart2, roles: ['super-admin', 'admin'] },
-  { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare, roles: ['super-admin'] },
-  { name: 'Users', href: '/dashboard/users', icon: Users, roles: ['super-admin', 'admin'] },
-  { name: 'Payout Claims', href: '/dashboard/payouts', icon: CreditCard, roles: ['super-admin', 'admin', 'accountant'] },
-  { name: 'Tasks', href: '/dashboard/tasks', icon: ClipboardList, roles: ['super-admin', 'admin', 'task-officer'] },
-  { name: 'My Users', href: '/dashboard/my-users', icon: UserCheck, roles: ['account-manager', 'super-admin', 'admin'] },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-]
+  { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Analytics", href: "/dashboard/analytics", icon: BarChart2, roles: ["super-admin", "admin"] },
+  { name: "Messages", href: "/dashboard/messages", icon: MessageSquare, roles: ["super-admin"] },
+  { name: "Users", href: "/dashboard/users", icon: Users, roles: ["super-admin", "admin"] },
+  {
+    name: "Payout Claims",
+    href: "/dashboard/payouts",
+    icon: CreditCard,
+    roles: ["super-admin", "admin", "accountant"],
+  },
+  { name: "Tasks", href: "/dashboard/tasks", icon: ClipboardList, roles: ["super-admin", "admin", "task-officer"] },
+  {
+    name: "My Users",
+    href: "/dashboard/my-users",
+    icon: UserCheck,
+    roles: ["account-manager", "super-admin", "admin"],
+  },
+  { name: "Settings", href: "/dashboard/settings", icon: Settings },
+];
 
 function SidebarContent({
   user,
@@ -46,10 +56,10 @@ function SidebarContent({
   onNavClick,
   onLogoutClick,
 }: {
-  user: { name: string; email: string; role: string }
-  pathname: string
-  onNavClick: (href: string) => void
-  onLogoutClick: () => void
+  user: { name: string; email: string; role: string };
+  pathname: string;
+  onNavClick: (href: string) => void;
+  onLogoutClick: () => void;
 }) {
   return (
     <div className="flex flex-col h-full bg-zinc-900 text-zinc-300">
@@ -64,26 +74,26 @@ function SidebarContent({
       </div>
 
       <nav className="flex-1 py-6 px-4 space-y-1.5 overflow-y-auto">
-        {SIDEBAR_ITEMS.filter(item => {
-          if (!item.roles) return true
-          const userRoles = user.role.split(',').map(r => r.trim())
-          return userRoles.some(r => item.roles!.includes(r))
+        {SIDEBAR_ITEMS.filter((item) => {
+          if (!item.roles) return true;
+          const userRoles = user.role.split(",").map((r) => r.trim());
+          return userRoles.some((r) => item.roles!.includes(r));
         }).map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
           return (
             <button
               key={item.name}
               onClick={() => onNavClick(item.href)}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
                 isActive
-                  ? 'bg-purple-600 text-zinc-50 shadow-lg shadow-purple-500/10'
-                  : 'hover:bg-zinc-800/60 hover:text-zinc-100 text-zinc-400'
+                  ? "bg-purple-600 text-zinc-50 shadow-lg shadow-purple-500/10"
+                  : "hover:bg-zinc-800/60 hover:text-zinc-100 text-zinc-400"
               }`}
             >
-              <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-zinc-50' : 'text-zinc-500'}`} />
+              <item.icon className={`w-5 h-5 shrink-0 ${isActive ? "text-zinc-50" : "text-zinc-500"}`} />
               <span>{item.name}</span>
             </button>
-          )
+          );
         })}
       </nav>
 
@@ -106,7 +116,7 @@ function SidebarContent({
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 function LogoutModal({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
@@ -144,47 +154,49 @@ function LogoutModal({ onConfirm, onCancel }: { onConfirm: () => void; onCancel:
         </div>
       </motion.div>
     </div>
-  )
+  );
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const { data: user, isLoading } = useQuery({
     queryKey: authQueryKey,
     queryFn: authQueryFn,
     staleTime: 5 * 60 * 1000,
     retry: false,
-  })
+  });
 
   useEffect(() => {
-    if (!isLoading && !user) router.replace('/login')
-  }, [isLoading, user, router])
+    if (!isLoading && !user) router.replace("/login");
+  }, [isLoading, user, router]);
 
   useEffect(() => {
     if (!isLoading && user) {
-      const activeItem = SIDEBAR_ITEMS.find(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)))
+      const activeItem = SIDEBAR_ITEMS.find(
+        (item) => pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
+      );
       if (activeItem?.roles) {
-        const userRoles = user.role.split(',').map(r => r.trim())
-        const hasAccess = userRoles.some(r => activeItem.roles!.includes(r))
+        const userRoles = user.role.split(",").map((r) => r.trim());
+        const hasAccess = userRoles.some((r) => activeItem.roles!.includes(r));
         if (!hasAccess) {
-          router.replace('/dashboard')
+          router.replace("/dashboard");
         }
       }
     }
-  }, [pathname, user, isLoading, router])
+  }, [pathname, user, isLoading, router]);
 
   const confirmLogout = () => {
-    localStorage.removeItem('admin_token')
-    localStorage.removeItem('admin_user')
-    queryClient.setQueryData(authQueryKey, null)
-    queryClient.clear()
-    router.replace('/login')
-  }
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_user");
+    queryClient.setQueryData(authQueryKey, null);
+    queryClient.clear();
+    router.replace("/login");
+  };
 
   if (isLoading || !user) {
     return (
@@ -192,13 +204,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
         <p className="text-sm font-medium">Verifying credentials...</p>
       </div>
-    )
+    );
   }
 
   const handleNavClick = (href: string) => {
-    setMobileOpen(false)
-    router.push(href)
-  }
+    setMobileOpen(false);
+    router.push(href);
+  };
 
   return (
     <div className="h-screen bg-zinc-950 flex text-zinc-100 overflow-hidden">
@@ -232,9 +244,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Scrollable content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="p-6 md:p-8 max-w-7xl w-full mx-auto">
-            {children}
-          </div>
+          <div className="p-6 md:p-8 max-w-7xl w-full mx-auto">{children}</div>
         </main>
       </div>
 
@@ -250,10 +260,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
             />
             <motion.div
-              initial={{ x: '-100%' }}
+              initial={{ x: "-100%" }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="fixed top-0 bottom-0 left-0 w-72 z-50 lg:hidden shadow-2xl"
             >
               <div className="absolute right-4 top-4 z-10">
@@ -268,7 +278,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 user={user}
                 pathname={pathname}
                 onNavClick={handleNavClick}
-                onLogoutClick={() => { setMobileOpen(false); setShowLogoutModal(true) }}
+                onLogoutClick={() => {
+                  setMobileOpen(false);
+                  setShowLogoutModal(true);
+                }}
               />
             </motion.div>
           </>
@@ -277,13 +290,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Logout confirmation modal */}
       <AnimatePresence>
-        {showLogoutModal && (
-          <LogoutModal
-            onConfirm={confirmLogout}
-            onCancel={() => setShowLogoutModal(false)}
-          />
-        )}
+        {showLogoutModal && <LogoutModal onConfirm={confirmLogout} onCancel={() => setShowLogoutModal(false)} />}
       </AnimatePresence>
     </div>
-  )
+  );
 }

@@ -1,27 +1,19 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/services/api-client'
-import { motion, type Variants } from 'framer-motion'
-import { Button } from '@/components/ui'
-import {
-  Users,
-  MessageSquare,
-  GitMerge,
-  ClipboardList,
-  TrendingUp,
-  AlertCircle,
-  RefreshCw,
-} from 'lucide-react'
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/services/api-client";
+import { motion, type Variants } from "framer-motion";
+import { Button } from "@/components/ui";
+import { Users, MessageSquare, GitMerge, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
 
 interface StatsResponse {
-  success: boolean
+  success: boolean;
   stats: {
-    totalUsers: number
-    totalMessages: number
-    totalReferrals: number
-  }
+    totalUsers: number;
+    totalMessages: number;
+    totalReferrals: number;
+  };
 }
 
 const cardVariants: Variants = {
@@ -32,21 +24,21 @@ const cardVariants: Variants = {
     transition: {
       delay: i * 0.1,
       duration: 0.5,
-      ease: 'easeOut' as const,
+      ease: "easeOut" as const,
     },
   }),
-}
+};
 
 export default function DashboardPage() {
   const { data, isLoading, error, refetch, isRefetching } = useQuery<StatsResponse>({
-    queryKey: ['admin-stats'],
+    queryKey: ["admin-stats"],
     queryFn: async () => {
-      const response = await apiClient.get('/admin/stats')
-      return response as unknown as StatsResponse
+      const response = await apiClient.get("/admin/stats");
+      return response as unknown as StatsResponse;
     },
     retry: 1,
     refetchOnWindowFocus: true,
-  })
+  });
 
   return (
     <div className="space-y-8">
@@ -60,7 +52,7 @@ export default function DashboardPage() {
           size="md"
           onClick={() => refetch()}
           disabled={isLoading || isRefetching}
-          leftIcon={<RefreshCw className={`w-4 h-4 ${isRefetching ? 'animate-spin' : ''}`} />}
+          leftIcon={<RefreshCw className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`} />}
         >
           Refresh Data
         </Button>
@@ -69,17 +61,14 @@ export default function DashboardPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="h-32 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl animate-pulse"
-            />
+            <div key={i} className="h-32 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : error ? (
         <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center max-w-xl mx-auto gap-3">
           <AlertCircle className="w-12 h-12 text-red-400" />
           <h3 className="text-lg font-bold text-zinc-100">Failed to load statistics</h3>
-          <p className="text-sm text-zinc-400">{error.message || 'Please check your connection.'}</p>
+          <p className="text-sm text-zinc-400">{error.message || "Please check your connection."}</p>
           <Button variant="danger" size="md" onClick={() => refetch()} className="mt-2">
             Retry Connection
           </Button>
@@ -153,10 +142,9 @@ export default function DashboardPage() {
                 <span>User invites completed</span>
               </span>
             </motion.div>
-
           </div>
         </>
       )}
     </div>
-  )
+  );
 }

@@ -1,165 +1,197 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
-import { apiClient } from '@/services/api-client'
-import { authQueryKey, authQueryFn } from '@/lib/auth'
-import { Badge } from '@/components/ui'
-import { Button } from '@/components/ui'
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { apiClient } from "@/services/api-client";
+import { authQueryKey, authQueryFn } from "@/lib/auth";
+import { Badge } from "@/components/ui";
+import { Button } from "@/components/ui";
 import {
-  ClipboardList, AlertCircle, Plus, Trash2, Users,
-  Calendar, Coins, ChevronRight, Infinity, X, UserCircle2,
-} from 'lucide-react'
+  ClipboardList,
+  AlertCircle,
+  Plus,
+  Trash2,
+  Users,
+  Calendar,
+  Coins,
+  ChevronRight,
+  Infinity,
+  X,
+  UserCircle2,
+} from "lucide-react";
 
 interface Task {
-  id: number
-  title: string
-  description: string
-  banner: string | null
-  timeline: string | null
-  lifeline: boolean
-  numberOfUsersNeeded: number
-  amount: number
-  taskType: string
-  targetPlatform: string
-  proofType: string
-  adminContact: string | null
-  status: string
-  approvedCount: number
-  createdBy: string
-  createdAt: string
-  submissionCount: number
+  id: number;
+  title: string;
+  description: string;
+  banner: string | null;
+  timeline: string | null;
+  lifeline: boolean;
+  numberOfUsersNeeded: number;
+  amount: number;
+  taskType: string;
+  targetPlatform: string;
+  proofType: string;
+  adminContact: string | null;
+  status: string;
+  approvedCount: number;
+  createdBy: string;
+  createdAt: string;
+  submissionCount: number;
 }
 
 interface TasksResponse {
-  success: boolean
-  data: Task[]
+  success: boolean;
+  data: Task[];
 }
 
 const PLATFORM_COLORS: Record<string, string> = {
-  whatsapp: 'bg-green-500/10 text-green-400 border-green-500/20',
-  tiktok: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
-  facebook: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  x: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/20',
-  instagram: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  youtube: 'bg-red-500/10 text-red-400 border-red-500/20',
-  other: 'bg-zinc-800/60 text-zinc-400 border-zinc-700/60',
-}
+  whatsapp: "bg-green-500/10 text-green-400 border-green-500/20",
+  tiktok: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+  facebook: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  x: "bg-zinc-500/10 text-zinc-300 border-zinc-500/20",
+  instagram: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  youtube: "bg-red-500/10 text-red-400 border-red-500/20",
+  other: "bg-zinc-800/60 text-zinc-400 border-zinc-700/60",
+};
 
 function platformLabel(p: string) {
-  return ({ x: 'X (Twitter)', youtube: 'YouTube', other: 'Other' } as Record<string, string>)[p] ?? p.charAt(0).toUpperCase() + p.slice(1)
+  return (
+    ({ x: "X (Twitter)", youtube: "YouTube", other: "Other" } as Record<string, string>)[p] ??
+    p.charAt(0).toUpperCase() + p.slice(1)
+  );
 }
 
 function taskTypeLabel(t: string) {
   const map: Record<string, string> = {
-    follow: 'Follow', like: 'Like', comment: 'Comment', subscribe: 'Subscribe',
-    share: 'Share', 'post-content': 'Post Content', views: 'Views', download: 'Download',
-    signup: 'Sign Up', review: 'Review', message: 'Message', watch: 'Watch',
-    'use-app': 'Use App', jetpot: 'Jetpot',
-  }
-  return map[t] ?? t
+    follow: "Follow",
+    like: "Like",
+    comment: "Comment",
+    subscribe: "Subscribe",
+    share: "Share",
+    "post-content": "Post Content",
+    views: "Views",
+    download: "Download",
+    signup: "Sign Up",
+    review: "Review",
+    message: "Message",
+    watch: "Watch",
+    "use-app": "Use App",
+    jetpot: "Jetpot",
+  };
+  return map[t] ?? t;
 }
 
 function formatAmount(n: number) {
-  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(n)
+  return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(n);
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 function isExpired(task: Task) {
-  if (task.lifeline || !task.timeline) return false
-  return new Date(task.timeline) < new Date()
+  if (task.lifeline || !task.timeline) return false;
+  return new Date(task.timeline) < new Date();
 }
 
 function getDateLabel(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const taskDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  const diffDays = Math.round((today.getTime() - taskDay.getTime()) / 86_400_000)
+  const date = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const taskDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((today.getTime() - taskDay.getTime()) / 86_400_000);
 
-  if (diffDays === 0) return 'Today'
-  if (diffDays === 1) return 'Yesterday'
-  if (diffDays === 2) return '2 Days Ago'
-  if (diffDays === 3) return '3 Days Ago'
-  if (diffDays === 4) return '4 Days Ago'
-  if (diffDays === 5) return '5 Days Ago'
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays === 2) return "2 Days Ago";
+  if (diffDays === 3) return "3 Days Ago";
+  if (diffDays === 4) return "4 Days Ago";
+  if (diffDays === 5) return "5 Days Ago";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 function groupByDate(tasks: Task[]): { label: string; tasks: Task[] }[] {
-  const map = new Map<string, Task[]>()
-  const order: string[] = []
+  const map = new Map<string, Task[]>();
+  const order: string[] = [];
   for (const t of tasks) {
-    const label = getDateLabel(t.createdAt)
-    if (!map.has(label)) { map.set(label, []); order.push(label) }
-    map.get(label)!.push(t)
+    const label = getDateLabel(t.createdAt);
+    if (!map.has(label)) {
+      map.set(label, []);
+      order.push(label);
+    }
+    map.get(label)!.push(t);
   }
-  return order.map(label => ({ label, tasks: map.get(label)! }))
+  return order.map((label) => ({ label, tasks: map.get(label)! }));
 }
 
-type StatusFilter = 'all' | 'active' | 'completed' | 'paused'
+type StatusFilter = "all" | "active" | "completed" | "paused";
 
 export default function TasksPage() {
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [confirmDelete, setConfirmDelete] = useState<{ id: number; title: string } | null>(null)
-  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false)
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [confirmDelete, setConfirmDelete] = useState<{ id: number; title: string } | null>(null);
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
 
-  const { data: user } = useQuery({ queryKey: authQueryKey, queryFn: authQueryFn, staleTime: 5 * 60 * 1000, retry: false })
+  const { data: user } = useQuery({
+    queryKey: authQueryKey,
+    queryFn: authQueryFn,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
 
   const { data, isLoading, error, refetch } = useQuery<TasksResponse>({
-    queryKey: ['admin-tasks'],
-    queryFn: () => apiClient.get('/admin/tasks') as any,
-  })
+    queryKey: ["admin-tasks"],
+    queryFn: () => apiClient.get("/admin/tasks") as any,
+  });
 
   const deleteTask = useMutation({
     mutationFn: (id: number) => apiClient.delete(`/admin/tasks/${id}`) as any,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-tasks'] })
-      setConfirmDelete(null)
+      queryClient.invalidateQueries({ queryKey: ["admin-tasks"] });
+      setConfirmDelete(null);
     },
-  })
+  });
 
   const deleteAllTasks = useMutation({
-    mutationFn: () => apiClient.delete('/admin/tasks/all') as any,
+    mutationFn: () => apiClient.delete("/admin/tasks/all") as any,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-tasks'] })
-      setConfirmDeleteAll(false)
+      queryClient.invalidateQueries({ queryKey: ["admin-tasks"] });
+      setConfirmDeleteAll(false);
     },
-  })
+  });
 
-  const canManage = user?.role === 'super-admin' || user?.role === 'admin'
-  const isSuperAdmin = user?.role === 'super-admin'
+  const canManage = user?.role === "super-admin" || user?.role === "admin";
+  const isSuperAdmin = user?.role === "super-admin";
 
-  const allTasks = data?.data ?? []
-  const filtered = statusFilter === 'all' ? allTasks : allTasks.filter(t => t.status === statusFilter)
-  const groups = groupByDate(filtered)
+  const allTasks = data?.data ?? [];
+  const filtered = statusFilter === "all" ? allTasks : allTasks.filter((t) => t.status === statusFilter);
+  const groups = groupByDate(filtered);
 
   const counts = {
     all: allTasks.length,
-    active: allTasks.filter(t => t.status === 'active').length,
-    completed: allTasks.filter(t => t.status === 'completed').length,
-    paused: allTasks.filter(t => t.status === 'paused').length,
-  }
+    active: allTasks.filter((t) => t.status === "active").length,
+    completed: allTasks.filter((t) => t.status === "completed").length,
+    paused: allTasks.filter((t) => t.status === "paused").length,
+  };
 
   const TABS: { id: StatusFilter; label: string }[] = [
-    { id: 'all', label: 'All' },
-    { id: 'active', label: 'Active' },
-    { id: 'completed', label: 'Completed' },
-    { id: 'paused', label: 'Paused' },
-  ]
+    { id: "all", label: "All" },
+    { id: "active", label: "Active" },
+    { id: "completed", label: "Completed" },
+    { id: "paused", label: "Paused" },
+  ];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-zinc-100 tracking-tight">Tasks</h1>
-          <p className="text-zinc-400 text-sm mt-1">Social engagement &amp; referral tasks — click a card to review submissions</p>
+          <p className="text-zinc-400 text-sm mt-1">
+            Social engagement &amp; referral tasks — click a card to review submissions
+          </p>
         </div>
         {canManage && (
           <div className="flex items-center gap-2">
@@ -177,7 +209,7 @@ export default function TasksPage() {
             <Button
               variant="primary"
               size="md"
-              onClick={() => router.push('/dashboard/tasks/create')}
+              onClick={() => router.push("/dashboard/tasks/create")}
               leftIcon={<Plus className="w-4 h-4" />}
             >
               Create Task
@@ -189,21 +221,23 @@ export default function TasksPage() {
       {/* Status tabs */}
       {!isLoading && !error && (
         <div className="flex items-center gap-1 border-b border-zinc-800">
-          {TABS.map(tab => (
+          {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-all ${
                 statusFilter === tab.id
-                  ? 'border-purple-500 text-purple-400'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                  ? "border-purple-500 text-purple-400"
+                  : "border-transparent text-zinc-500 hover:text-zinc-300"
               }`}
             >
               {tab.label}
               {counts[tab.id] > 0 && (
-                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                  statusFilter === tab.id ? 'bg-purple-500/20 text-purple-300' : 'bg-zinc-800 text-zinc-500'
-                }`}>
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                    statusFilter === tab.id ? "bg-purple-500/20 text-purple-300" : "bg-zinc-800 text-zinc-500"
+                  }`}
+                >
                   {counts[tab.id]}
                 </span>
               )}
@@ -227,16 +261,23 @@ export default function TasksPage() {
         <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
           <AlertCircle className="w-10 h-10 text-red-400" />
           <p className="text-zinc-400 text-sm">Failed to load tasks</p>
-          <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            Retry
+          </Button>
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20 text-center backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl">
           <ClipboardList className="w-10 h-10 text-zinc-600" />
           <p className="text-zinc-400 text-sm font-medium">
-            {statusFilter === 'all' ? 'No tasks yet' : `No ${statusFilter} tasks`}
+            {statusFilter === "all" ? "No tasks yet" : `No ${statusFilter} tasks`}
           </p>
-          {canManage && statusFilter === 'all' && (
-            <Button variant="primary" size="sm" onClick={() => router.push('/dashboard/tasks/create')} leftIcon={<Plus className="w-4 h-4" />}>
+          {canManage && statusFilter === "all" && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => router.push("/dashboard/tasks/create")}
+              leftIcon={<Plus className="w-4 h-4" />}
+            >
               Create your first task
             </Button>
           )}
@@ -249,15 +290,18 @@ export default function TasksPage() {
               <div className="flex items-center gap-3">
                 <span className="text-xs font-extrabold uppercase tracking-widest text-zinc-500">{label}</span>
                 <div className="flex-1 h-px bg-zinc-800/80" />
-                <span className="text-[10px] font-semibold text-zinc-600 tabular-nums">{tasks.length} task{tasks.length !== 1 ? 's' : ''}</span>
+                <span className="text-[10px] font-semibold text-zinc-600 tabular-nums">
+                  {tasks.length} task{tasks.length !== 1 ? "s" : ""}
+                </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {tasks.map((task) => {
-                  const progress = task.numberOfUsersNeeded > 0
-                    ? Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100))
-                    : 0
-                  const expired = isExpired(task)
+                  const progress =
+                    task.numberOfUsersNeeded > 0
+                      ? Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100))
+                      : 0;
+                  const expired = isExpired(task);
 
                   return (
                     <div
@@ -267,7 +311,10 @@ export default function TasksPage() {
                     >
                       {canManage && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); setConfirmDelete({ id: task.id, title: task.title }) }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDelete({ id: task.id, title: task.title });
+                          }}
                           className="absolute top-4 right-4 p-1.5 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 z-10"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -283,17 +330,24 @@ export default function TasksPage() {
                       <div className="flex items-start gap-3 mb-3 pr-8">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${PLATFORM_COLORS[task.targetPlatform] ?? 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
+                            <span
+                              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${PLATFORM_COLORS[task.targetPlatform] ?? "bg-zinc-800 text-zinc-400 border-zinc-700"}`}
+                            >
                               {platformLabel(task.targetPlatform)}
                             </span>
                             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                               {taskTypeLabel(task.taskType)}
                             </span>
-                            <Badge variant={task.status === 'active' ? (expired ? 'warning' : 'success') : 'default'} dot>
-                              {expired ? 'Expired' : task.status}
+                            <Badge
+                              variant={task.status === "active" ? (expired ? "warning" : "success") : "default"}
+                              dot
+                            >
+                              {expired ? "Expired" : task.status}
                             </Badge>
                           </div>
-                          <h3 className="font-semibold text-zinc-100 text-sm leading-snug line-clamp-2">{task.title}</h3>
+                          <h3 className="font-semibold text-zinc-100 text-sm leading-snug line-clamp-2">
+                            {task.title}
+                          </h3>
                         </div>
                       </div>
 
@@ -302,11 +356,13 @@ export default function TasksPage() {
                       <div className="mb-3">
                         <div className="flex items-center justify-between text-xs mb-1.5">
                           <span className="text-zinc-500">Progress</span>
-                          <span className="font-semibold text-zinc-300">{task.approvedCount} / {task.numberOfUsersNeeded}</span>
+                          <span className="font-semibold text-zinc-300">
+                            {task.approvedCount} / {task.numberOfUsersNeeded}
+                          </span>
                         </div>
                         <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all ${progress >= 100 ? 'bg-emerald-500' : 'bg-purple-500'}`}
+                            className={`h-full rounded-full transition-all ${progress >= 100 ? "bg-emerald-500" : "bg-purple-500"}`}
                             style={{ width: `${progress}%` }}
                           />
                         </div>
@@ -323,7 +379,7 @@ export default function TasksPage() {
                             {task.submissionCount} submitted
                           </span>
                         </div>
-                        <div className={`flex items-center gap-1 ${expired ? 'text-red-400' : 'text-zinc-500'}`}>
+                        <div className={`flex items-center gap-1 ${expired ? "text-red-400" : "text-zinc-500"}`}>
                           {task.lifeline ? (
                             <span className="flex items-center gap-1 text-violet-400">
                               <Infinity className="w-3 h-3" />
@@ -342,7 +398,7 @@ export default function TasksPage() {
                         <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-purple-400 transition-colors" />
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -358,27 +414,46 @@ export default function TasksPage() {
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 border border-red-500/20">
                 <Trash2 className="w-5 h-5 text-red-400" />
               </div>
-              <button onClick={() => setConfirmDeleteAll(false)} className="p-1 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800 transition-colors">
+              <button
+                onClick={() => setConfirmDeleteAll(false)}
+                className="p-1 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-1.5">
               <h2 className="text-base font-bold text-zinc-100">Delete all tasks?</h2>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                This will permanently delete all{' '}
-                <span className="font-semibold text-zinc-200">{allTasks.length} task{allTasks.length !== 1 ? 's' : ''}</span>{' '}
+                This will permanently delete all{" "}
+                <span className="font-semibold text-zinc-200">
+                  {allTasks.length} task{allTasks.length !== 1 ? "s" : ""}
+                </span>{" "}
                 and all their submissions. This cannot be undone.
               </p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setConfirmDeleteAll(false)} disabled={deleteAllTasks.isPending} className="flex-1 rounded-xl border border-zinc-700 bg-zinc-800/60 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 transition-colors disabled:opacity-40">
+              <button
+                onClick={() => setConfirmDeleteAll(false)}
+                disabled={deleteAllTasks.isPending}
+                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-800/60 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 transition-colors disabled:opacity-40"
+              >
                 Cancel
               </button>
-              <button onClick={() => deleteAllTasks.mutate()} disabled={deleteAllTasks.isPending} className="flex-1 rounded-xl bg-red-500/90 hover:bg-red-500 py-2.5 text-sm font-bold text-white transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              <button
+                onClick={() => deleteAllTasks.mutate()}
+                disabled={deleteAllTasks.isPending}
+                className="flex-1 rounded-xl bg-red-500/90 hover:bg-red-500 py-2.5 text-sm font-bold text-white transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+              >
                 {deleteAllTasks.isPending ? (
-                  <><span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />Deleting…</>
+                  <>
+                    <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    Deleting…
+                  </>
                 ) : (
-                  <><Trash2 className="w-4 h-4" />Yes, Delete All</>
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Yes, Delete All
+                  </>
                 )}
               </button>
             </div>
@@ -394,27 +469,44 @@ export default function TasksPage() {
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 border border-red-500/20">
                 <Trash2 className="w-5 h-5 text-red-400" />
               </div>
-              <button onClick={() => setConfirmDelete(null)} className="p-1 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800 transition-colors">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="p-1 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-1.5">
               <h2 className="text-base font-bold text-zinc-100">Delete task?</h2>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                Are you sure you want to delete{' '}
-                <span className="font-semibold text-zinc-200">&ldquo;{confirmDelete.title}&rdquo;</span>?
-                This will also remove all submissions. This action cannot be undone.
+                Are you sure you want to delete{" "}
+                <span className="font-semibold text-zinc-200">&ldquo;{confirmDelete.title}&rdquo;</span>? This will also
+                remove all submissions. This action cannot be undone.
               </p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setConfirmDelete(null)} disabled={deleteTask.isPending} className="flex-1 rounded-xl border border-zinc-700 bg-zinc-800/60 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 transition-colors disabled:opacity-40">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                disabled={deleteTask.isPending}
+                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-800/60 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 transition-colors disabled:opacity-40"
+              >
                 Cancel
               </button>
-              <button onClick={() => deleteTask.mutate(confirmDelete.id)} disabled={deleteTask.isPending} className="flex-1 rounded-xl bg-red-500/90 hover:bg-red-500 py-2.5 text-sm font-bold text-white transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              <button
+                onClick={() => deleteTask.mutate(confirmDelete.id)}
+                disabled={deleteTask.isPending}
+                className="flex-1 rounded-xl bg-red-500/90 hover:bg-red-500 py-2.5 text-sm font-bold text-white transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+              >
                 {deleteTask.isPending ? (
-                  <><span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />Deleting…</>
+                  <>
+                    <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    Deleting…
+                  </>
                 ) : (
-                  <><Trash2 className="w-4 h-4" />Yes, Delete</>
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Yes, Delete
+                  </>
                 )}
               </button>
             </div>
@@ -422,5 +514,5 @@ export default function TasksPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

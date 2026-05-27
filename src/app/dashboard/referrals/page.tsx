@@ -1,39 +1,45 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/services/api-client'
-import { Button } from '@/components/ui'
-import { GitMerge, AlertCircle, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/services/api-client";
+import { Button } from "@/components/ui";
+import { GitMerge, AlertCircle, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 
 interface Referral {
-  id: number
-  referrerUsername: string
-  referredUsername: string
-  createdAt: string
+  id: number;
+  referrerUsername: string;
+  referredUsername: string;
+  createdAt: string;
 }
 
 interface ReferralsResponse {
-  success: boolean
-  data: Referral[]
-  total: number
-  page: number
-  limit: number
+  success: boolean;
+  data: Referral[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(d).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default function ReferralsPage() {
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(1);
 
   const { data, isLoading, error, refetch } = useQuery<ReferralsResponse>({
-    queryKey: ['admin-referrals', page],
+    queryKey: ["admin-referrals", page],
     queryFn: () => apiClient.get(`/admin/referrals?page=${page}&limit=20`) as any,
-  })
+  });
 
-  const totalPages = data ? Math.ceil(data.total / data.limit) : 1
+  const totalPages = data ? Math.ceil(data.total / data.limit) : 1;
 
   return (
     <div className="space-y-6">
@@ -58,7 +64,9 @@ export default function ReferralsPage() {
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <AlertCircle className="w-10 h-10 text-red-400" />
             <p className="text-zinc-400 text-sm">Failed to load referrals</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
           </div>
         ) : (
           <>
@@ -73,16 +81,20 @@ export default function ReferralsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/40">
-                  {data?.data.length ? data.data.map((ref) => (
-                    <tr key={ref.id} className="hover:bg-zinc-800/20 transition-colors">
-                      <td className="px-6 py-4 font-medium text-zinc-100">@{ref.referrerUsername}</td>
-                      <td className="px-6 py-4 text-zinc-600">
-                        <ArrowRight className="w-4 h-4" />
-                      </td>
-                      <td className="px-6 py-4 text-zinc-300">@{ref.referredUsername}</td>
-                      <td className="px-6 py-4 text-zinc-500 text-xs whitespace-nowrap">{formatDate(ref.createdAt)}</td>
-                    </tr>
-                  )) : (
+                  {data?.data.length ? (
+                    data.data.map((ref) => (
+                      <tr key={ref.id} className="hover:bg-zinc-800/20 transition-colors">
+                        <td className="px-6 py-4 font-medium text-zinc-100">@{ref.referrerUsername}</td>
+                        <td className="px-6 py-4 text-zinc-600">
+                          <ArrowRight className="w-4 h-4" />
+                        </td>
+                        <td className="px-6 py-4 text-zinc-300">@{ref.referredUsername}</td>
+                        <td className="px-6 py-4 text-zinc-500 text-xs whitespace-nowrap">
+                          {formatDate(ref.createdAt)}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
                     <tr>
                       <td colSpan={4} className="px-6 py-16 text-center text-zinc-500">
                         <GitMerge className="w-8 h-8 mx-auto mb-2 opacity-40" />
@@ -100,8 +112,24 @@ export default function ReferralsPage() {
                   Page {page} of {totalPages} · {data?.total} total
                 </span>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setPage(p => p - 1)} disabled={page === 1} leftIcon={<ChevronLeft className="w-3.5 h-3.5" />}>Prev</Button>
-                  <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={page === totalPages} rightIcon={<ChevronRight className="w-3.5 h-3.5" />}>Next</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => p - 1)}
+                    disabled={page === 1}
+                    leftIcon={<ChevronLeft className="w-3.5 h-3.5" />}
+                  >
+                    Prev
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={page === totalPages}
+                    rightIcon={<ChevronRight className="w-3.5 h-3.5" />}
+                  >
+                    Next
+                  </Button>
                 </div>
               </div>
             )}
@@ -109,5 +137,5 @@ export default function ReferralsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
