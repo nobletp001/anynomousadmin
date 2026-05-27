@@ -22,6 +22,7 @@ import {
   Eye,
   FileText,
   X,
+  Move,
 } from "lucide-react";
 
 interface Task {
@@ -141,6 +142,81 @@ export default function TaskSubmissionsPage() {
   const [bulkRating, setBulkRating] = useState<number | null>(null);
   const [bulkRejectReason, setBulkRejectReason] = useState("");
   const [bulkMode, setBulkMode] = useState<"none" | "approve" | "reject">("none");
+
+  // Draggable states for Modals
+  const [rejectPos, setRejectPos] = useState({ x: 0, y: 0 });
+  const [isDraggingReject, setIsDraggingReject] = useState(false);
+  const [dragStartReject, setDragStartReject] = useState({ x: 0, y: 0 });
+
+  const [detailsPos, setDetailsPos] = useState({ x: 0, y: 0 });
+  const [isDraggingDetails, setIsDraggingDetails] = useState(false);
+  const [dragStartDetails, setDragStartDetails] = useState({ x: 0, y: 0 });
+
+  // Reset positions when modals close
+  useEffect(() => {
+    if (!rejectModal) {
+      setRejectPos({ x: 0, y: 0 });
+    }
+  }, [rejectModal]);
+
+  useEffect(() => {
+    if (!viewingSub) {
+      setDetailsPos({ x: 0, y: 0 });
+    }
+  }, [viewingSub]);
+
+  const handleMouseDownReject = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("button") || target.closest("input") || target.closest("textarea")) return;
+    setIsDraggingReject(true);
+    setDragStartReject({
+      x: e.clientX - rejectPos.x,
+      y: e.clientY - rejectPos.y,
+    });
+  };
+
+  const handleMouseDownDetails = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("button") || target.closest("input") || target.closest("textarea") || target.closest("a"))
+      return;
+    setIsDraggingDetails(true);
+    setDragStartDetails({
+      x: e.clientX - detailsPos.x,
+      y: e.clientY - detailsPos.y,
+    });
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingReject) {
+        setRejectPos({
+          x: e.clientX - dragStartReject.x,
+          y: e.clientY - dragStartReject.y,
+        });
+      }
+      if (isDraggingDetails) {
+        setDetailsPos({
+          x: e.clientX - dragStartDetails.x,
+          y: e.clientY - dragStartDetails.y,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingReject(false);
+      setIsDraggingDetails(false);
+    };
+
+    if (isDraggingReject || isDraggingDetails) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingReject, dragStartReject, isDraggingDetails, dragStartDetails]);
 
   React.useEffect(() => {
     if (viewingSub) {
@@ -945,7 +1021,7 @@ export default function TaskSubmissionsPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              <div className={`transition-all duration-300 ${viewingSub ? "lg:col-span-5" : "lg:col-span-12"}`}>
+              <div className="lg:col-span-12">
                 <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
                   {/* Search and Filters Bar */}
                   <div className="p-4 border-b border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-950/20">
@@ -1009,11 +1085,11 @@ export default function TaskSubmissionsPage() {
                               );
                             })()}
                             <th className="px-6 py-4 font-semibold text-xs">User</th>
-                            {!viewingSub && <th className="px-6 py-4 font-semibold text-xs">Balance</th>}
+                            <th className="px-6 py-4 font-semibold text-xs">Balance</th>
                             <th className="px-6 py-4 font-semibold text-xs">Submission Proof &amp; Inputs</th>
                             <th className="px-6 py-4 font-semibold text-xs">Status</th>
-                            {!viewingSub && <th className="px-6 py-4 font-semibold text-xs">Submitted</th>}
-                            {!viewingSub && <th className="px-6 py-4 font-semibold text-xs">Actions</th>}
+                            <th className="px-6 py-4 font-semibold text-xs">Submitted</th>
+                            <th className="px-6 py-4 font-semibold text-xs">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-800/40">
@@ -1097,11 +1173,9 @@ export default function TaskSubmissionsPage() {
                                   </div>
                                 </div>
                               </td>
-                              {!viewingSub && (
-                                <td className="px-6 py-4 text-xs font-semibold text-emerald-400">
-                                  {formatAmount(sub.userBalance)}
-                                </td>
-                              )}
+                              <td className="px-6 py-4 text-xs font-semibold text-emerald-400">
+                                {formatAmount(sub.userBalance)}
+                              </td>
                               <td className="px-6 py-4">
                                 <div className="space-y-1.5 py-1">
                                   {sub.proofType === "link" ? (
@@ -1159,8 +1233,7 @@ export default function TaskSubmissionsPage() {
                                   <Badge variant={statusVariant(sub.status)} dot>
                                     {sub.status === "needs_correction" ? "correction requested" : sub.status}
                                   </Badge>
-                                  {!viewingSub &&
-                                    (sub.status === "rejected" || sub.status === "needs_correction") &&
+                                  {(sub.status === "rejected" || sub.status === "needs_correction") &&
                                     sub.rejectionReason && (
                                       <p
                                         className="text-[10px] text-zinc-550 mt-0.5 max-w-44 truncate font-medium"
@@ -1169,47 +1242,43 @@ export default function TaskSubmissionsPage() {
                                         Reason: {sub.rejectionReason}
                                       </p>
                                     )}
-                                  {!viewingSub && sub.status === "rejected" && sub.deductedAmount > 0 && (
+                                  {sub.status === "rejected" && sub.deductedAmount > 0 && (
                                     <p className="text-[10px] text-red-400 mt-0.5">
                                       −{formatAmount(sub.deductedAmount)}
                                     </p>
                                   )}
                                 </div>
                               </td>
-                              {!viewingSub && (
-                                <td className="px-6 py-4 text-zinc-500 text-xs whitespace-nowrap">
-                                  {formatDate(sub.createdAt)}
-                                </td>
-                              )}
-                              {!viewingSub && (
-                                <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                                  {(sub.status === "pending" || sub.status === "needs_correction") && (
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        onClick={() => setViewingSub(sub)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
-                                      >
-                                        <CheckCircle className="w-3.5 h-3.5" />
-                                        Review
-                                      </button>
-                                      <button
-                                        onClick={() => openCorrectionModal(sub)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
-                                      >
-                                        <AlertCircle className="w-3.5 h-3.5" />
-                                        Correction
-                                      </button>
-                                      <button
-                                        onClick={() => openRejectModal(sub)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
-                                      >
-                                        <XCircle className="w-3.5 h-3.5" />
-                                        Reject
-                                      </button>
-                                    </div>
-                                  )}
-                                </td>
-                              )}
+                              <td className="px-6 py-4 text-zinc-500 text-xs whitespace-nowrap">
+                                {formatDate(sub.createdAt)}
+                              </td>
+                              <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                                {(sub.status === "pending" || sub.status === "needs_correction") && (
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={() => setViewingSub(sub)}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                                    >
+                                      <CheckCircle className="w-3.5 h-3.5" />
+                                      Review
+                                    </button>
+                                    <button
+                                      onClick={() => openCorrectionModal(sub)}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+                                    >
+                                      <AlertCircle className="w-3.5 h-3.5" />
+                                      Correction
+                                    </button>
+                                    <button
+                                      onClick={() => openRejectModal(sub)}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                                    >
+                                      <XCircle className="w-3.5 h-3.5" />
+                                      Reject
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1219,16 +1288,25 @@ export default function TaskSubmissionsPage() {
                 </div>
               </div>
 
-              {/* Split Review Workspace */}
+              {/* Submission Review Modal */}
               {viewingSub && (
-                <div className="lg:col-span-7 fixed inset-0 lg:relative lg:inset-auto bg-black/70 lg:bg-transparent backdrop-blur-sm lg:backdrop-blur-none z-50 lg:z-0 flex items-center lg:items-start justify-center lg:justify-start p-4 lg:p-0">
-                  <div className="bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] lg:max-w-none lg:max-h-[calc(100vh-6rem)] lg:h-[calc(100vh-6rem)] flex flex-col overflow-hidden sticky lg:top-6">
+                <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div
+                    style={{ transform: `translate(${detailsPos.x}px, ${detailsPos.y}px)` }}
+                    className="bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden relative"
+                  >
                     {/* Header */}
-                    <div className="p-5 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/20 shrink-0">
+                    <div
+                      onMouseDown={handleMouseDownDetails}
+                      className="p-5 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/20 cursor-move select-none shrink-0"
+                    >
                       <div>
                         <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
                           <FileText className="w-4 h-4 text-purple-400" />
-                          Submission Details
+                          <span>Submission Details</span>
+                          <span className="inline-flex items-center gap-1 text-[10px] text-zinc-500 bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 font-normal select-none">
+                            <Move className="w-2.5 h-2.5" /> Drag
+                          </span>
                         </h3>
                         <p className="text-xs text-zinc-400 mt-0.5">
                           Submitted by <span className="font-bold text-white">@{viewingSub.username}</span> (
@@ -1597,6 +1675,47 @@ export default function TaskSubmissionsPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Modal Actions Footer */}
+                    <div className="p-5 border-t border-zinc-800 flex items-center justify-between bg-zinc-950/20 shrink-0">
+                      <Button variant="outline" size="md" onClick={() => setViewingSub(null)}>
+                        Close Details
+                      </Button>
+
+                      {(viewingSub.status === "pending" || viewingSub.status === "needs_correction") && (
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            onClick={() => {
+                              openCorrectionModal(viewingSub);
+                            }}
+                            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+                          >
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            Request Correction
+                          </button>
+                          <button
+                            onClick={() => {
+                              openRejectModal(viewingSub);
+                            }}
+                            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            Reject Submission
+                          </button>
+                          <button
+                            onClick={() => {
+                              const targetRating = rating || 5;
+                              approveSubmission.mutate({ subId: viewingSub.id, rating: targetRating, feedback });
+                            }}
+                            disabled={approveSubmission.isPending}
+                            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 text-zinc-950 hover:bg-emerald-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            Approve Proof
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -1712,12 +1831,23 @@ export default function TaskSubmissionsPage() {
 
             {rejectModal && (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl w-full max-w-md">
-                  <div className="p-6 border-b border-zinc-800">
-                    <h3 className="text-base font-bold text-zinc-100">
-                      {rejectModal.mode === "reject" ? "Reject Submission" : "Request Correction"}
-                    </h3>
-                    <p className="text-sm text-zinc-400 mt-0.5">@{rejectModal.username}</p>
+                <div
+                  style={{ transform: `translate(${rejectPos.x}px, ${rejectPos.y}px)` }}
+                  className="bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl w-full max-w-md relative select-none"
+                >
+                  <div
+                    onMouseDown={handleMouseDownReject}
+                    className="p-6 border-b border-zinc-800 cursor-move select-none flex items-center justify-between"
+                  >
+                    <div>
+                      <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
+                        <span>{rejectModal.mode === "reject" ? "Reject Submission" : "Request Correction"}</span>
+                        <span className="inline-flex items-center gap-1 text-[10px] text-zinc-550 bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 font-normal select-none">
+                          <Move className="w-2.5 h-2.5" /> Drag
+                        </span>
+                      </h3>
+                      <p className="text-sm text-zinc-400 mt-0.5">@{rejectModal.username}</p>
+                    </div>
                   </div>
 
                   <div className="p-6 space-y-4">
