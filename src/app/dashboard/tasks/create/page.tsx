@@ -5,7 +5,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { apiClient } from '@/services/api-client'
 import { Button } from '@/components/ui'
-import { ArrowLeft, Plus, Trash2, Upload, X, Info, Link as LinkIcon, Image as ImageIcon, Infinity, Sparkles, Mic, Loader2 } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Upload, X, Info, Link as LinkIcon, Image as ImageIcon, Infinity, Sparkles, Mic, Loader2, GripVertical } from 'lucide-react'
 
 const TASK_TYPES = [
   { value: 'follow', label: 'Follow (Follow an account)' },
@@ -205,6 +205,31 @@ export default function CreateTaskPage() {
   })
   const officers = officersData?.success ? officersData.data : []
   const [instructions, setInstructions] = useState<string[]>([''])
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null)
+
+  function handleDragStart(e: React.DragEvent, index: number) {
+    setDraggedIdx(index)
+    e.dataTransfer.setData('text/plain', index.toString())
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  function handleDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault()
+    if (draggedIdx === null || draggedIdx === index) return
+
+    setInstructions(prev => {
+      const list = [...prev]
+      const draggedItem = list[draggedIdx]
+      list.splice(draggedIdx, 1)
+      list.splice(index, 0, draggedItem)
+      return list
+    })
+    setDraggedIdx(index)
+  }
+
+  function handleDragEnd() {
+    setDraggedIdx(null)
+  }
   const [taskType, setTaskType] = useState('follow')
   const [targetPlatform, setTargetPlatform] = useState('instagram')
   const [timelineMs, setTimelineMs] = useState(24 * 60 * 60 * 1000)
@@ -845,7 +870,21 @@ export default function CreateTaskPage() {
 
           <div className="space-y-2">
             {instructions.map((step, idx) => (
-              <div key={idx} className="flex items-center gap-2">
+              <div
+                key={idx}
+                draggable
+                onDragStart={e => handleDragStart(e, idx)}
+                onDragOver={e => handleDragOver(e, idx)}
+                onDragEnd={handleDragEnd}
+                className={`flex items-center gap-2 transition-all duration-200 ${
+                  draggedIdx === idx
+                    ? 'opacity-30 scale-[0.98] border-purple-500/50 bg-purple-950/5'
+                    : ''
+                }`}
+              >
+                <div className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-zinc-650 hover:text-zinc-400 transition-colors shrink-0">
+                  <GripVertical className="w-4 h-4" />
+                </div>
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-zinc-500 text-[10px] font-bold">
                   {idx + 1}
                 </span>
