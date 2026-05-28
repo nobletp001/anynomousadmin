@@ -23,15 +23,19 @@ import {
   FileText,
   X,
   Move,
+  Trash2,
 } from "lucide-react";
 
 interface Task {
   id: number;
   title: string;
   description: string;
+  caption: string | null;
   banner: string | null;
-  targetUrl: string;
-  timeline: string;
+  link: string | null;
+  instructions: string | null;
+  timeline: string | null;
+  lifeline: boolean;
   numberOfUsersNeeded: number;
   amount: number;
   taskType: string;
@@ -142,6 +146,21 @@ export default function TaskSubmissionsPage() {
   const [bulkRating, setBulkRating] = useState<number | null>(null);
   const [bulkRejectReason, setBulkRejectReason] = useState("");
   const [bulkMode, setBulkMode] = useState<"none" | "approve" | "reject">("none");
+
+  // Violation reporting states
+  const [showReportForm, setShowReportForm] = useState(false);
+  const [reportDeductAmount, setReportDeductAmount] = useState("");
+  const [reportReason, setReportReason] = useState("");
+
+  // Task editing states
+  const [isEditingTask, setIsEditingTask] = useState(false);
+  const [editTimeline, setEditTimeline] = useState("");
+  const [editLifeline, setEditLifeline] = useState(false);
+  const [editNumberOfUsers, setEditNumberOfUsers] = useState("");
+  const [editInstructions, setEditInstructions] = useState<string[]>([]);
+  const [editAmount, setEditAmount] = useState("");
+  const [editLink, setEditLink] = useState("");
+  const [editAssignedOfficer, setEditAssignedOfficer] = useState("");
 
   // Draggable states for Modals
   const [rejectPos, setRejectPos] = useState({ x: 0, y: 0 });
@@ -311,6 +330,42 @@ export default function TaskSubmissionsPage() {
       setBulkMode("none");
       setBulkRating(null);
       setBulkRejectReason("");
+    },
+  });
+
+  const reportSubmission = useMutation({
+    mutationFn: ({
+      subId,
+      deductedAmount,
+      rejectionReason,
+    }: {
+      subId: number;
+      deductedAmount: number;
+      rejectionReason: string;
+    }) =>
+      apiClient.patch(`/admin/tasks/${taskId}/submissions/${subId}/report`, { deductedAmount, rejectionReason }) as any,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] });
+      setViewingSub(null);
+      setShowReportForm(false);
+      setReportDeductAmount("");
+      setReportReason("");
+    },
+  });
+
+  const updateTask = useMutation({
+    mutationFn: (payload: {
+      timeline: string | null;
+      lifeline: boolean;
+      numberOfUsersNeeded: number;
+      instructions: string[];
+      amount?: number;
+      link?: string;
+      assignedOfficer?: string;
+    }) => apiClient.patch(`/admin/tasks/${taskId}`, payload) as any,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] });
+      setIsEditingTask(false);
     },
   });
 
@@ -952,6 +1007,25 @@ export default function TaskSubmissionsPage() {
                     Export PDF Report
                   </button>
                   <button
+                    onClick={() => {
+                      setIsEditingTask(true);
+                      setEditTimeline(task.timeline ? task.timeline.split("T")[0] : "");
+                      setEditLifeline(!!task.lifeline);
+                      setEditNumberOfUsers(String(task.numberOfUsersNeeded));
+                      setEditAmount(String(task.amount));
+                      setEditLink(task.link || "");
+                      setEditAssignedOfficer(task.assignedOfficer || "");
+                      try {
+                        setEditInstructions(task.instructions ? JSON.parse(task.instructions) : []);
+                      } catch {
+                        setEditInstructions(task.instructions ? [task.instructions] : []);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-750 hover:text-white transition-colors"
+                  >
+                    Edit Task
+                  </button>
+                  <button
                     onClick={() => toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}
                     disabled={toggleTaskStatus.isPending}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
@@ -966,16 +1040,18 @@ export default function TaskSubmissionsPage() {
                         ? "Close Task"
                         : "Re-open Task"}
                   </button>
-                  <a
-                    href={task.targetUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 transition-colors"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    View target
-                  </a>
+                  {task.link && (
+                    <a
+                      href={task.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      View target
+                    </a>
+                  )}
                 </div>
               </div>
 
@@ -992,7 +1068,9 @@ export default function TaskSubmissionsPage() {
                 </div>
                 <div>
                   <p className="text-[10px] text-zinc-600 uppercase tracking-wider font-semibold mb-1">Deadline</p>
-                  <p className="text-sm font-bold text-zinc-200">{new Date(task.timeline).toLocaleDateString()}</p>
+                  <p className="text-sm font-bold text-zinc-200">
+                    {task.timeline ? new Date(task.timeline).toLocaleDateString() : "No Expiry / Lifeline"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-[10px] text-zinc-600 uppercase tracking-wider font-semibold mb-1">Submissions</p>
@@ -1566,6 +1644,81 @@ export default function TaskSubmissionsPage() {
                                   </p>
                                 </div>
                               )}
+
+                              {!showReportForm ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setShowReportForm(true)}
+                                  className="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors"
+                                >
+                                  <AlertCircle className="w-3.5 h-3.5" />
+                                  Log Violation / Revoke Earning
+                                </button>
+                              ) : (
+                                <div className="mt-3 border-t border-zinc-800/80 pt-3 space-y-3">
+                                  <h5 className="text-[10px] font-bold text-red-400 uppercase tracking-widest">
+                                    Revocation & Violation Report
+                                  </h5>
+                                  <div className="space-y-1.5">
+                                    <label className="text-[10px] text-zinc-500 uppercase font-semibold">
+                                      Penalty / Deduction Amount (₦)
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      placeholder="e.g. 200 (optional)"
+                                      value={reportDeductAmount}
+                                      onChange={(e) => setReportDeductAmount(e.target.value)}
+                                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-red-500/50"
+                                    />
+                                    {task && (
+                                      <p className="text-[9px] text-zinc-500">
+                                        The approved task reward (₦{task.amount}) will be revoked automatically. Enter
+                                        any additional penalty here.
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <label className="text-[10px] text-zinc-500 uppercase font-semibold">
+                                      Violation Reason / Admin Review (Required)
+                                    </label>
+                                    <textarea
+                                      placeholder="Explain the violation details..."
+                                      value={reportReason}
+                                      onChange={(e) => setReportReason(e.target.value)}
+                                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-zinc-200 text-xs focus:outline-none focus:border-red-500/50 min-h-[60px]"
+                                    />
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (!reportReason.trim()) return;
+                                        reportSubmission.mutate({
+                                          subId: viewingSub.id,
+                                          deductedAmount: reportDeductAmount ? Number(reportDeductAmount) : 0,
+                                          rejectionReason: reportReason.trim(),
+                                        });
+                                      }}
+                                      disabled={!reportReason.trim() || reportSubmission.isPending}
+                                      className="flex-1 px-3 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white disabled:opacity-40 transition-colors"
+                                    >
+                                      {reportSubmission.isPending ? "Submitting..." : "Confirm & Submit Report"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setShowReportForm(false);
+                                        setReportDeductAmount("");
+                                        setReportReason("");
+                                      }}
+                                      className="px-3 py-2 rounded-xl text-xs font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
 
@@ -2046,6 +2199,237 @@ export default function TaskSubmissionsPage() {
                 <Download className="w-4 h-4" />
                 Download
               </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isEditingTask && task && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-700/80 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden relative">
+            {/* Header */}
+            <div className="p-5 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/20 shrink-0">
+              <div>
+                <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
+                  <span>Edit Task Configuration</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Update task requirements and configurations. Redlocked fields cannot be modified.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsEditingTask(false)}
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-250 hover:bg-zinc-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              {/* Disabled / Locked Fields */}
+              <div className="space-y-3 bg-red-950/5 border border-red-900/10 rounded-xl p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold text-red-400">
+                  <span>🔒 Disabled Fields (Not Editable)</span>
+                </div>
+                <div className="grid grid-cols-1 gap-3 text-xs mt-1.5">
+                  <div>
+                    <label className="text-[10px] text-zinc-500 uppercase font-semibold">Title</label>
+                    <input
+                      type="text"
+                      value={task.title}
+                      disabled
+                      className="w-full bg-zinc-950/60 border border-zinc-800/80 rounded-lg px-3 py-2 text-zinc-500 cursor-not-allowed select-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-zinc-500 uppercase font-semibold">Description</label>
+                    <textarea
+                      value={task.description}
+                      disabled
+                      rows={2}
+                      className="w-full bg-zinc-950/60 border border-zinc-800/80 rounded-lg p-2 text-zinc-500 cursor-not-allowed select-none resize-none"
+                    />
+                  </div>
+                  {task.caption && (
+                    <div>
+                      <label className="text-[10px] text-zinc-500 uppercase font-semibold">Caption</label>
+                      <textarea
+                        value={task.caption}
+                        disabled
+                        rows={2}
+                        className="w-full bg-zinc-950/60 border border-zinc-800/80 rounded-lg p-2 text-zinc-500 cursor-not-allowed select-none resize-none"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Editable Fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] text-zinc-400 uppercase font-semibold block mb-1">
+                    Capacity (Users Needed)
+                  </label>
+                  <input
+                    type="number"
+                    min={task.approvedCount}
+                    value={editNumberOfUsers}
+                    onChange={(e) => setEditNumberOfUsers(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+                  />
+                  <p className="text-[9px] text-zinc-500 mt-1">
+                    Must be at least the approved count ({task.approvedCount})
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-zinc-400 uppercase font-semibold block mb-1">
+                    Reward Amount (₦)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={editAmount}
+                    onChange={(e) => setEditAmount(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] text-zinc-400 uppercase font-semibold block mb-1">
+                    Target Platform Link
+                  </label>
+                  <input
+                    type="text"
+                    value={editLink}
+                    onChange={(e) => setEditLink(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-zinc-400 uppercase font-semibold block mb-1">
+                    Auditor (Assigned Officer)
+                  </label>
+                  <input
+                    type="text"
+                    value={editAssignedOfficer}
+                    onChange={(e) => setEditAssignedOfficer(e.target.value)}
+                    placeholder="@username of task officer"
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+                  />
+                </div>
+              </div>
+
+              {/* Time Frame */}
+              <div className="bg-zinc-950/20 border border-zinc-800 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-zinc-400 uppercase font-semibold">Time Frame (Deadline)</span>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      id="editLifeline"
+                      checked={editLifeline}
+                      onChange={(e) => setEditLifeline(e.target.checked)}
+                      className="rounded border-zinc-750 text-purple-600 bg-zinc-800 focus:ring-0"
+                    />
+                    <label htmlFor="editLifeline" className="text-xs text-zinc-400 cursor-pointer">
+                      No Expiry / Lifeline
+                    </label>
+                  </div>
+                </div>
+
+                {!editLifeline && (
+                  <div>
+                    <input
+                      type="date"
+                      value={editTimeline}
+                      onChange={(e) => setEditTimeline(e.target.value)}
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Instructions */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-zinc-400 uppercase font-semibold">Task Instructions</span>
+                  <button
+                    type="button"
+                    onClick={() => setEditInstructions((prev) => [...prev, ""])}
+                    className="px-2 py-1 rounded bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 text-[10px] font-bold transition-all"
+                  >
+                    + Add Step
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                  {editInstructions.map((step, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <span className="text-[10px] text-zinc-500 font-mono w-4 text-right shrink-0">{idx + 1}.</span>
+                      <input
+                        type="text"
+                        value={step}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setEditInstructions((prev) => {
+                            const next = [...prev];
+                            next[idx] = val;
+                            return next;
+                          });
+                        }}
+                        className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditInstructions((prev) => prev.filter((_, i) => i !== idx));
+                        }}
+                        className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  {editInstructions.length === 0 && (
+                    <p className="text-zinc-650 text-xs italic text-center py-2">No instructions defined.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions Footer */}
+            <div className="p-5 border-t border-zinc-800 flex items-center justify-between bg-zinc-950/20 shrink-0">
+              <Button variant="outline" size="md" onClick={() => setIsEditingTask(false)}>
+                Cancel
+              </Button>
+              <button
+                onClick={() => {
+                  const numUsersVal = parseInt(editNumberOfUsers);
+                  if (isNaN(numUsersVal) || numUsersVal < task.approvedCount) {
+                    alert(`Capacity must be at least ${task.approvedCount}`);
+                    return;
+                  }
+                  updateTask.mutate({
+                    timeline: editLifeline ? null : editTimeline ? new Date(editTimeline).toISOString() : null,
+                    lifeline: editLifeline,
+                    numberOfUsersNeeded: numUsersVal,
+                    instructions: editInstructions.filter((s) => s.trim() !== ""),
+                    amount: editAmount ? Number(editAmount) : undefined,
+                    link: editLink || undefined,
+                    assignedOfficer: editAssignedOfficer || undefined,
+                  });
+                }}
+                disabled={updateTask.isPending}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-40"
+              >
+                {updateTask.isPending ? "Saving..." : "Save Changes"}
+              </button>
             </div>
           </div>
         </div>

@@ -624,6 +624,12 @@ export default function UsersPage() {
                             <span className="text-purple-300">Available Balance</span>
                             <span className="text-purple-300">{formatAmount(stats.availableBalance)}</span>
                           </div>
+                          {stats.violationDebt > 0 && (
+                            <div className="flex justify-between font-semibold text-red-400 mt-1">
+                              <span>Violation Debt</span>
+                              <span>{formatAmount(stats.violationDebt)}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
