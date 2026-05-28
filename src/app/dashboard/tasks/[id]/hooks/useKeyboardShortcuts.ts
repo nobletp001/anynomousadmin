@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Submission, RejectModal } from "../types";
 
 interface ShortcutProps {
@@ -30,8 +30,55 @@ export function useKeyboardShortcuts({
   onRejectClick,
   onCorrectionClick,
 }: ShortcutProps) {
+  const latestProps = useRef({
+    viewingSub,
+    rejectModal,
+    onCloseReject,
+    onCloseDetails,
+    rating,
+    setRating,
+    feedback,
+    submissions,
+    setViewingSub,
+    onApprove,
+    onRejectClick,
+    onCorrectionClick,
+  });
+
+  useEffect(() => {
+    latestProps.current = {
+      viewingSub,
+      rejectModal,
+      onCloseReject,
+      onCloseDetails,
+      rating,
+      setRating,
+      feedback,
+      submissions,
+      setViewingSub,
+      onApprove,
+      onRejectClick,
+      onCorrectionClick,
+    };
+  });
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      const {
+        viewingSub,
+        rejectModal,
+        onCloseReject,
+        onCloseDetails,
+        rating,
+        setRating,
+        feedback,
+        submissions,
+        setViewingSub,
+        onApprove,
+        onRejectClick,
+        onCorrectionClick,
+      } = latestProps.current;
+
       if (!viewingSub) return;
 
       const activeEl = document.activeElement;
@@ -90,5 +137,5 @@ export function useKeyboardShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [viewingSub, rating, feedback, submissions, rejectModal]);
+  }, []);
 }

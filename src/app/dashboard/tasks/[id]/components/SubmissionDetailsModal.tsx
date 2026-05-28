@@ -149,7 +149,10 @@ export function SubmissionDetailsModal({
 
         {/* Modal Actions Footer */}
         <div className="p-5 border-t border-zinc-800 flex items-center justify-between bg-zinc-950/20 shrink-0">
-          <Button variant="outline" size="md" onClick={onClose}>Close Details</Button>
+          <Button variant="outline" size="md" onClick={onClose}>
+            Close Details
+            <kbd className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-zinc-800 text-zinc-400 rounded border border-zinc-700 font-mono uppercase">Esc</kbd>
+          </Button>
           {isPending && (
             <div className="flex items-center gap-2.5">
               <button
@@ -158,6 +161,7 @@ export function SubmissionDetailsModal({
               >
                 <AlertCircle className="w-3.5 h-3.5" />
                 Request Correction
+                <kbd className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-300 rounded border border-amber-500/30 font-mono uppercase">C</kbd>
               </button>
               <button
                 onClick={onRejectClick}
@@ -165,14 +169,16 @@ export function SubmissionDetailsModal({
               >
                 <XCircle className="w-3.5 h-3.5" />
                 Reject Submission
+                <kbd className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-red-500/20 text-red-300 rounded border border-red-500/30 font-mono uppercase">R</kbd>
               </button>
               <button
                 onClick={onApprove}
                 disabled={isApprovePending}
-                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 text-zinc-955 hover:bg-emerald-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 text-zinc-950 hover:bg-emerald-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <CheckCircle className="w-3.5 h-3.5" />
                 Approve Proof
+                <kbd className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-zinc-950/15 text-zinc-900 rounded border border-zinc-950/10 font-mono uppercase">A</kbd>
               </button>
             </div>
           )}
