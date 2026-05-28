@@ -24,7 +24,123 @@ import {
   X,
   Move,
   Trash2,
+  Mic,
+  Sparkles,
+  Loader2,
+  GripVertical,
+  Upload,
+  Plus,
+  Infinity as InfinityIcon,
+  Info,
 } from "lucide-react";
+
+const TASK_TYPES = [
+  { value: "follow", label: "Follow (Follow an account)" },
+  { value: "like", label: "Like (Like a post or page)" },
+  { value: "comment", label: "Comment (Comment on a post)" },
+  { value: "subscribe", label: "Subscribe (Subscribe to a channel)" },
+  { value: "share", label: "Share (Share a post)" },
+  { value: "post-content", label: "Post Content (Post on your profile/status)" },
+  { value: "views", label: "Views (Get views on a post)" },
+  { value: "download", label: "Download (Download an app or file)" },
+  { value: "signup", label: "Sign Up (Register / create account)" },
+  { value: "review", label: "Review (Leave a rating or review)" },
+  { value: "message", label: "Message (Chat or DM someone)" },
+  { value: "watch", label: "Watch (Watch a video to completion)" },
+  { value: "use-app", label: "Use App (Use a feature or service)" },
+  { value: "jetpot", label: "Jetpot (Bring buyers / sales referral)" },
+];
+
+const PLATFORMS = [
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "facebook", label: "Facebook" },
+  { value: "x", label: "X (Twitter)" },
+  { value: "instagram", label: "Instagram" },
+  { value: "youtube", label: "YouTube" },
+  { value: "other", label: "Other" },
+];
+
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+
+const TIMELINE_OPTIONS = [
+  ...Array.from({ length: 48 }, (_, i) => ({
+    label: i === 0 ? "1 hour" : `${i + 1} hours`,
+    ms: (i + 1) * HOUR_MS,
+  })),
+  { label: "3 days", ms: 3 * DAY_MS },
+  { label: "5 days", ms: 5 * DAY_MS },
+  { label: "6 days", ms: 6 * DAY_MS },
+  { label: "7 days", ms: 7 * DAY_MS },
+];
+
+const NIGERIAN_STATES = [
+  "Abia",
+  "Adamawa",
+  "Akwa Ibom",
+  "Anambra",
+  "Bauchi",
+  "Bayelsa",
+  "Benue",
+  "Borno",
+  "Cross River",
+  "Delta",
+  "Ebonyi",
+  "Edo",
+  "Ekiti",
+  "Enugu",
+  "FCT - Abuja",
+  "Gombe",
+  "Imo",
+  "Jigawa",
+  "Kaduna",
+  "Kano",
+  "Katsina",
+  "Kebbi",
+  "Kogi",
+  "Kwara",
+  "Lagos",
+  "Nasarawa",
+  "Niger",
+  "Ogun",
+  "Ondo",
+  "Osun",
+  "Oyo",
+  "Plateau",
+  "Rivers",
+  "Sokoto",
+  "Taraba",
+  "Yobe",
+  "Zamfara",
+];
+
+const MAX_IMAGES = 5;
+
+type AudienceFilter = {
+  gender: string[];
+  employmentStatus: string[];
+  educationLevel: string[];
+  state: string[];
+  minAge: string;
+  maxAge: string;
+};
+
+const inputCls =
+  "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
+
+function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
+  return (
+    <label className="block text-xs text-zinc-400 mb-1.5 font-medium">
+      {children}
+      {required && <span className="text-red-400 ml-0.5">*</span>}
+    </label>
+  );
+}
+
+function toggle(arr: string[], val: string) {
+  return arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val];
+}
 
 interface Task {
   id: number;
@@ -161,6 +277,59 @@ export default function TaskSubmissionsPage() {
   const [editAmount, setEditAmount] = useState("");
   const [editLink, setEditLink] = useState("");
   const [editAssignedOfficer, setEditAssignedOfficer] = useState("");
+
+  const [editCaption, setEditCaption] = useState("");
+  const [editTaskType, setEditTaskType] = useState("follow");
+  const [editTargetPlatform, setEditTargetPlatform] = useState("instagram");
+  const [editProofType, setEditProofType] = useState<"banner" | "url">("banner");
+  const [editAcceptText, setEditAcceptText] = useState(false);
+  const [editTextLabel, setEditTextLabel] = useState("");
+  const [editAcceptNumber, setEditAcceptNumber] = useState(false);
+  const [editNumberLabel, setEditNumberLabel] = useState("");
+  const [editAcceptMultipleImages, setEditAcceptMultipleImages] = useState(false);
+  const [editTargetCount, setEditTargetCount] = useState("");
+  const [editAdminContact, setEditAdminContact] = useState("");
+  const [editMaxPerHour, setEditMaxPerHour] = useState("");
+  const [editNoExpiry, setEditNoExpiry] = useState(false);
+  const [editEnableTargeting, setEditEnableTargeting] = useState(false);
+  const [editAudience, setEditAudience] = useState<AudienceFilter>({
+    gender: [],
+    employmentStatus: [],
+    educationLevel: [],
+    state: [],
+    minAge: "",
+    maxAge: "",
+  });
+  const [editImages, setEditImages] = useState<Array<{ url?: string; file?: File; preview?: string }>>([]);
+  const [uploadError, setUploadError] = useState("");
+  const editFileRef = React.useRef<HTMLInputElement>(null);
+
+  function handleEditFiles(files: FileList | File[]) {
+    const arr = Array.from(files);
+    const remaining = MAX_IMAGES - editImages.length;
+    if (remaining <= 0) return;
+    setUploadError("");
+
+    const toAdd = arr.slice(0, remaining);
+    const oversized = toAdd.find((f) => f.size > 10 * 1024 * 1024);
+    if (oversized) {
+      setUploadError("Each image must be under 10 MB.");
+      return;
+    }
+
+    toAdd.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setEditImages((prev) => [...prev, { file, preview: ev.target?.result as string }]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function removeEditImage(idx: number) {
+    setEditImages((prev) => prev.filter((_, i) => i !== idx));
+    setUploadError("");
+  }
 
   // Draggable states for Modals
   const [rejectPos, setRejectPos] = useState({ x: 0, y: 0 });
@@ -354,20 +523,23 @@ export default function TaskSubmissionsPage() {
   });
 
   const updateTask = useMutation({
-    mutationFn: (payload: {
-      timeline: string | null;
-      lifeline: boolean;
-      numberOfUsersNeeded: number;
-      instructions: string[];
-      amount?: number;
-      link?: string;
-      assignedOfficer?: string;
-    }) => apiClient.patch(`/admin/tasks/${taskId}`, payload) as any,
+    mutationFn: (payload: Record<string, any>) => apiClient.patch(`/admin/tasks/${taskId}`, payload) as any,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] });
       setIsEditingTask(false);
     },
   });
+
+  const uploadImage = useMutation({
+    mutationFn: ({ base64, mimeType }: { base64: string; mimeType: string }) =>
+      apiClient.post("/admin/upload", { base64, mimeType }) as any,
+  });
+
+  const { data: officersData } = useQuery({
+    queryKey: ["task-officers"],
+    queryFn: () => apiClient.get("/tasks/task-officers") as any,
+  });
+  const officers = (officersData as any)?.data || [];
 
   const closeRejectModal = () => {
     setRejectModal(null);
@@ -1020,6 +1192,74 @@ export default function TaskSubmissionsPage() {
                       } catch {
                         setEditInstructions(task.instructions ? [task.instructions] : []);
                       }
+                      setEditCaption(task.caption || "");
+                      setEditTaskType((task as any).taskType || "follow");
+                      setEditTargetPlatform((task as any).targetPlatform || "instagram");
+                      setEditProofType(((task as any).proofType === "url" ? "url" : "banner") as "banner" | "url");
+                      setEditAcceptText(!!(task as any).acceptText);
+                      setEditTextLabel((task as any).textLabel || "");
+                      setEditAcceptNumber(!!(task as any).acceptNumber);
+                      setEditNumberLabel((task as any).numberLabel || "");
+                      setEditAcceptMultipleImages(!!(task as any).acceptMultipleImages);
+                      setEditTargetCount(String((task as any).targetCount ?? ""));
+                      setEditAdminContact((task as any).adminContact || "");
+                      setEditMaxPerHour(String((task as any).maxPerHour ?? ""));
+                      setEditNoExpiry(!!task.lifeline);
+
+                      // Target audience
+                      let aud: AudienceFilter = {
+                        gender: [],
+                        employmentStatus: [],
+                        educationLevel: [],
+                        state: [],
+                        minAge: "",
+                        maxAge: "",
+                      };
+                      let hasTargeting = false;
+                      if ((task as any).targetAudience) {
+                        try {
+                          const parsed = JSON.parse((task as any).targetAudience);
+                          aud = {
+                            gender: parsed.gender || [],
+                            employmentStatus: parsed.employmentStatus || [],
+                            educationLevel: parsed.educationLevel || [],
+                            state: parsed.state || [],
+                            minAge: String(parsed.minAge ?? ""),
+                            maxAge: String(parsed.maxAge ?? ""),
+                          };
+                          if (
+                            aud.gender.length ||
+                            aud.employmentStatus.length ||
+                            aud.educationLevel.length ||
+                            aud.state.length ||
+                            aud.minAge ||
+                            aud.maxAge
+                          ) {
+                            hasTargeting = true;
+                          }
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      }
+                      setEditAudience(aud);
+                      setEditEnableTargeting(hasTargeting);
+
+                      // Images
+                      const initialImages = [];
+                      if ((task as any).images) {
+                        try {
+                          const parsed = JSON.parse((task as any).images);
+                          if (Array.isArray(parsed)) {
+                            initialImages.push(...parsed.map((url: string) => ({ url })));
+                          }
+                        } catch {
+                          if (typeof (task as any).images === "string" && (task as any).images.trim()) {
+                            initialImages.push({ url: (task as any).images });
+                          }
+                        }
+                      }
+                      setEditImages(initialImages);
+                      setUploadError("");
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-750 hover:text-white transition-colors"
                   >
@@ -2226,7 +2466,7 @@ export default function TaskSubmissionsPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+            <div className="p-6 overflow-y-auto flex-1 space-y-5">
               {/* Disabled / Locked Fields */}
               <div className="space-y-3 bg-red-950/5 border border-red-900/10 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-xs font-semibold text-red-400">
@@ -2234,7 +2474,7 @@ export default function TaskSubmissionsPage() {
                 </div>
                 <div className="grid grid-cols-1 gap-3 text-xs mt-1.5">
                   <div>
-                    <label className="text-[10px] text-zinc-500 uppercase font-semibold">Title</label>
+                    <FieldLabel>Title</FieldLabel>
                     <input
                       type="text"
                       value={task.title}
@@ -2243,7 +2483,7 @@ export default function TaskSubmissionsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-zinc-500 uppercase font-semibold">Description</label>
+                    <FieldLabel>Description</FieldLabel>
                     <textarea
                       value={task.description}
                       disabled
@@ -2251,121 +2491,137 @@ export default function TaskSubmissionsPage() {
                       className="w-full bg-zinc-950/60 border border-zinc-800/80 rounded-lg p-2 text-zinc-500 cursor-not-allowed select-none resize-none"
                     />
                   </div>
-                  {task.caption && (
-                    <div>
-                      <label className="text-[10px] text-zinc-500 uppercase font-semibold">Caption</label>
-                      <textarea
-                        value={task.caption}
-                        disabled
-                        rows={2}
-                        className="w-full bg-zinc-950/60 border border-zinc-800/80 rounded-lg p-2 text-zinc-500 cursor-not-allowed select-none resize-none"
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
 
-              {/* Editable Fields */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Task Details */}
+              <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
+                <h2 className="text-sm font-semibold text-zinc-300 pb-2 border-b border-zinc-800/60">Task Details</h2>
                 <div>
-                  <label className="text-[10px] text-zinc-400 uppercase font-semibold block mb-1">
-                    Capacity (Users Needed)
-                  </label>
-                  <input
-                    type="number"
-                    min={task.approvedCount}
-                    value={editNumberOfUsers}
-                    onChange={(e) => setEditNumberOfUsers(e.target.value)}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+                  <FieldLabel>
+                    Caption <span className="text-zinc-650 font-normal">(optional — text users copy and post)</span>
+                  </FieldLabel>
+                  <textarea
+                    value={editCaption}
+                    onChange={(e) => setEditCaption(e.target.value)}
+                    placeholder="Paste the exact caption users should copy to their post or status..."
+                    rows={3}
+                    className={`${inputCls} resize-none`}
                   />
-                  <p className="text-[9px] text-zinc-500 mt-1">
-                    Must be at least the approved count ({task.approvedCount})
-                  </p>
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-zinc-400 uppercase font-semibold block mb-1">
-                    Reward Amount (₦)
-                  </label>
+                  <FieldLabel>
+                    Link <span className="text-zinc-655 font-normal">(optional — profile, post, or page to act on)</span>
+                  </FieldLabel>
                   <input
-                    type="number"
-                    min="1"
-                    value={editAmount}
-                    onChange={(e) => setEditAmount(e.target.value)}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[10px] text-zinc-400 uppercase font-semibold block mb-1">
-                    Target Platform Link
-                  </label>
-                  <input
-                    type="text"
                     value={editLink}
                     onChange={(e) => setEditLink(e.target.value)}
                     placeholder="https://..."
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+                    type="url"
+                    className={inputCls}
                   />
                 </div>
 
+                {/* Multi-image upload */}
                 <div>
-                  <label className="text-[10px] text-zinc-400 uppercase font-semibold block mb-1">
-                    Auditor (Assigned Officer)
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <FieldLabel>
+                      Images <span className="text-zinc-650 font-normal">(optional — up to {MAX_IMAGES})</span>
+                    </FieldLabel>
+                    {editImages.length > 0 && (
+                      <span className="text-[11px] text-zinc-500">
+                        {editImages.length} / {MAX_IMAGES}
+                      </span>
+                    )}
+                  </div>
+
+                  {editImages.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mb-2">
+                      {editImages.map((img, idx) => (
+                        <div
+                          key={idx}
+                          className="relative rounded-xl overflow-hidden border border-zinc-700/60 group aspect-video"
+                        >
+                          <img
+                            src={img.url || img.preview}
+                            alt={`Image ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeEditImage(idx)}
+                            className="absolute top-1.5 right-1.5 p-1 rounded-lg bg-black/60 text-zinc-300 hover:text-red-400 hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {editImages.length < MAX_IMAGES && (
+                    <div
+                      onClick={() => editFileRef.current?.click()}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (e.dataTransfer.files) handleEditFiles(e.dataTransfer.files);
+                      }}
+                      className="flex flex-col items-center justify-center gap-1.5 h-20 rounded-xl border border-dashed border-zinc-700/60 bg-zinc-800/30 cursor-pointer hover:border-purple-500/40 hover:bg-zinc-800/50 transition-colors"
+                    >
+                      <Upload className="w-4 h-4 text-zinc-500" />
+                      <p className="text-xs text-zinc-500 font-medium">Click or drag to add images</p>
+                    </div>
+                  )}
+
                   <input
-                    type="text"
-                    value={editAssignedOfficer}
-                    onChange={(e) => setEditAssignedOfficer(e.target.value)}
-                    placeholder="@username of task officer"
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+                    ref={editFileRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) handleEditFiles(e.target.files);
+                      e.target.value = "";
+                    }}
                   />
+                  {uploadError && <p className="text-xs text-red-400 mt-1">{uploadError}</p>}
                 </div>
-              </div>
-
-              {/* Time Frame */}
-              <div className="bg-zinc-950/20 border border-zinc-800 rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-zinc-400 uppercase font-semibold">Time Frame (Deadline)</span>
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="checkbox"
-                      id="editLifeline"
-                      checked={editLifeline}
-                      onChange={(e) => setEditLifeline(e.target.checked)}
-                      className="rounded border-zinc-750 text-purple-600 bg-zinc-800 focus:ring-0"
-                    />
-                    <label htmlFor="editLifeline" className="text-xs text-zinc-400 cursor-pointer">
-                      No Expiry / Lifeline
-                    </label>
-                  </div>
-                </div>
-
-                {!editLifeline && (
-                  <div>
-                    <input
-                      type="date"
-                      value={editTimeline}
-                      onChange={(e) => setEditTimeline(e.target.value)}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
-                    />
-                  </div>
-                )}
               </div>
 
               {/* Instructions */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-zinc-400 uppercase font-semibold">Task Instructions</span>
-                  <button
-                    type="button"
-                    onClick={() => setEditInstructions((prev) => [...prev, ""])}
-                    className="px-2 py-1 rounded bg-purple-600/20 border border-purple-500/30 text-purple-400 hover:bg-purple-600/30 text-[10px] font-bold transition-all"
-                  >
-                    + Add Step
-                  </button>
+              <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-zinc-800/60 flex-wrap gap-2">
+                  <h2 className="text-sm font-semibold text-zinc-300">Step-by-step Instructions</h2>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditInstructions([
+                          "Click the target link to visit the platform page or profile.",
+                          "Perform the designated action (follow, like, subscribe, post status, or download).",
+                          "Take a clear screenshot showing the completed action (following state, liked post, status views, or downloaded app).",
+                          "Submit the correct proof because our system automatically audits submissions, and fake/duplicate proofs lead to immediate account suspension.",
+                          "Enter any requested text info (like your username or WhatsApp phone number) in the text box below.",
+                          "Do not undo the action (e.g., unfollowing, unliking, or deleting status post) because automated account audits run daily.",
+                          "Wait for review. Funds will be credited directly to your available balance upon validation.",
+                        ]);
+                      }}
+                      className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Load 7 Rules
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditInstructions((prev) => [...prev, ""])}
+                      className="flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Step
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
@@ -2401,6 +2657,452 @@ export default function TaskSubmissionsPage() {
                   )}
                 </div>
               </div>
+
+              {/* Task Config */}
+              <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
+                <h2 className="text-sm font-semibold text-zinc-300 pb-2 border-b border-zinc-800/60">Task Configuration</h2>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel required>Task Type</FieldLabel>
+                    <select
+                      value={editTaskType}
+                      onChange={(e) => {
+                        const t = e.target.value;
+                        setEditTaskType(t);
+                        setEditTargetPlatform(t === "use-app" ? "" : "instagram");
+                      }}
+                      className={inputCls}
+                    >
+                      {TASK_TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    {editTaskType === "use-app" ? (
+                      <>
+                        <FieldLabel required>App Name</FieldLabel>
+                        <input
+                          value={editTargetPlatform}
+                          onChange={(e) => setEditTargetPlatform(e.target.value)}
+                          placeholder="e.g. Kena, OPay..."
+                          className={inputCls}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <FieldLabel required>Target Platform</FieldLabel>
+                        <select
+                          value={editTargetPlatform}
+                          onChange={(e) => setEditTargetPlatform(e.target.value)}
+                          className={inputCls}
+                        >
+                          {PLATFORMS.map((p) => (
+                            <option key={p.value} value={p.value}>
+                              {p.label}
+                            </option>
+                          ))}
+                        </select>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Proof method */}
+                <div>
+                  <FieldLabel>Proof Method</FieldLabel>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditProofType("banner")}
+                      className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                        editProofType === "banner"
+                          ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
+                          : "bg-zinc-800/40 border-zinc-700/60 text-zinc-500 hover:border-zinc-600"
+                      }`}
+                    >
+                      <ImageIcon className="w-3.5 h-3.5 shrink-0" />
+                      <div className="text-left">
+                        <p className="text-xs font-bold">Image / Screenshot</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditProofType("url")}
+                      className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                        editProofType === "url"
+                          ? "bg-blue-500/10 border-blue-500/40 text-blue-300"
+                          : "bg-zinc-800/40 border-zinc-700/60 text-zinc-500 hover:border-zinc-600"
+                      }`}
+                    >
+                      <LinkIcon className="w-3.5 h-3.5 shrink-0" />
+                      <div className="text-left">
+                        <p className="text-xs font-bold">URL / Link</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Collect additional text */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-zinc-400 font-medium">Collect Text</p>
+                      <p className="text-[11px] text-zinc-550 mt-0.5">
+                        Ask users to submit a WhatsApp number, username, etc.
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+                      <span
+                        className={`text-xs font-semibold transition-colors ${editAcceptText ? "text-emerald-400" : "text-zinc-550"}`}
+                      >
+                        {editAcceptText ? "On" : "Off"}
+                      </span>
+                      <div
+                        onClick={() => {
+                          setEditAcceptText((v) => !v);
+                          if (!editAcceptText === false) setEditTextLabel("");
+                        }}
+                        className={`relative w-9 h-5 rounded-full transition-all ${editAcceptText ? "bg-emerald-500" : "bg-zinc-700"}`}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editAcceptText ? "translate-x-4" : "translate-x-0"}`}
+                        />
+                      </div>
+                    </label>
+                  </div>
+                  {editAcceptText && (
+                    <input
+                      value={editTextLabel}
+                      onChange={(e) => setEditTextLabel(e.target.value)}
+                      placeholder="e.g. WhatsApp Number, TikTok Username..."
+                      className={inputCls}
+                    />
+                  )}
+                </div>
+
+                {/* Collect additional number */}
+                <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-zinc-400 font-medium">Collect Number (Views / Watch Hours)</p>
+                      <p className="text-[11px] text-zinc-550 mt-0.5">
+                        Ask users to submit a numeric value like views count.
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+                      <span
+                        className={`text-xs font-semibold transition-colors ${editAcceptNumber ? "text-emerald-400" : "text-zinc-550"}`}
+                      >
+                        {editAcceptNumber ? "On" : "Off"}
+                      </span>
+                      <div
+                        onClick={() => {
+                          setEditAcceptNumber((v) => !v);
+                          if (!editAcceptNumber === false) setEditNumberLabel("");
+                        }}
+                        className={`relative w-9 h-5 rounded-full transition-all ${editAcceptNumber ? "bg-emerald-500" : "bg-zinc-700"}`}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editAcceptNumber ? "translate-x-4" : "translate-x-0"}`}
+                        />
+                      </div>
+                    </label>
+                  </div>
+                  {editAcceptNumber && (
+                    <input
+                      value={editNumberLabel}
+                      onChange={(e) => setEditNumberLabel(e.target.value)}
+                      placeholder="e.g. Number of Views, Watch Hours..."
+                      className={inputCls}
+                    />
+                  )}
+                </div>
+
+                {/* Accept multiple images */}
+                <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-zinc-400 font-medium">Accept Multiple Screenshot Proofs</p>
+                      <p className="text-[11px] text-zinc-550 mt-0.5">
+                        Allow users to upload up to 5 screenshots instead of one.
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+                      <span
+                        className={`text-xs font-semibold transition-colors ${editAcceptMultipleImages ? "text-emerald-400" : "text-zinc-550"}`}
+                      >
+                        {editAcceptMultipleImages ? "On" : "Off"}
+                      </span>
+                      <div
+                        onClick={() => setEditAcceptMultipleImages((v) => !v)}
+                        className={`relative w-9 h-5 rounded-full transition-all ${editAcceptMultipleImages ? "bg-emerald-500" : "bg-zinc-700"}`}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editAcceptMultipleImages ? "translate-x-4" : "translate-x-0"}`}
+                        />
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <FieldLabel required={editTaskType === "views"}>
+                    Minimum View Count {editTaskType !== "views" && <span className="text-zinc-650 font-normal">(optional)</span>}
+                  </FieldLabel>
+                  <input
+                    type="number"
+                    min="1"
+                    value={editTargetCount}
+                    onChange={(e) => setEditTargetCount(e.target.value)}
+                    placeholder="e.g. 1000 (optional)"
+                    className={inputCls}
+                  />
+                </div>
+
+                {editTaskType === "jetpot" && (
+                  <div>
+                    <FieldLabel>
+                      Admin WhatsApp <span className="text-zinc-600 font-normal">(buyers message this number)</span>
+                    </FieldLabel>
+                    <input
+                      value={editAdminContact}
+                      onChange={(e) => setEditAdminContact(e.target.value)}
+                      placeholder="+2348..."
+                      className={inputCls}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Target Audience */}
+              <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-sm font-semibold text-zinc-300">Target Audience</h2>
+                    <p className="text-[11px] text-zinc-500 mt-0.5">
+                      Restrict this task to specific users based on their profile
+                    </p>
+                  </div>
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                    <span
+                      className={`text-xs font-semibold transition-colors ${editEnableTargeting ? "text-purple-400" : "text-zinc-500"}`}
+                    >
+                      {editEnableTargeting ? "Enabled" : "Disabled"}
+                    </span>
+                    <div
+                      onClick={() => setEditEnableTargeting((v) => !v)}
+                      className={`relative w-10 h-5 rounded-full transition-all ${editEnableTargeting ? "bg-purple-500" : "bg-zinc-700"}`}
+                    >
+                      <span
+                        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editEnableTargeting ? "translate-x-5" : "translate-x-0"}`}
+                      />
+                    </div>
+                  </label>
+                </div>
+
+                {editEnableTargeting && (
+                  <div className="border border-zinc-700/60 rounded-xl bg-zinc-800/30 p-4 space-y-4">
+                    <div>
+                      <FieldLabel>Age Range</FieldLabel>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={editAudience.minAge}
+                          onChange={(e) => setEditAudience((a) => ({ ...a, minAge: e.target.value }))}
+                          placeholder="Min age"
+                          className={`${inputCls} flex-1`}
+                        />
+                        <span className="text-zinc-650 font-bold shrink-0">→</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={editAudience.maxAge}
+                          onChange={(e) => setEditAudience((a) => ({ ...a, maxAge: e.target.value }))}
+                          placeholder="Max age"
+                          className={`${inputCls} flex-1`}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <FieldLabel>Gender</FieldLabel>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          ["male", "👨 Male"],
+                          ["female", "👩 Female"],
+                          ["prefer_not_to_say", "🤔 Prefer not to say"],
+                        ].map(([val, label]) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setEditAudience((a) => ({ ...a, gender: toggle(a.gender, val) }))}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${editAudience.gender.includes(val) ? "bg-purple-500/15 border-purple-500/50 text-purple-300" : "bg-zinc-800/50 border-zinc-700/50 text-zinc-450 hover:text-zinc-300"}`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <FieldLabel>Employment Status</FieldLabel>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          ["student", "🎓 Student"],
+                          ["working", "💼 Working"],
+                          ["self_employed", "🧑‍💻 Self-employed"],
+                          ["unemployed", "🔍 Unemployed"],
+                        ].map(([val, label]) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setEditAudience((a) => ({ ...a, employmentStatus: toggle(a.employmentStatus, val) }))}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${editAudience.employmentStatus.includes(val) ? "bg-blue-500/15 border-blue-500/50 text-blue-300" : "bg-zinc-800/50 border-zinc-700/50 text-zinc-450 hover:text-zinc-300"}`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <FieldLabel>Education Level</FieldLabel>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          ["ssce", "SSCE"],
+                          ["university", "University"],
+                          ["polytechnic", "Polytechnic"],
+                          ["college", "College"],
+                        ].map(([val, label]) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setEditAudience((a) => ({ ...a, educationLevel: toggle(a.educationLevel, val) }))}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${editAudience.educationLevel.includes(val) ? "bg-amber-500/15 border-amber-500/50 text-amber-300" : "bg-zinc-800/50 border-zinc-700/50 text-zinc-450 hover:text-zinc-300"}`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <FieldLabel>State of Residence</FieldLabel>
+                      <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
+                        {NIGERIAN_STATES.map((state) => (
+                          <button
+                            key={state}
+                            type="button"
+                            onClick={() => setEditAudience((a) => ({ ...a, state: toggle(a.state, state) }))}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-semibold border transition-all ${editAudience.state.includes(state) ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-300" : "bg-zinc-800/50 border-zinc-700/40 text-zinc-550 hover:text-zinc-300"}`}
+                          >
+                            {state}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Reward & Timeline */}
+              <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
+                <h2 className="text-sm font-semibold text-zinc-300 pb-2 border-b border-zinc-800/60">Reward &amp; Timeline</h2>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel required>Capacity (Users Needed)</FieldLabel>
+                    <input
+                      type="number"
+                      min={task.approvedCount}
+                      value={editNumberOfUsers}
+                      onChange={(e) => setEditNumberOfUsers(e.target.value)}
+                      className={inputCls}
+                    />
+                    <p className="text-[10px] text-zinc-500 mt-1">
+                      Must be at least the approved count ({task.approvedCount})
+                    </p>
+                  </div>
+
+                  <div>
+                    <FieldLabel required>Reward Amount (₦)</FieldLabel>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editAmount}
+                      onChange={(e) => setEditAmount(e.target.value)}
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <FieldLabel>
+                    Hourly Completion Limit <span className="text-zinc-650 font-normal">(optional)</span>
+                  </FieldLabel>
+                  <input
+                    type="number"
+                    min="1"
+                    value={editMaxPerHour}
+                    onChange={(e) => setEditMaxPerHour(e.target.value)}
+                    placeholder="Unlimited"
+                    className={inputCls}
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <FieldLabel>Task Duration</FieldLabel>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <span
+                        className={`text-xs font-semibold transition-colors ${editNoExpiry ? "text-violet-400" : "text-zinc-500"}`}
+                      >
+                        No expiry
+                      </span>
+                      <div
+                        onClick={() => setEditNoExpiry((v) => !v)}
+                        className={`relative w-9 h-5 rounded-full transition-all ${editNoExpiry ? "bg-violet-500" : "bg-zinc-700"}`}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-all shadow ${editNoExpiry ? "translate-x-4" : "translate-x-0"}`}
+                        />
+                      </div>
+                      <InfinityIcon className={`w-4 h-4 transition-colors ${editNoExpiry ? "text-violet-400" : "text-zinc-600"}`} />
+                    </label>
+                  </div>
+                  {!editNoExpiry && (
+                    <input
+                      type="date"
+                      value={editTimeline}
+                      onChange={(e) => setEditTimeline(e.target.value)}
+                      className={inputCls}
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <FieldLabel>Auditor (Assigned Officer)</FieldLabel>
+                  <select
+                    value={editAssignedOfficer}
+                    onChange={(e) => setEditAssignedOfficer(e.target.value)}
+                    className={inputCls}
+                  >
+                    <option value="">Auto-distribute to available officers</option>
+                    {officers.map((off: any) => (
+                      <option key={off.username} value={off.username}>
+                        {off.name} (@{off.username})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
             {/* Modal Actions Footer */}
@@ -2409,31 +3111,91 @@ export default function TaskSubmissionsPage() {
                 Cancel
               </Button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   const numUsersVal = parseInt(editNumberOfUsers);
                   if (isNaN(numUsersVal) || numUsersVal < task.approvedCount) {
                     alert(`Capacity must be at least ${task.approvedCount}`);
                     return;
                   }
+
+                  let uploadedUrls: string[] = [];
+                  if (editImages.length > 0) {
+                    try {
+                      const results = await Promise.all(
+                        editImages.map((img) => {
+                          if (img.url) {
+                            return Promise.resolve({ url: img.url });
+                          } else {
+                            const [header, base64] = img.preview!.split(",");
+                            const mimeType = header.match(/:(.*?);/)?.[1] ?? "image/jpeg";
+                            return uploadImage.mutateAsync({ base64, mimeType });
+                          }
+                        })
+                      );
+                      uploadedUrls = results.map((r: any) => r.url);
+                    } catch {
+                      setUploadError("One or more image uploads failed. Please try again.");
+                      return;
+                    }
+                  }
+
+                  const filteredInstructions = editInstructions.map((s) => s.trim()).filter(Boolean);
+
                   updateTask.mutate({
-                    timeline: editLifeline ? null : editTimeline ? new Date(editTimeline).toISOString() : null,
-                    lifeline: editLifeline,
+                    timeline: editNoExpiry ? null : editTimeline ? new Date(editTimeline).toISOString() : null,
+                    lifeline: editNoExpiry,
                     numberOfUsersNeeded: numUsersVal,
-                    instructions: editInstructions.filter((s) => s.trim() !== ""),
+                    instructions: filteredInstructions.length ? filteredInstructions : undefined,
                     amount: editAmount ? Number(editAmount) : undefined,
-                    link: editLink || undefined,
-                    assignedOfficer: editAssignedOfficer || undefined,
+                    link: editLink.trim() || null,
+                    assignedOfficer: editAssignedOfficer || null,
+                    caption: editCaption.trim() || null,
+                    images: uploadedUrls.length ? uploadedUrls : null,
+                    taskType: editTaskType,
+                    targetPlatform: editTargetPlatform,
+                    proofType: editProofType,
+                    acceptText: editAcceptText,
+                    textLabel: editAcceptText ? editTextLabel.trim() : null,
+                    acceptNumber: editAcceptNumber,
+                    numberLabel: editAcceptNumber ? editNumberLabel.trim() : null,
+                    acceptMultipleImages: editAcceptMultipleImages,
+                    targetCount: editTargetCount.trim() ? editTargetCount : null,
+                    adminContact: editAdminContact.trim() || null,
+                    maxPerHour: editMaxPerHour.trim() ? parseInt(editMaxPerHour) : null,
+                    targetAudience: editEnableTargeting
+                      ? {
+                          ...(editAudience.gender.length ? { gender: editAudience.gender } : {}),
+                          ...(editAudience.employmentStatus.length ? { employmentStatus: editAudience.employmentStatus } : {}),
+                          ...(editAudience.educationLevel.length ? { educationLevel: editAudience.educationLevel } : {}),
+                          ...(editAudience.state.length ? { state: editAudience.state } : {}),
+                          ...(editAudience.minAge ? { minAge: parseInt(editAudience.minAge) } : {}),
+                          ...(editAudience.maxAge ? { maxAge: parseInt(editAudience.maxAge) } : {}),
+                        }
+                      : null,
                   });
                 }}
-                disabled={updateTask.isPending}
+                disabled={updateTask.isPending || uploadImage.isPending}
                 className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-40"
               >
-                {updateTask.isPending ? "Saving..." : "Save Changes"}
+                {uploadImage.isPending ? "Uploading..." : updateTask.isPending ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
         </div>
       )}
+      
+      {/* Hidden helper handlers inside main component */}
+      <input
+        ref={editFileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files) handleEditFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
     </div>
   );
 }
