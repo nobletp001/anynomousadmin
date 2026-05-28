@@ -37,8 +37,8 @@ export default function LoginPage() {
       if (!response.success || !ADMIN_ROLES.includes(response.data.user.role as any)) {
         throw new Error("Access denied. Admin privileges required.");
       }
-      localStorage.setItem("admin_token", response.data.token);
-      localStorage.setItem("admin_user", JSON.stringify(response.data.user));
+      sessionStorage.setItem("admin_token", response.data.token);
+      sessionStorage.setItem("admin_user", JSON.stringify(response.data.user));
       return response.data.user;
     },
     onSuccess: (userData) => {

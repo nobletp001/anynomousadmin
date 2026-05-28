@@ -1,0 +1,83 @@
+import { useState } from "react";
+import { AudienceFilter, ImageEntry } from "../types";
+
+export function useCreateTaskState() {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [caption, setCaption] = useState("");
+  const [link, setLink] = useState("");
+  const [assignedOfficer, setAssignedOfficer] = useState("");
+  const [instructions, setInstructions] = useState<string[]>([""]);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [taskType, setTaskType] = useState("follow");
+  const [targetPlatform, setTargetPlatform] = useState("instagram");
+  const [timelineMs, setTimelineMs] = useState(24 * 60 * 60 * 1000);
+  const [amount, setAmount] = useState("");
+  const [numberOfUsersNeeded, setNumberOfUsersNeeded] = useState("");
+  const [adminContact, setAdminContact] = useState("");
+  const [targetCount, setTargetCount] = useState("");
+  const [maxPerHour, setMaxPerHour] = useState("");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [showPromptRepo, setShowPromptRepo] = useState(false);
+  const [images, setImages] = useState<ImageEntry[]>([]);
+  const [uploadError, setUploadError] = useState("");
+  const [proofType, setProofType] = useState<"banner" | "url">("banner");
+  const [acceptText, setAcceptText] = useState(false);
+  const [textLabel, setTextLabel] = useState("");
+  const [acceptNumber, setAcceptNumber] = useState(false);
+  const [numberLabel, setNumberLabel] = useState("");
+  const [acceptMultipleImages, setAcceptMultipleImages] = useState(false);
+  const [noExpiry, setNoExpiry] = useState(false);
+  const [enableTargeting, setEnableTargeting] = useState(false);
+  const [audience, setAudience] = useState<AudienceFilter>({
+    gender: [],
+    employmentStatus: [],
+    educationLevel: [],
+    state: [],
+    minAge: "",
+    maxAge: "",
+  });
+
+  return {
+    title, setTitle,
+    description, setDescription,
+    caption, setCaption,
+    link, setLink,
+    assignedOfficer, setAssignedOfficer,
+    instructions, setInstructions,
+    draggedIdx, setDraggedIdx,
+    taskType, setTaskType,
+    targetPlatform, setTargetPlatform,
+    timelineMs, setTimelineMs,
+    amount, setAmount,
+    numberOfUsersNeeded, setNumberOfUsersNeeded,
+    adminContact, setAdminContact,
+    targetCount, setTargetCount,
+    maxPerHour, setMaxPerHour,
+    aiPrompt, setAiPrompt,
+    isListening, setIsListening,
+    isParsing, setIsParsing,
+    aiError, setAiError,
+    searchQuery, setSearchQuery,
+    selectedCategory, setSelectedCategory,
+    showPromptRepo, setShowPromptRepo,
+    images, setImages,
+    uploadError, setUploadError,
+    proofType, setProofType,
+    acceptText, setAcceptText,
+    textLabel, setTextLabel,
+    acceptNumber, setAcceptNumber,
+    numberLabel, setNumberLabel,
+    acceptMultipleImages, setAcceptMultipleImages,
+    noExpiry, setNoExpiry,
+    enableTargeting, setEnableTargeting,
+    audience, setAudience,
+  };
+}
+
+export type CreateTaskState = ReturnType<typeof useCreateTaskState>;
