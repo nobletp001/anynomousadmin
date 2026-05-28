@@ -9,6 +9,9 @@ import { Instructions } from "./EditTaskForm/Instructions";
 import { Config } from "./EditTaskForm/Config";
 import { Targeting } from "./EditTaskForm/Targeting";
 import { RewardTimeline } from "./EditTaskForm/RewardTimeline";
+import { AllowedSubmissions } from "./EditTaskForm/AllowedSubmissions";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/services/api-client";
 
 interface EditTaskModalProps {
   task: Task;
@@ -27,6 +30,19 @@ export function EditTaskModal({
   updateTaskMutation,
   uploadImageMutation,
 }: EditTaskModalProps) {
+  const { data: initialAllowedList } = useQuery<any[]>({
+    queryKey: ["task-allowed-submissions", task.id],
+    queryFn: async () => (await apiClient.get(`/admin/tasks/${task.id}/allowed-submissions`) as any).data,
+  });
+
+  React.useEffect(() => {
+    if (initialAllowedList) {
+      editState.setEditAllowedSubmissions(
+        initialAllowedList.map((item) => ({ username: item.username, allowedCount: item.allowedCount }))
+      );
+    }
+  }, [initialAllowedList]);
+
   const handleSave = async () => {
     const numUsersVal = parseInt(editState.editNumberOfUsers);
     if (isNaN(numUsersVal) || numUsersVal < task.approvedCount) {
@@ -85,6 +101,7 @@ export function EditTaskModal({
             ...(editState.editAudience.maxAge ? { maxAge: parseInt(editState.editAudience.maxAge) } : {}),
           }
         : null,
+      allowedSubmissions: editState.editAllowedSubmissions,
     });
   };
 
@@ -148,6 +165,7 @@ export function EditTaskModal({
             editAssignedOfficer={editState.editAssignedOfficer} setEditAssignedOfficer={editState.setEditAssignedOfficer}
             officers={officers}
           />
+          <AllowedSubmissions editState={editState} />
         </div>
 
         <div className="p-5 border-t border-zinc-800 flex items-center justify-between bg-zinc-955/20 shrink-0">
