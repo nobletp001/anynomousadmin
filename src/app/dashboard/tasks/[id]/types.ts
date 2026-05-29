@@ -87,6 +87,8 @@ export interface Task {
   maxPerHour?: number | string | null;
   targetAudience?: string | null;
   images?: string | null;
+  prompts?: string | null;
+  requirePromptSelection?: boolean;
 }
 
 export interface UserInfo {
@@ -113,6 +115,7 @@ export interface Submission {
   feedback?: string | null;
   ipAddress?: string | null;
   deviceId?: string | null;
+  selectedPrompt?: string | null;
 }
 
 export interface SubmissionsResponse {

@@ -27,6 +27,10 @@ interface ConfigProps {
   setEditTargetCount: (v: string) => void;
   editAdminContact: string;
   setEditAdminContact: (v: string) => void;
+  editPrompts: string;
+  setEditPrompts: (v: string) => void;
+  editRequirePromptSelection: boolean;
+  setEditRequirePromptSelection: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function Config({
@@ -50,6 +54,10 @@ export function Config({
   setEditTargetCount,
   editAdminContact,
   setEditAdminContact,
+  editPrompts,
+  setEditPrompts,
+  editRequirePromptSelection,
+  setEditRequirePromptSelection,
 }: ConfigProps) {
   const isUseApp = editTaskType === "use-app";
 
@@ -240,6 +248,37 @@ export function Config({
           />
         </div>
       )}
+
+      <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-400 font-medium">Require Prompt Selection & Copy</p>
+            <p className="text-[11px] text-zinc-555 mt-0.5">Force users to select and copy a prompt before submission.</p>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+            <span className={`text-xs font-semibold transition-colors ${editRequirePromptSelection ? "text-emerald-400" : "text-zinc-555"}`}>
+              {editRequirePromptSelection ? "On" : "Off"}
+            </span>
+            <div
+              onClick={() => setEditRequirePromptSelection(!editRequirePromptSelection)}
+              className={`relative w-9 h-5 rounded-full transition-all ${editRequirePromptSelection ? "bg-emerald-500" : "bg-zinc-700"}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editRequirePromptSelection ? "translate-x-4" : "translate-x-0"}`} />
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <FieldLabel>Client-Suggested Prompts (One per line)</FieldLabel>
+        <textarea
+          value={editPrompts}
+          onChange={(e) => setEditPrompts(e.target.value)}
+          placeholder="Paste the prompts or comments here, one per line..."
+          rows={4}
+          className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors resize-none"
+        />
+      </div>
     </div>
   );
 }

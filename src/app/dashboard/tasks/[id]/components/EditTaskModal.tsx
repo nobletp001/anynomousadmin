@@ -102,6 +102,8 @@ export function EditTaskModal({
           }
         : null,
       allowedSubmissions: editState.editAllowedSubmissions,
+      prompts: editState.editPrompts.trim() ? JSON.stringify(editState.editPrompts.split("\n").map(p => p.trim()).filter(Boolean)) : null,
+      requirePromptSelection: editState.editRequirePromptSelection,
     });
   };
 
@@ -153,6 +155,8 @@ export function EditTaskModal({
             editAcceptMultipleImages={editState.editAcceptMultipleImages} setEditAcceptMultipleImages={editState.setEditAcceptMultipleImages}
             editTargetCount={editState.editTargetCount} setEditTargetCount={editState.setEditTargetCount}
             editAdminContact={editState.editAdminContact} setEditAdminContact={editState.setEditAdminContact}
+            editPrompts={editState.editPrompts} setEditPrompts={editState.setEditPrompts}
+            editRequirePromptSelection={editState.editRequirePromptSelection} setEditRequirePromptSelection={editState.setEditRequirePromptSelection}
           />
           <Targeting editEnableTargeting={editState.editEnableTargeting} setEditEnableTargeting={editState.setEditEnableTargeting} editAudience={editState.editAudience} setEditAudience={editState.setEditAudience} />
           <RewardTimeline

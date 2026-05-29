@@ -35,6 +35,8 @@ export function useEditTaskState() {
   const [editImages, setEditImages] = useState<Array<{ url?: string; file?: File; preview?: string }>>([]);
   const [uploadError, setUploadError] = useState("");
   const [editAllowedSubmissions, setEditAllowedSubmissions] = useState<Array<{ username: string; allowedCount: number }>>([]);
+  const [editPrompts, setEditPrompts] = useState("");
+  const [editRequirePromptSelection, setEditRequirePromptSelection] = useState(false);
 
   return {
     isEditingTask, setIsEditingTask,
@@ -63,6 +65,8 @@ export function useEditTaskState() {
     editImages, setEditImages,
     uploadError, setUploadError,
     editAllowedSubmissions, setEditAllowedSubmissions,
+    editPrompts, setEditPrompts,
+    editRequirePromptSelection, setEditRequirePromptSelection,
   };
 }
 export type EditTaskState = ReturnType<typeof useEditTaskState>;

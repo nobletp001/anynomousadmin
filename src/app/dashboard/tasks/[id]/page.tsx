@@ -126,6 +126,15 @@ export default function TaskSubmissionsPage() {
     editState.setEditEnableTargeting(!!task.targetAudience);
     editState.setEditAudience(task.targetAudience ? JSON.parse(task.targetAudience) : { gender: [], employmentStatus: [], educationLevel: [], state: [], minAge: "", maxAge: "" });
     editState.setEditImages(task.images ? JSON.parse(task.images).map((url: string) => ({ url })) : []);
+    let promptsText = "";
+    try {
+      const promptsArray = task.prompts ? JSON.parse(task.prompts) : [];
+      promptsText = Array.isArray(promptsArray) ? promptsArray.join("\n") : "";
+    } catch {
+      promptsText = task.prompts || "";
+    }
+    editState.setEditPrompts(promptsText);
+    editState.setEditRequirePromptSelection(!!task.requirePromptSelection);
     editState.setUploadError("");
   };
 

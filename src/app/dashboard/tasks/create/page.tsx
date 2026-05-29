@@ -82,6 +82,8 @@ export default function CreateTaskPage() {
           acceptMultipleImages={state.acceptMultipleImages} setAcceptMultipleImages={state.setAcceptMultipleImages}
           targetCount={state.targetCount} setTargetCount={state.setTargetCount}
           adminContact={state.adminContact} setAdminContact={state.setAdminContact}
+          prompts={state.prompts} setPrompts={state.setPrompts}
+          requirePromptSelection={state.requirePromptSelection} setRequirePromptSelection={state.setRequirePromptSelection}
         />
 
         <TargetAudienceForm

@@ -66,9 +66,17 @@ export function SubmissionUserInfoPanel({
               <p className="text-sm font-bold text-purple-300 select-all">{sub.numberResponse}</p>
             </div>
           ) : (
-            <p className="text-xs text-zinc-650 italic">No numeric details collected</p>
+            <p className="text-xs text-zinc-655 italic">No numeric details collected</p>
           )}
         </div>
+        {sub.selectedPrompt && (
+          <div className="space-y-1.5 pt-3 border-t border-zinc-900/60">
+            <p className="text-[10px] text-zinc-500 uppercase font-semibold">Submitted Prompt / Text copied</p>
+            <div className="flex items-start gap-2 bg-zinc-900 p-2.5 rounded-lg border border-zinc-800">
+              <p className="text-xs text-zinc-200 flex-1 break-all font-medium select-all">{sub.selectedPrompt}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {isPending && (

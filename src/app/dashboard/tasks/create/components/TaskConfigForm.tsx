@@ -24,6 +24,10 @@ interface TaskConfigFormProps {
   setTargetCount: (v: string) => void;
   adminContact: string;
   setAdminContact: (v: string) => void;
+  prompts: string;
+  setPrompts: (v: string) => void;
+  requirePromptSelection: boolean;
+  setRequirePromptSelection: (v: boolean) => void;
 }
 
 export function TaskConfigForm({
@@ -37,6 +41,8 @@ export function TaskConfigForm({
   acceptMultipleImages, setAcceptMultipleImages,
   targetCount, setTargetCount,
   adminContact, setAdminContact,
+  prompts, setPrompts,
+  requirePromptSelection, setRequirePromptSelection,
 }: TaskConfigFormProps) {
   const isJetpot = taskType === "jetpot";
   const isViews = taskType === "views";
@@ -197,6 +203,32 @@ export function TaskConfigForm({
           />
         </div>
       )}
+
+      <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-400 font-medium">Require Prompt Selection & Copy</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">Force users to select and copy a prompt before submission.</p>
+          </div>
+          <div
+            onClick={() => setRequirePromptSelection(!requirePromptSelection)}
+            className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${requirePromptSelection ? "bg-emerald-500" : "bg-zinc-700"}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${requirePromptSelection ? "translate-x-4" : "translate-x-0"}`} />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <FieldLabel>Client-Suggested Prompts (One per line)</FieldLabel>
+        <textarea
+          value={prompts}
+          onChange={(e) => setPrompts(e.target.value)}
+          placeholder="Paste the prompts or comments here, one per line..."
+          rows={4}
+          className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors resize-none"
+        />
+      </div>
     </div>
   );
 }

@@ -33,6 +33,8 @@ export function useCreateTaskState() {
   const [numberLabel, setNumberLabel] = useState("");
   const [acceptMultipleImages, setAcceptMultipleImages] = useState(false);
   const [noExpiry, setNoExpiry] = useState(false);
+  const [prompts, setPrompts] = useState("");
+  const [requirePromptSelection, setRequirePromptSelection] = useState(false);
   const [enableTargeting, setEnableTargeting] = useState(false);
   const [audience, setAudience] = useState<AudienceFilter>({
     gender: [],
@@ -77,6 +79,8 @@ export function useCreateTaskState() {
     noExpiry, setNoExpiry,
     enableTargeting, setEnableTargeting,
     audience, setAudience,
+    prompts, setPrompts,
+    requirePromptSelection, setRequirePromptSelection,
   };
 }
 
