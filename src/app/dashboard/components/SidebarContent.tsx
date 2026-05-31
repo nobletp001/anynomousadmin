@@ -11,7 +11,9 @@ import {
   Shield,
   LogOut,
   Trophy,
+  ScanSearch,
 } from "lucide-react";
+
 
 interface SidebarItem {
   name: string;
@@ -39,11 +41,18 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     roles: ["super-admin", "admin"],
   },
   {
+    name: "Fraud & Security",
+    href: "/dashboard/fraud",
+    icon: ScanSearch,
+    roles: ["super-admin", "admin"],
+  },
+  {
     name: "My Users",
     href: "/dashboard/my-users",
     icon: UserCheck,
     roles: ["account-manager", "super-admin", "admin"],
   },
+
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Move, Users, X, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { FileText, Move, Users, X, AlertCircle, CheckCircle, XCircle, Eye } from "lucide-react";
 import { Button } from "@/components/ui";
 import { Submission, Task } from "../types";
 import { formatDate } from "../utils";
@@ -28,6 +28,7 @@ interface SubmissionDetailsModalProps {
   onCorrectionClick: () => void;
   onRejectClick: () => void;
   isApprovePending: boolean;
+  onWatchUser?: (username: string) => void;
 }
 
 export function SubmissionDetailsModal({
@@ -52,6 +53,7 @@ export function SubmissionDetailsModal({
   onCorrectionClick,
   onRejectClick,
   isApprovePending,
+  onWatchUser,
 }: SubmissionDetailsModalProps) {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -149,10 +151,22 @@ export function SubmissionDetailsModal({
 
         {/* Modal Actions Footer */}
         <div className="p-5 border-t border-zinc-800 flex items-center justify-between bg-zinc-950/20 shrink-0">
-          <Button variant="outline" size="md" onClick={onClose}>
-            Close Details
-            <kbd className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-zinc-800 text-zinc-400 rounded border border-zinc-700 font-mono uppercase">Esc</kbd>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="md" onClick={onClose}>
+              Close Details
+              <kbd className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-zinc-800 text-zinc-400 rounded border border-zinc-700 font-mono uppercase">Esc</kbd>
+            </Button>
+            {onWatchUser && (
+              <button
+                onClick={() => onWatchUser(sub.username)}
+                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-violet-500/10 text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-colors"
+                title={`Place @${sub.username} under fraud watch`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                Track User
+              </button>
+            )}
+          </div>
           {isPending && (
             <div className="flex items-center gap-2.5">
               <button

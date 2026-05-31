@@ -19,6 +19,8 @@ import { FullscreenImageZoom } from "./components/FullscreenImageZoom";
 import { downloadPDFReport } from "./pdf-report";
 import { Submission } from "./types";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 export default function TaskSubmissionsPage() {
   const router = useRouter();
   const taskId = useParams().id as string;
@@ -72,6 +74,25 @@ export default function TaskSubmissionsPage() {
     state.setRejectModal({ subId: sub.id, username: sub.username, balance: sub.userBalance, mode: "correction" });
     state.setDeductAmount("");
     state.setRejectReason("");
+  };
+
+  const handleWatchUser = async (username: string) => {
+    try {
+      const token = localStorage.getItem("admin_token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/admin/fraud/users/${username}/monitor`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ monitored: true, runAnalysis: true }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`✅ @${username} is now under watch.\n${data.newAlerts?.length > 0 ? `${data.newAlerts.length} fraud signal(s) detected.` : "No immediate flags found — monitoring is active."}`);
+      } else {
+        alert(`Failed to track user: ${data.error}`);
+      }
+    } catch {
+      alert("Network error — could not place user under watch.");
+    }
   };
 
   useKeyboardShortcuts({
@@ -170,6 +191,7 @@ export default function TaskSubmissionsPage() {
             onCorrectionClick={() => openCorrectionModal(state.viewingSub!)}
             onRejectClick={() => openRejectModal(state.viewingSub!)}
             isApprovePending={mutations.approveSubmission.isPending}
+            onWatchUser={handleWatchUser}
           />
         )}
       </div>
