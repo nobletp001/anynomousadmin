@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2, UserCircle2, Coins, Users, Infinity as InfinityIcon, Calendar, ChevronRight } from "lucide-react";
+import { Trash2, UserCircle2, Coins, Users, Infinity as InfinityIcon, Calendar, ChevronRight, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui";
 import { Task } from "../types";
 import {
@@ -18,27 +18,55 @@ interface TaskCardProps {
   onDeleteClick: () => void;
 }
 
+const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || (typeof window !== "undefined" ? window.location.origin.replace(":3001", ":3000").replace("admin.", "") : "http://localhost:3000");
+
 export function TaskCard({ task, canManage, onClick, onDeleteClick }: TaskCardProps) {
   const progress =
     task.numberOfUsersNeeded > 0 ? Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100)) : 0;
   const expired = isExpired(task);
+
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `${FRONTEND_URL}/task/${task.id}`;
+    const text = `Earn ₦${task.amount.toLocaleString()} — ${task.title}\n\nComplete this quick ${platformLabel(task.targetPlatform)} campaign on PayFluence to earn ₦${task.amount.toLocaleString()} instantly!\n\n👉 ${url}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: `Earn ₦${task.amount.toLocaleString()} — ${task.title}`,
+        text: text,
+        url: url
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Frontend task link and details copied to clipboard!");
+      });
+    }
+  };
 
   return (
     <div
       onClick={onClick}
       className="group relative backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 shadow-xl hover:border-purple-500/30 hover:bg-zinc-900/50 transition-all duration-200 cursor-pointer"
     >
-      {canManage && (
+      <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10">
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDeleteClick();
-          }}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 z-10"
+          onClick={handleShareClick}
+          className="p-1.5 rounded-lg text-zinc-500 hover:text-purple-400 hover:bg-purple-500/10 transition-colors opacity-0 group-hover:opacity-100"
         >
-          <Trash2 className="w-4 h-4" />
+          <Share2 className="w-4 h-4" />
         </button>
-      )}
+        {canManage && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteClick();
+            }}
+            className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
 
       {/* Creator fingerprint */}
       <div className="flex items-center gap-2 mb-3 px-2.5 py-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700/40 w-fit">

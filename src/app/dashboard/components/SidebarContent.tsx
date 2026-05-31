@@ -10,6 +10,7 @@ import {
   Settings,
   Shield,
   LogOut,
+  Trophy,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -31,6 +32,12 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     roles: ["super-admin", "admin", "accountant"],
   },
   { name: "Tasks", href: "/dashboard/tasks", icon: ClipboardList, roles: ["super-admin", "admin", "task-officer"] },
+  {
+    name: "Leadership",
+    href: "/dashboard/leadership",
+    icon: Trophy,
+    roles: ["super-admin", "admin"],
+  },
   {
     name: "My Users",
     href: "/dashboard/my-users",
