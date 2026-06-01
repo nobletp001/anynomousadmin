@@ -12,6 +12,7 @@ import {
   LogOut,
   Trophy,
   ScanSearch,
+  Coins,
 } from "lucide-react";
 
 
@@ -31,6 +32,12 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     name: "Payout Claims",
     href: "/dashboard/payouts",
     icon: CreditCard,
+    roles: ["super-admin", "admin", "accountant"],
+  },
+  {
+    name: "Balances",
+    href: "/dashboard/balances",
+    icon: Coins,
     roles: ["super-admin", "admin", "accountant"],
   },
   { name: "Tasks", href: "/dashboard/tasks", icon: ClipboardList, roles: ["super-admin", "admin", "task-officer"] },
