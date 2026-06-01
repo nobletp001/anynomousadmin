@@ -13,7 +13,8 @@ interface SideBySideCompareBodyProps {
   onCloseCompare: () => void;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_BASE = rawApiUrl.endsWith("/api") ? rawApiUrl.slice(0, -4) : rawApiUrl;
 
 export function SideBySideCompareBody({
   sub,
@@ -30,7 +31,7 @@ export function SideBySideCompareBody({
   const handleAction = async (subId: number, action: "approve" | "reject" | "needs_correction") => {
     setActionsPending((prev) => ({ ...prev, [subId]: true }));
     try {
-      const token = localStorage.getItem("admin_token");
+      const token = sessionStorage.getItem("admin_token") || localStorage.getItem("admin_token");
       const body: any = { action };
       if (action === "approve") {
         body.rating = 5;

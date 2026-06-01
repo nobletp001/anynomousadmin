@@ -19,7 +19,8 @@ import { FullscreenImageZoom } from "./components/FullscreenImageZoom";
 import { downloadPDFReport } from "./pdf-report";
 import { Submission } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_BASE = rawApiUrl.endsWith("/api") ? rawApiUrl.slice(0, -4) : rawApiUrl;
 
 export default function TaskSubmissionsPage() {
   const router = useRouter();
@@ -78,8 +79,8 @@ export default function TaskSubmissionsPage() {
 
   const handleWatchUser = async (username: string) => {
     try {
-      const token = localStorage.getItem("admin_token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/admin/fraud/users/${username}/monitor`, {
+      const token = sessionStorage.getItem("admin_token") || localStorage.getItem("admin_token");
+      const res = await fetch(`${API_BASE}/api/admin/fraud/users/${username}/monitor`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ monitored: true, runAnalysis: true }),

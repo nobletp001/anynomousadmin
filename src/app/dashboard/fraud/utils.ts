@@ -1,7 +1,10 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_BASE = rawApiUrl.endsWith("/api") ? rawApiUrl.slice(0, -4) : rawApiUrl;
 
 export function getToken() {
-  if (typeof window !== "undefined") return localStorage.getItem("admin_token");
+  if (typeof window !== "undefined") {
+    return sessionStorage.getItem("admin_token") || localStorage.getItem("admin_token");
+  }
   return null;
 }
 
