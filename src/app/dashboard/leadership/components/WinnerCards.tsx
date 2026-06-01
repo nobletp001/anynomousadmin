@@ -73,7 +73,14 @@ export function WinnerCards({ winners, formatTime, onAwardBonus, onSelectUser }:
                 <span className="text-[9px] text-zinc-550 font-bold uppercase tracking-wider block">
                   Tasks Completed
                 </span>
-                <span className="font-extrabold text-zinc-200 block">{winner.tasksCompleted}</span>
+                <span className="font-extrabold text-zinc-200 block">
+                  {winner.tasksCompleted}
+                  {winner.volunteerTasksCompleted > 0 && (
+                    <span className="text-[10px] text-purple-400 font-bold ml-1">
+                      ({winner.volunteerTasksCompleted} Vol)
+                    </span>
+                  )}
+                </span>
               </div>
 
               <div className="space-y-0.5">

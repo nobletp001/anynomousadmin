@@ -35,6 +35,8 @@ export function useCreateTaskState() {
   const [noExpiry, setNoExpiry] = useState(false);
   const [prompts, setPrompts] = useState("");
   const [requirePromptSelection, setRequirePromptSelection] = useState(false);
+  const [isPayFluenceTask, setIsPayFluenceTask] = useState(false);
+  const [volutterPayFluenceTaskPerformNumber, setVolutterPayFluenceTaskPerformNumber] = useState("");
   const [enableTargeting, setEnableTargeting] = useState(false);
   const [audience, setAudience] = useState<AudienceFilter>({
     gender: [],
@@ -81,6 +83,8 @@ export function useCreateTaskState() {
     audience, setAudience,
     prompts, setPrompts,
     requirePromptSelection, setRequirePromptSelection,
+    isPayFluenceTask, setIsPayFluenceTask,
+    volutterPayFluenceTaskPerformNumber, setVolutterPayFluenceTaskPerformNumber,
   };
 }
 

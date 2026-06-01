@@ -14,6 +14,10 @@ interface RewardTimelineFormProps {
   setNoExpiry: (v: boolean) => void;
   timelineMs: number;
   setTimelineMs: (v: number) => void;
+  isPayFluenceTask: boolean;
+  setIsPayFluenceTask: (v: boolean) => void;
+  volutterPayFluenceTaskPerformNumber: string;
+  setVolutterPayFluenceTaskPerformNumber: (v: string) => void;
 }
 
 export function RewardTimelineForm({
@@ -22,9 +26,11 @@ export function RewardTimelineForm({
   maxPerHour, setMaxPerHour,
   noExpiry, setNoExpiry,
   timelineMs, setTimelineMs,
+  isPayFluenceTask, setIsPayFluenceTask,
+  volutterPayFluenceTaskPerformNumber, setVolutterPayFluenceTaskPerformNumber,
 }: RewardTimelineFormProps) {
   const inputCls =
-    "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
+    "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-655 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
 
   const fmt = (n: number) => {
     return new Intl.NumberFormat("en-NG", {
@@ -36,15 +42,34 @@ export function RewardTimelineForm({
 
   return (
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 space-y-4">
-      <h2 className="text-sm font-semibold text-zinc-300 pb-2 border-b border-zinc-800">Reward &amp; Timeline</h2>
+      <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+        <h2 className="text-sm font-semibold text-zinc-300">Reward &amp; Timeline</h2>
+        <div className="flex items-center gap-2 cursor-pointer select-none" onClick={() => setIsPayFluenceTask(!isPayFluenceTask)}>
+          <span className={`text-xs font-semibold transition-colors ${isPayFluenceTask ? "text-purple-400" : "text-zinc-500"}`}>
+            PayFluence Task (Free/Volunteer)
+          </span>
+          <div className={`relative w-9 h-5 rounded-full transition-all ${isPayFluenceTask ? "bg-purple-500" : "bg-zinc-700"}`}>
+            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-all shadow ${isPayFluenceTask ? "translate-x-4" : "translate-x-0"}`} />
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <FieldLabel required>Amount per User (₦)</FieldLabel>
-          <input
-            type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)}
-            placeholder="500" className={inputCls}
-          />
+          {isPayFluenceTask ? (
+            <input
+              type="text"
+              value="₦0 (Volunteer Task)"
+              disabled
+              className={`${inputCls} opacity-60 cursor-not-allowed bg-zinc-800/40 font-semibold`}
+            />
+          ) : (
+            <input
+              type="number" min="1" value={amount} onChange={(e) => setAmount(e.target.value)}
+              placeholder="500" className={inputCls}
+            />
+          )}
         </div>
         <div>
           <FieldLabel required>Users Needed</FieldLabel>
@@ -54,6 +79,23 @@ export function RewardTimelineForm({
           />
         </div>
       </div>
+
+      {isPayFluenceTask && (
+        <div>
+          <FieldLabel required>Volunteer Task Perform Number</FieldLabel>
+          <input
+            type="number"
+            min="0"
+            value={volutterPayFluenceTaskPerformNumber}
+            onChange={(e) => setVolutterPayFluenceTaskPerformNumber(e.target.value)}
+            placeholder="e.g. 5"
+            className={inputCls}
+          />
+          <p className="text-[10px] text-zinc-500 leading-normal">
+            Specify the volunteer performance number representing this volunteer campaign identifier.
+          </p>
+        </div>
+      )}
 
       <div>
         <FieldLabel>Hourly Completion Limit <span className="text-zinc-600 font-normal">(optional — drip feed)</span></FieldLabel>

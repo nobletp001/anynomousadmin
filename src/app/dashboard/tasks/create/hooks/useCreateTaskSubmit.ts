@@ -12,7 +12,7 @@ export function useCreateTaskSubmit(
     state.title.trim() &&
     state.description.trim() &&
     state.targetPlatform.trim() &&
-    Number(state.amount) > 0 &&
+    (state.isPayFluenceTask || Number(state.amount) > 0) &&
     Number(state.numberOfUsersNeeded) > 0 &&
     (state.taskType !== "views" || Number(state.targetCount) > 0);
 
@@ -58,7 +58,7 @@ export function useCreateTaskSubmit(
       acceptMultipleImages: state.acceptMultipleImages,
       maxPerHour: state.maxPerHour.trim() ? parseInt(state.maxPerHour) : undefined,
       lifeline: state.noExpiry,
-      amount: state.amount,
+      amount: state.isPayFluenceTask ? "0" : state.amount,
       numberOfUsersNeeded: state.numberOfUsersNeeded,
       timeline,
       targetCount: state.targetCount.trim() ? state.targetCount : undefined,
@@ -66,6 +66,8 @@ export function useCreateTaskSubmit(
       assignedOfficer: state.assignedOfficer || undefined,
       prompts: state.prompts.trim() ? JSON.stringify(state.prompts.split("\n").map(p => p.trim()).filter(Boolean)) : undefined,
       requirePromptSelection: state.requirePromptSelection,
+      isPayFluenceTask: state.isPayFluenceTask,
+      volutterPayFluenceTaskPerformNumber: state.volutterPayFluenceTaskPerformNumber.trim() ? parseInt(state.volutterPayFluenceTaskPerformNumber) : undefined,
       targetAudience: state.enableTargeting
         ? {
             ...(state.audience.gender.length ? { gender: state.audience.gender } : {}),

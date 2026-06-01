@@ -71,3 +71,16 @@ export function getDeviceWarning(sub: Submission, submissions: Submission[]) {
   }
   return null;
 }
+
+export function getBankWarning(sub: Submission, submissions: Submission[]) {
+  const subBank = (sub.user as any)?.accountNumber;
+  if (!subBank) return null;
+  const duplicate = submissions.find(
+    (s) => s.id !== sub.id && (s.user as any)?.accountNumber === subBank
+  );
+  if (duplicate) {
+    return `Same Bank Account as @${duplicate.username}`;
+  }
+  return null;
+}
+

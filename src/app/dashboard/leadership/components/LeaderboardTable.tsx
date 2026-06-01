@@ -56,6 +56,7 @@ export function LeaderboardTable({
               <th className="py-4 px-6 text-center">Rank</th>
               <th className="py-4 px-6">User Contender</th>
               <th className="py-4 px-6 text-center">Tasks Done</th>
+              <th className="py-4 px-6 text-center text-purple-400">Volunteers</th>
               <th className="py-4 px-6 text-center">Amount Earned</th>
               <th className="py-4 px-6 text-center">Avg. Submission Rating</th>
               <th className="py-4 px-6 text-center">Avg. Response Speed</th>
@@ -65,7 +66,7 @@ export function LeaderboardTable({
           <tbody className="divide-y divide-zinc-800/60 font-medium">
             {paginatedList.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-zinc-500 text-xs">
+                <td colSpan={8} className="py-8 text-center text-zinc-500 text-xs">
                   {searchQuery ? "No matching users found." : "No other users recorded in this month."}
                 </td>
               </tr>
@@ -88,6 +89,7 @@ export function LeaderboardTable({
                     </button>
                   </td>
                   <td className="py-4 px-6 text-center text-zinc-300 font-bold">{item.tasksCompleted}</td>
+                  <td className="py-4 px-6 text-center text-purple-300 font-bold">{item.volunteerTasksCompleted}</td>
                   <td className="py-4 px-6 text-center text-emerald-400 font-bold">₦{item.amountEarned.toLocaleString()}</td>
                   <td className="py-4 px-6 text-center">
                     <span className="text-amber-400 inline-flex items-center gap-1 font-bold">

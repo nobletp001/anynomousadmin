@@ -20,6 +20,7 @@ interface SubmissionUserInfoPanelProps {
   setReportReason: (val: string) => void;
   onSubmitReport: () => void;
   isReportPending: boolean;
+  onCompareUser?: (username: string) => void;
 }
 
 export function SubmissionUserInfoPanel({
@@ -38,12 +39,13 @@ export function SubmissionUserInfoPanel({
   setReportReason,
   onSubmitReport,
   isReportPending,
+  onCompareUser,
 }: SubmissionUserInfoPanelProps) {
   const isPending = sub.status === "pending" || sub.status === "needs_correction";
 
   return (
     <div className="md:col-span-5 space-y-5">
-      <SubmissionUserDetailsCard sub={sub} submissions={submissions} />
+      <SubmissionUserDetailsCard sub={sub} submissions={submissions} onCompareUser={onCompareUser} />
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 space-y-4">
         <h4 className="text-[10px] font-bold text-zinc-550 uppercase tracking-widest border-b border-zinc-800 pb-1.5">

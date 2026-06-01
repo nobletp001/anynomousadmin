@@ -97,6 +97,8 @@ export default function CreateTaskPage() {
           maxPerHour={state.maxPerHour} setMaxPerHour={state.setMaxPerHour}
           noExpiry={state.noExpiry} setNoExpiry={state.setNoExpiry}
           timelineMs={state.timelineMs} setTimelineMs={state.setTimelineMs}
+          isPayFluenceTask={state.isPayFluenceTask} setIsPayFluenceTask={state.setIsPayFluenceTask}
+          volutterPayFluenceTaskPerformNumber={state.volutterPayFluenceTaskPerformNumber} setVolutterPayFluenceTaskPerformNumber={state.setVolutterPayFluenceTaskPerformNumber}
         />
 
         {mutations.createTask.error && (

@@ -2,6 +2,7 @@ export interface LeaderboardItem {
   username: string;
   name: string;
   tasksCompleted: number;
+  volunteerTasksCompleted: number;
   amountEarned: number;
   averageTimeTaken: number;
   averageRating: number;
