@@ -102,7 +102,7 @@ export function EditTaskModal({
           }
         : null,
       allowedSubmissions: editState.editAllowedSubmissions,
-      prompts: editState.editPrompts.trim() ? JSON.stringify(editState.editPrompts.split("\n").map(p => p.trim()).filter(Boolean)) : null,
+      prompts: editState.editPrompts.trim() ? JSON.stringify(editState.editPrompts.split("\n\n").map(p => p.trim()).filter(Boolean)) : null,
       requirePromptSelection: editState.editRequirePromptSelection,
     });
   };

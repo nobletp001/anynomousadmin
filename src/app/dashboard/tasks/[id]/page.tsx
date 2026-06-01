@@ -151,7 +151,7 @@ export default function TaskSubmissionsPage() {
     let promptsText = "";
     try {
       const promptsArray = task.prompts ? JSON.parse(task.prompts) : [];
-      promptsText = Array.isArray(promptsArray) ? promptsArray.join("\n") : "";
+      promptsText = Array.isArray(promptsArray) ? promptsArray.join("\n\n") : "";
     } catch {
       promptsText = task.prompts || "";
     }

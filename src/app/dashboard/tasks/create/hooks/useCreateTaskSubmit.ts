@@ -64,7 +64,7 @@ export function useCreateTaskSubmit(
       targetCount: state.targetCount.trim() ? state.targetCount : undefined,
       adminContact: state.adminContact.trim() || undefined,
       assignedOfficer: state.assignedOfficer || undefined,
-      prompts: state.prompts.trim() ? JSON.stringify(state.prompts.split("\n").map(p => p.trim()).filter(Boolean)) : undefined,
+      prompts: state.prompts.trim() ? JSON.stringify(state.prompts.split("\n\n").map(p => p.trim()).filter(Boolean)) : undefined,
       requirePromptSelection: state.requirePromptSelection,
       isPayFluenceTask: state.isPayFluenceTask,
       volutterPayFluenceTaskPerformNumber: state.volutterPayFluenceTaskPerformNumber.trim() ? parseInt(state.volutterPayFluenceTaskPerformNumber) : undefined,

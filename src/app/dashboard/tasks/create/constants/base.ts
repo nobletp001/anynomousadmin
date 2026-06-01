@@ -31,6 +31,7 @@ export const PRESETS = [
   { value: "tiktok-follow", label: "TikTok Follow" },
   { value: "youtube-sub", label: "YouTube Subscribe" },
   { value: "whatsapp-status", label: "WhatsApp Status Post" },
+  { value: "payfluence-promo", label: "PayFluence Promo (WhatsApp Status / Reviews)" },
 ];
 
 export const HOUR_MS = 60 * 60 * 1000;
