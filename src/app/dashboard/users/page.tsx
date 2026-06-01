@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
 import { useUsersQueries } from "./hooks/useUsersQueries";
@@ -9,11 +9,14 @@ import { useUsersState } from "./hooks/useUsersState";
 import { TopPerformers } from "./components/TopPerformers";
 import { UsersTable } from "./components/UsersTable";
 import { UserDetailModal } from "./components/UserDetailModal";
+import { UserTrackingTab } from "./components/UserTrackingTab";
 import { ShieldOff, CreditCard, ClipboardX } from "lucide-react";
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const state = useUsersState();
+  const [activeTab, setActiveTab] = useState<"all" | "tracking">("all");
+
   const { usersQuery, detailQuery, topUsersQuery } = useUsersQueries(
     state.page,
     state.debouncedSearch,
@@ -70,51 +73,85 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-zinc-100 tracking-tight">Users</h1>
-          <p className="text-zinc-400 text-sm mt-1">All registered accounts — newest first</p>
+          <p className="text-zinc-400 text-sm mt-1">
+            {activeTab === "all"
+              ? "All registered accounts — newest first"
+              : "Track active/inactive user engagement and referrals"}
+          </p>
         </div>
-        <div className="w-full sm:w-72">
-          <input
-            type="text"
-            placeholder="Search by name, @username, or email..."
-            value={state.search}
-            onChange={(e) => state.setSearch(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-105 placeholder:text-zinc-500 focus:outline-none focus:border-purple-500/50 transition-colors"
+        
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex gap-1 p-1 bg-zinc-900/60 border border-zinc-800/80 rounded-xl">
+            <button
+              onClick={() => setActiveTab("all")}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "all" ? "bg-purple-600 text-white shadow-lg" : "text-zinc-405 hover:text-zinc-250"
+              }`}
+            >
+              All Users
+            </button>
+            <button
+              onClick={() => setActiveTab("tracking")}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "tracking" ? "bg-purple-600 text-white shadow-lg" : "text-zinc-405 hover:text-zinc-250"
+              }`}
+            >
+              User Tracking
+            </button>
+          </div>
+
+          {activeTab === "all" && (
+            <div className="w-72">
+              <input
+                type="text"
+                placeholder="Search by name, @username, or email..."
+                value={state.search}
+                onChange={(e) => state.setSearch(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-105 placeholder:text-zinc-500 focus:outline-none focus:border-purple-500/50 transition-colors"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {activeTab === "all" ? (
+        <>
+          <TopPerformers
+            topPerformers={topUsersQuery.data?.data || []}
+            onSelectUser={state.setSelectedUser}
           />
-        </div>
-      </div>
 
-      <TopPerformers
-        topPerformers={topUsersQuery.data?.data || []}
-        onSelectUser={state.setSelectedUser}
-      />
+          <UsersTable
+            users={data?.data || []}
+            onSelectUser={state.setSelectedUser}
+            onUpdateFlags={(id, flags) => updateFlags.mutate({ id, flags })}
+            page={state.page}
+            setPage={state.setPage}
+            totalPages={totalPages}
+            totalUsers={data?.total || 0}
+          />
 
-      <UsersTable
-        users={data?.data || []}
-        onSelectUser={state.setSelectedUser}
-        onUpdateFlags={(id, flags) => updateFlags.mutate({ id, flags })}
-        page={state.page}
-        setPage={state.setPage}
-        totalPages={totalPages}
-        totalUsers={data?.total || 0}
-      />
-
-      <div className="flex items-center gap-6 text-[11px] text-zinc-650 px-1">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-red-500" />
-          <ShieldOff className="w-3 h-3" /> Account disabled (all blocked)
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-amber-500" />
-          <CreditCard className="w-3 h-3" /> Withdrawal blocked
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-orange-500" />
-          <ClipboardX className="w-3 h-3" /> Tasks blocked
-        </div>
-      </div>
+          <div className="flex items-center gap-6 text-[11px] text-zinc-650 px-1">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-red-500" />
+              <ShieldOff className="w-3 h-3" /> Account disabled (all blocked)
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-amber-500" />
+              <CreditCard className="w-3 h-3" /> Withdrawal blocked
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-orange-500" />
+              <ClipboardX className="w-3 h-3" /> Tasks blocked
+            </div>
+          </div>
+        </>
+      ) : (
+        <UserTrackingTab />
+      )}
 
       {state.selectedUser && (
         <UserDetailModal
