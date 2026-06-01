@@ -46,7 +46,7 @@ export function toggle(arr: string[], val: string) {
 export function getDuplicateWarning(sub: Submission, submissions: Submission[]) {
   if (!sub.proof || sub.proofType === "text") return null;
   const duplicate = submissions.find(
-    (s) => s.id !== sub.id && s.proof === sub.proof && s.proofType === sub.proofType
+    (s) => s.id !== sub.id && s.username !== sub.username && s.proof === sub.proof && s.proofType === sub.proofType
   );
   if (duplicate) {
     return `Duplicate proof matching @${duplicate.username}`;
@@ -56,7 +56,7 @@ export function getDuplicateWarning(sub: Submission, submissions: Submission[]) 
 
 export function getIpWarning(sub: Submission, submissions: Submission[]) {
   if (!sub.ipAddress) return null;
-  const duplicate = submissions.find((s) => s.id !== sub.id && s.ipAddress === sub.ipAddress);
+  const duplicate = submissions.find((s) => s.id !== sub.id && s.username !== sub.username && s.ipAddress === sub.ipAddress);
   if (duplicate) {
     return `Same IP address as @${duplicate.username}`;
   }
@@ -65,7 +65,7 @@ export function getIpWarning(sub: Submission, submissions: Submission[]) {
 
 export function getDeviceWarning(sub: Submission, submissions: Submission[]) {
   if (!sub.deviceId) return null;
-  const duplicate = submissions.find((s) => s.id !== sub.id && s.deviceId === sub.deviceId);
+  const duplicate = submissions.find((s) => s.id !== sub.id && s.username !== sub.username && s.deviceId === sub.deviceId);
   if (duplicate) {
     return `Same Device ID as @${duplicate.username}`;
   }
@@ -76,7 +76,7 @@ export function getBankWarning(sub: Submission, submissions: Submission[]) {
   const subBank = (sub.user as any)?.accountNumber;
   if (!subBank) return null;
   const duplicate = submissions.find(
-    (s) => s.id !== sub.id && (s.user as any)?.accountNumber === subBank
+    (s) => s.id !== sub.id && s.username !== sub.username && (s.user as any)?.accountNumber === subBank
   );
   if (duplicate) {
     return `Same Bank Account as @${duplicate.username}`;

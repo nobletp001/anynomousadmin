@@ -64,7 +64,7 @@ export function SideBySideCompareBody({
   const renderColumn = (s: Submission, title: string) => {
     const status = localStatuses[s.id] || s.status;
     const isPending = status === "pending" || status === "needs_correction";
-    const imgs = s.proofType === "banner" ? getImagesList(s.proof) : [];
+    const imgs = s.proofType !== "link" ? getImagesList(s.proof) : [];
 
     return (
       <div className="border border-zinc-800 bg-zinc-950/20 rounded-xl p-5 space-y-4 flex flex-col h-full">

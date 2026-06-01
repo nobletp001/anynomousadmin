@@ -15,7 +15,7 @@ export function SubmissionItem({ sub, onZoom }: SubmissionItemProps) {
     needs_correction: "bg-orange-500/15 text-orange-400 border-orange-500/30",
   };
   
-  const imgs = sub.proofType === "banner" ? getImagesList(sub.proof) : [];
+  const imgs = sub.proofType !== "link" ? getImagesList(sub.proof) : [];
 
   return (
     <div className="rounded-xl border border-zinc-800/80 bg-zinc-955/20 p-4 shadow-sm space-y-3">

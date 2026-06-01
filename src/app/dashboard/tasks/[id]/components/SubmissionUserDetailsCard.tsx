@@ -21,12 +21,12 @@ export function SubmissionUserDetailsCard({
   const accountName = (sub.user as any)?.accountName;
 
   const dupSub = submissions.find(
-    (s) => s.id !== sub.id && s.proof === sub.proof && s.proofType === sub.proofType && sub.proof && sub.proofType !== "text"
+    (s) => s.id !== sub.id && s.username !== sub.username && s.proof === sub.proof && s.proofType === sub.proofType && sub.proof && sub.proofType !== "text"
   );
-  const ipSub = submissions.find((s) => s.id !== sub.id && s.ipAddress === sub.ipAddress && sub.ipAddress);
-  const devSub = submissions.find((s) => s.id !== sub.id && s.deviceId === sub.deviceId && sub.deviceId);
+  const ipSub = submissions.find((s) => s.id !== sub.id && s.username !== sub.username && s.ipAddress === sub.ipAddress && sub.ipAddress);
+  const devSub = submissions.find((s) => s.id !== sub.id && s.username !== sub.username && s.deviceId === sub.deviceId && sub.deviceId);
   const bankSub = submissions.find(
-    (s) => s.id !== sub.id && (s.user as any)?.accountNumber === accountNumber && accountNumber
+    (s) => s.id !== sub.id && s.username !== sub.username && (s.user as any)?.accountNumber === accountNumber && accountNumber
   );
 
   const hasAlerts = dupSub || ipSub || devSub || bankSub;
