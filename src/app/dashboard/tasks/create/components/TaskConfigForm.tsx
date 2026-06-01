@@ -2,6 +2,8 @@ import React from "react";
 import { Image as ImageIcon, Link as LinkIcon } from "lucide-react";
 import { FieldLabel } from "./FieldLabel";
 import { TASK_TYPES, PLATFORMS } from "../constants/base";
+import { RichTextEditor } from "@/components/ui";
+
 
 interface TaskConfigFormProps {
   taskType: string;
@@ -28,6 +30,8 @@ interface TaskConfigFormProps {
   setPrompts: (v: string) => void;
   requirePromptSelection: boolean;
   setRequirePromptSelection: (v: boolean) => void;
+  marketingText: string;
+  setMarketingText: (v: string) => void;
 }
 
 export function TaskConfigForm({
@@ -43,6 +47,7 @@ export function TaskConfigForm({
   adminContact, setAdminContact,
   prompts, setPrompts,
   requirePromptSelection, setRequirePromptSelection,
+  marketingText, setMarketingText,
 }: TaskConfigFormProps) {
   const isJetpot = taskType === "jetpot";
   const isViews = taskType === "views";
@@ -227,6 +232,15 @@ export function TaskConfigForm({
           placeholder="Paste the prompts or comments here, one per line..."
           rows={4}
           className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors resize-none"
+        />
+      </div>
+
+      <div>
+        <FieldLabel>Copywriting / Marketing Text (Modal)</FieldLabel>
+        <RichTextEditor
+          value={marketingText}
+          onChange={setMarketingText}
+          placeholder="Write here..."
         />
       </div>
     </div>

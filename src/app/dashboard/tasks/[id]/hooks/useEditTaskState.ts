@@ -37,6 +37,7 @@ export function useEditTaskState() {
   const [editAllowedSubmissions, setEditAllowedSubmissions] = useState<Array<{ username: string; allowedCount: number }>>([]);
   const [editPrompts, setEditPrompts] = useState("");
   const [editRequirePromptSelection, setEditRequirePromptSelection] = useState(false);
+  const [editMarketingText, setEditMarketingText] = useState("");
 
   return {
     isEditingTask, setIsEditingTask,
@@ -67,6 +68,7 @@ export function useEditTaskState() {
     editAllowedSubmissions, setEditAllowedSubmissions,
     editPrompts, setEditPrompts,
     editRequirePromptSelection, setEditRequirePromptSelection,
+    editMarketingText, setEditMarketingText,
   };
 }
 export type EditTaskState = ReturnType<typeof useEditTaskState>;

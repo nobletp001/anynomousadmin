@@ -102,8 +102,25 @@ export function EditTaskModal({
           }
         : null,
       allowedSubmissions: editState.editAllowedSubmissions,
-      prompts: editState.editPrompts.trim() ? JSON.stringify(editState.editPrompts.split("\n\n").map(p => p.trim()).filter(Boolean)) : null,
+      prompts: editState.editPrompts.trim()
+        ? JSON.stringify(
+            ((): string[] => {
+              const rawText = editState.editPrompts.trim();
+              if (/(?:^|\n)\d+\./.test(rawText)) {
+                return rawText
+                  .split(/(?:^|\r?\n)(?=\d+\.)/)
+                  .map((p) => p.trim())
+                  .filter(Boolean);
+              }
+              return rawText
+                .split("\n\n")
+                .map((p) => p.trim())
+                .filter(Boolean);
+            })()
+          )
+        : null,
       requirePromptSelection: editState.editRequirePromptSelection,
+      marketingText: editState.editMarketingText.trim() || null,
     });
   };
 
@@ -157,6 +174,7 @@ export function EditTaskModal({
             editAdminContact={editState.editAdminContact} setEditAdminContact={editState.setEditAdminContact}
             editPrompts={editState.editPrompts} setEditPrompts={editState.setEditPrompts}
             editRequirePromptSelection={editState.editRequirePromptSelection} setEditRequirePromptSelection={editState.setEditRequirePromptSelection}
+            editMarketingText={editState.editMarketingText} setEditMarketingText={editState.setEditMarketingText}
           />
           <Targeting editEnableTargeting={editState.editEnableTargeting} setEditEnableTargeting={editState.setEditEnableTargeting} editAudience={editState.editAudience} setEditAudience={editState.setEditAudience} />
           <RewardTimeline

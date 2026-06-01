@@ -84,6 +84,7 @@ export default function CreateTaskPage() {
           adminContact={state.adminContact} setAdminContact={state.setAdminContact}
           prompts={state.prompts} setPrompts={state.setPrompts}
           requirePromptSelection={state.requirePromptSelection} setRequirePromptSelection={state.setRequirePromptSelection}
+          marketingText={state.marketingText} setMarketingText={state.setMarketingText}
         />
 
         <TargetAudienceForm

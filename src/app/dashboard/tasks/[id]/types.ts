@@ -89,6 +89,7 @@ export interface Task {
   images?: string | null;
   prompts?: string | null;
   requirePromptSelection?: boolean;
+  marketingText?: string | null;
 }
 
 export interface UserInfo {

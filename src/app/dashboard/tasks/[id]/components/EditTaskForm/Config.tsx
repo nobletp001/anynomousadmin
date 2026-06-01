@@ -2,6 +2,8 @@ import React from "react";
 import { Image as ImageIcon, Link as LinkIcon } from "lucide-react";
 import { FieldLabel } from "./FieldLabel";
 import { TASK_TYPES, PLATFORMS } from "../../types";
+import { RichTextEditor } from "@/components/ui";
+
 
 const inputCls =
   "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
@@ -31,6 +33,8 @@ interface ConfigProps {
   setEditPrompts: (v: string) => void;
   editRequirePromptSelection: boolean;
   setEditRequirePromptSelection: React.Dispatch<React.SetStateAction<boolean>>;
+  editMarketingText: string;
+  setEditMarketingText: (v: string) => void;
 }
 
 export function Config({
@@ -58,6 +62,8 @@ export function Config({
   setEditPrompts,
   editRequirePromptSelection,
   setEditRequirePromptSelection,
+  editMarketingText,
+  setEditMarketingText,
 }: ConfigProps) {
   const isUseApp = editTaskType === "use-app";
 
@@ -277,6 +283,15 @@ export function Config({
           placeholder="Paste the prompts or comments here, one per line..."
           rows={4}
           className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors resize-none"
+        />
+      </div>
+
+      <div>
+        <FieldLabel>Copywriting / Marketing Text (Modal)</FieldLabel>
+        <RichTextEditor
+          value={editMarketingText}
+          onChange={setEditMarketingText}
+          placeholder="Write here..."
         />
       </div>
     </div>

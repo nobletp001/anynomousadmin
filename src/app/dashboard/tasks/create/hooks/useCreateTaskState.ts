@@ -35,6 +35,7 @@ export function useCreateTaskState() {
   const [noExpiry, setNoExpiry] = useState(false);
   const [prompts, setPrompts] = useState("");
   const [requirePromptSelection, setRequirePromptSelection] = useState(false);
+  const [marketingText, setMarketingText] = useState("");
   const [isPayFluenceTask, setIsPayFluenceTask] = useState(false);
   const [volutterPayFluenceTaskPerformNumber, setVolutterPayFluenceTaskPerformNumber] = useState("");
   const [enableTargeting, setEnableTargeting] = useState(false);
@@ -83,6 +84,7 @@ export function useCreateTaskState() {
     audience, setAudience,
     prompts, setPrompts,
     requirePromptSelection, setRequirePromptSelection,
+    marketingText, setMarketingText,
     isPayFluenceTask, setIsPayFluenceTask,
     volutterPayFluenceTaskPerformNumber, setVolutterPayFluenceTaskPerformNumber,
   };

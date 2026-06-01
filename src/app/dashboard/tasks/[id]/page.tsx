@@ -157,6 +157,7 @@ export default function TaskSubmissionsPage() {
     }
     editState.setEditPrompts(promptsText);
     editState.setEditRequirePromptSelection(!!task.requirePromptSelection);
+    editState.setEditMarketingText(task.marketingText || "");
     editState.setUploadError("");
   };
 
