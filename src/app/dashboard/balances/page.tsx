@@ -35,16 +35,20 @@ interface RedeemerUser {
   taskEarnings: number;
   taskCount: number;
   referralEarnings: number;
+  pendingReferralEarnings: number;
   totalReferrals: number;
   referredActiveCount: number;
   inReviewAmount: number;
+  adminDeductions: number;
+  adminAdditions: number;
+  rejectionDeductions: number;
   bankDetail: BankDetail | null;
 }
 
 interface RedeemersData {
   totalReadyPayout: number;
   totalPendingClear: number;
-  totalClaimsInReview: number;
+  totalPendingReferrals: number;
   totalPaidPayouts: number;
   users: RedeemerUser[];
 }
@@ -105,7 +109,7 @@ export default function BalancesPage() {
 
   const totalReadyPayout = redeemersData?.totalReadyPayout ?? 0;
   const totalPendingClear = redeemersData?.totalPendingClear ?? 0;
-  const totalClaimsInReview = redeemersData?.totalClaimsInReview ?? 0;
+  const totalPendingReferrals = redeemersData?.totalPendingReferrals ?? 0;
   const totalPaidPayouts = redeemersData?.totalPaidPayouts ?? 0;
 
   return (
@@ -153,9 +157,9 @@ export default function BalancesPage() {
             valColor: "text-amber-450",
           },
           {
-            label: "Claims in Review",
-            val: fmt(totalClaimsInReview),
-            sub: "Submitted claims in verification",
+            label: "Total Pending Referral",
+            val: fmt(totalPendingReferrals),
+            sub: "Pending referral task earnings",
             icon: <ClipboardList className="w-4 h-4" />,
             color: "bg-purple-500/10 text-purple-400 border-purple-500/20",
             valColor: "text-purple-450",
@@ -174,7 +178,7 @@ export default function BalancesPage() {
             className="bg-zinc-900/40 border border-zinc-850 p-5 rounded-2xl backdrop-blur-md hover:border-zinc-800 transition duration-200"
           >
             <div className="flex justify-between items-start">
-              <p className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">{c.label}</p>
+              <p className="text-[10px] text-zinc-550 uppercase font-black tracking-wider">{c.label}</p>
               <div className={`h-7 w-7 rounded-lg flex items-center justify-center border ${c.color}`}>
                 {c.icon}
               </div>
@@ -201,11 +205,14 @@ export default function BalancesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-zinc-805 bg-zinc-950/20">
+                <tr className="border-b border-zinc-850 bg-zinc-950/20">
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">User</th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Total Earnings</th>
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Ready Payout</th>
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Pending Clear</th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">In Payout</th>
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Paid Out</th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Deductions</th>
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Task Earnings</th>
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Referrals</th>
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Bank Details</th>
@@ -226,24 +233,32 @@ export default function BalancesPage() {
                       </div>
                     </td>
 
+                    {/* Total Earnings */}
+                    <td className="px-6 py-4.5 whitespace-nowrap">
+                      <p className="text-sm font-black text-zinc-100">{fmt(u.taskEarnings + u.referralEarnings + u.adminAdditions)}</p>
+                      <p className="text-[9px] text-zinc-550 font-semibold mt-0.5">
+                        Tasks: {fmt(u.taskEarnings)} | Refs: {fmt(u.referralEarnings)} | Admin: +{fmt(u.adminAdditions)}
+                      </p>
+                    </td>
+
                     {/* Ready Payout */}
                     <td className="px-6 py-4.5 whitespace-nowrap">
                       <p className="text-sm font-black text-emerald-400">{fmt(u.availableBalance)}</p>
-                      {u.inReviewAmount > 0 && (
-                        <p className="text-[9px] text-purple-400/80 font-medium mt-0.5">
-                          {fmt(u.inReviewAmount)} in review
-                        </p>
-                      )}
                     </td>
 
                     {/* Pending Clear */}
                     <td className="px-6 py-4.5 whitespace-nowrap">
                       <p className="text-sm font-bold text-amber-450">{fmt(u.pendingAmount)}</p>
                       {u.pendingCount > 0 && (
-                        <p className="text-[9px] text-zinc-500 font-semibold mt-0.5">
+                        <p className="text-[9px] text-zinc-550 font-semibold mt-0.5">
                           {u.pendingCount} pending {u.pendingCount === 1 ? "task" : "tasks"}
                         </p>
                       )}
+                    </td>
+
+                    {/* In Payout */}
+                    <td className="px-6 py-4.5 whitespace-nowrap">
+                      <p className="text-sm font-bold text-purple-450">{fmt(u.inReviewAmount)}</p>
                     </td>
 
                     {/* Paid Out */}
@@ -251,18 +266,33 @@ export default function BalancesPage() {
                       <p className="text-sm font-bold text-blue-450">{fmt(u.totalPaid)}</p>
                     </td>
 
+                    {/* Deductions */}
+                    <td className="px-6 py-4.5 whitespace-nowrap">
+                      <p className="text-sm font-bold text-red-400">{fmt(u.rejectionDeductions + u.adminDeductions)}</p>
+                      <p className="text-[9px] text-zinc-550 font-semibold mt-0.5">
+                        Rejections: {fmt(u.rejectionDeductions)} | Admin: -{fmt(u.adminDeductions)}
+                      </p>
+                    </td>
+
                     {/* Task Earnings */}
                     <td className="px-6 py-4.5 whitespace-nowrap">
                       <p className="text-sm font-semibold text-zinc-200">{fmt(u.taskEarnings)}</p>
-                      <p className="text-[9px] text-zinc-500 font-semibold mt-0.5">
+                      <p className="text-[9px] text-zinc-550 font-semibold mt-0.5">
                         {u.taskCount} approved {u.taskCount === 1 ? "task" : "tasks"}
                       </p>
                     </td>
 
                     {/* Referrals */}
                     <td className="px-6 py-4.5 whitespace-nowrap">
-                      <p className="text-sm font-semibold text-purple-400">{fmt(u.referralEarnings)}</p>
-                      <p className="text-[9px] text-zinc-500 font-semibold mt-0.5">
+                      <p className="text-sm font-semibold text-purple-400">
+                        {fmt(u.referralEarnings)}
+                        {u.pendingReferralEarnings > 0 && (
+                          <span className="text-[10px] text-purple-405/80 ml-1 font-semibold">
+                            (+{fmt(u.pendingReferralEarnings)} pending)
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-[9px] text-zinc-550 font-semibold mt-0.5">
                         {u.totalReferrals} referred ({u.referredActiveCount} active)
                       </p>
                     </td>
