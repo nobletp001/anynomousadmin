@@ -3,19 +3,8 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
-import {
-  Search,
-  AlertCircle,
-  MessageCircle,
-  Building2,
-  Calendar,
-  Clock,
-  UserCheck,
-  UserMinus,
-  Coins,
-} from "lucide-react";
+import { Search, AlertCircle, MessageCircle, Calendar, Clock, UserCheck, UserMinus, Key } from "lucide-react";
 import { Button } from "@/components/ui";
-import { fmt } from "../../payouts/utils";
 
 interface ReferrerDetails {
   username: string;
@@ -33,6 +22,7 @@ interface UserTrackingItem {
   isActive: boolean;
   lastLogin: string | null;
   lastSubmission: string | null;
+  lastPasscodeValidate: string | null;
   phone: string | null;
   bankName: string | null;
   accountNumber: string | null;
@@ -86,7 +76,9 @@ export function UserTrackingTab() {
     if (isForReferrer) {
       // Message to the referrer about their referred user
       if (user.isActive) {
-        text = `Hello, I can see your referral @${user.username} is very active on PayFluence! Your reward is coming and you are both noted for opportunities.`;
+        text =
+          `Hello, I can see your referral @${user.username} is very active on PayFluence! ` +
+          `Your reward is coming and you are both noted for opportunities.`;
       } else {
         if (!user.lastSubmission) {
           text = `Hello, why is your referral @${user.username} not performing tasks on PayFluence? Please reach out to them.`;
@@ -97,7 +89,9 @@ export function UserTrackingTab() {
     } else {
       // Message to the user directly
       if (user.isActive) {
-        text = `Hello ${user.name}, I can see you are very active. Your reward is coming and your profile is noted. When opportunity comes, we are going to remember you!`;
+        text =
+          `Hello ${user.name}, I can see you are very active. Your reward is coming and your profile is noted. ` +
+          `When opportunity comes, we are going to remember you!`;
       } else {
         if (!user.lastSubmission) {
           text = `Hello ${user.name}, why are you not performing tasks on PayFluence?`;
@@ -159,12 +153,16 @@ export function UserTrackingTab() {
                 setPage(1);
               }}
               className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                statusFilter === f.val
-                  ? "bg-purple-600 text-white shadow-lg"
-                  : "text-zinc-405 hover:text-zinc-250"
+                statusFilter === f.val ? "bg-purple-600 text-white shadow-lg" : "text-zinc-405 hover:text-zinc-250"
               }`}
             >
-              {f.label} ({trackingData.filter(u => f.val === "all" || (f.val === "active" && u.isActive) || (f.val === "inactive" && !u.isActive)).length})
+              {f.label} (
+              {
+                trackingData.filter(
+                  (u) => f.val === "all" || (f.val === "active" && u.isActive) || (f.val === "inactive" && !u.isActive)
+                ).length
+              }
+              )
             </button>
           ))}
         </div>
@@ -179,7 +177,11 @@ export function UserTrackingTab() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-sm text-zinc-105 placeholder:text-zinc-500 focus:outline-none focus:border-purple-500/50 transition-colors"
+            className={
+              "w-full bg-zinc-900 border border-zinc-800 rounded-xl " +
+              "pl-10 pr-4 py-2 text-sm text-zinc-105 placeholder:text-zinc-500 " +
+              "focus:outline-none focus:border-purple-500/50 transition-colors"
+            }
           />
         </div>
       </div>
@@ -202,11 +204,21 @@ export function UserTrackingTab() {
               <thead>
                 <tr className="border-b border-zinc-850 bg-zinc-950/20">
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Status</th>
-                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">User Details</th>
-                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Last Activity</th>
-                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Bank Account</th>
-                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Referrer Details</th>
-                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Referrer Bank</th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">
+                    User Details
+                  </th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">
+                    Last Activity
+                  </th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">
+                    Bank Account
+                  </th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">
+                    Referrer Details
+                  </th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">
+                    Referrer Bank
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/40">
@@ -219,12 +231,24 @@ export function UserTrackingTab() {
                       {/* Status */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         {u.isActive ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-450 border border-emerald-500/20">
+                          <span
+                            className={
+                              "inline-flex items-center gap-1 px-2.5 py-1 " +
+                              "rounded-full text-[10px] font-bold bg-emerald-500/10 " +
+                              "text-emerald-450 border border-emerald-500/20"
+                            }
+                          >
                             <UserCheck className="w-3 h-3" />
                             Active
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-800 text-zinc-400 border border-zinc-700/60">
+                          <span
+                            className={
+                              "inline-flex items-center gap-1 px-2.5 py-1 " +
+                              "rounded-full text-[10px] font-bold bg-zinc-800 " +
+                              "text-zinc-405 border border-zinc-700/60"
+                            }
+                          >
                             <UserMinus className="w-3 h-3" />
                             Inactive
                           </span>
@@ -245,7 +269,11 @@ export function UserTrackingTab() {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   title="Contact User on WhatsApp"
-                                  className="p-1 rounded bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 transition-colors shrink-0 flex items-center justify-center"
+                                  className={
+                                    "p-1 rounded bg-emerald-600/10 hover:bg-emerald-600/20 " +
+                                    "text-emerald-450 transition-colors shrink-0 " +
+                                    "flex items-center justify-center"
+                                  }
                                 >
                                   <MessageCircle className="w-3.5 h-3.5" />
                                 </a>
@@ -262,11 +290,25 @@ export function UserTrackingTab() {
                         <div className="space-y-1.5 text-xs text-zinc-350">
                           <div className="flex items-center gap-1.5">
                             <Clock className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                            <span>Login: <span className="font-semibold text-zinc-200">{formatDateTime(u.lastLogin)}</span></span>
+                            <span>
+                              Login: <span className="font-semibold text-zinc-200">{formatDateTime(u.lastLogin)}</span>
+                            </span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Calendar className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                            <span>Task: <span className="font-semibold text-zinc-200">{formatDateTime(u.lastSubmission)}</span></span>
+                            <span>
+                              Task:{" "}
+                              <span className="font-semibold text-zinc-200">{formatDateTime(u.lastSubmission)}</span>
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Key className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                            <span>
+                              Passcode:{" "}
+                              <span className="font-semibold text-zinc-200">
+                                {formatDateTime(u.lastPasscodeValidate)}
+                              </span>
+                            </span>
                           </div>
                         </div>
                       </td>
@@ -276,8 +318,12 @@ export function UserTrackingTab() {
                         {u.bankName ? (
                           <div>
                             <p className="text-xs font-bold text-zinc-200">{u.bankName}</p>
-                            <p className="text-[11px] font-mono tracking-wider text-zinc-400 mt-1 select-all">{u.accountNumber}</p>
-                            <p className="text-[10px] text-zinc-500 mt-1 truncate max-w-40 font-medium">{u.accountName}</p>
+                            <p className="text-[11px] font-mono tracking-wider text-zinc-400 mt-1 select-all">
+                              {u.accountNumber}
+                            </p>
+                            <p className="text-[10px] text-zinc-500 mt-1 truncate max-w-40 font-medium">
+                              {u.accountName}
+                            </p>
                           </div>
                         ) : (
                           <span className="text-[10px] text-zinc-550 italic">No bank linked</span>
@@ -299,7 +345,11 @@ export function UserTrackingTab() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     title="Contact Referrer about this referral"
-                                    className="p-1 rounded bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 transition-colors shrink-0 flex items-center justify-center"
+                                    className={
+                                      "p-1 rounded bg-emerald-600/10 hover:bg-emerald-600/20 " +
+                                      "text-emerald-450 transition-colors shrink-0 " +
+                                      "flex items-center justify-center"
+                                    }
                                   >
                                     <MessageCircle className="w-3.5 h-3.5" />
                                   </a>
@@ -319,8 +369,12 @@ export function UserTrackingTab() {
                         {u.referrer && u.referrer.bankName ? (
                           <div>
                             <p className="text-xs font-bold text-zinc-205">{u.referrer.bankName}</p>
-                            <p className="text-[11px] font-mono tracking-wider text-zinc-400 mt-1 select-all">{u.referrer.accountNumber}</p>
-                            <p className="text-[10px] text-zinc-500 mt-1 truncate max-w-40 font-medium">{u.referrer.accountName}</p>
+                            <p className="text-[11px] font-mono tracking-wider text-zinc-400 mt-1 select-all">
+                              {u.referrer.accountNumber}
+                            </p>
+                            <p className="text-[10px] text-zinc-500 mt-1 truncate max-w-40 font-medium">
+                              {u.referrer.accountName}
+                            </p>
                           </div>
                         ) : (
                           <span className="text-[10px] text-zinc-550 italic">No bank linked</span>
@@ -339,10 +393,8 @@ export function UserTrackingTab() {
           <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800/40 bg-zinc-900/10">
             <p className="text-xs text-zinc-500 font-semibold">
               Showing <span className="text-zinc-300">{(page - 1) * itemsPerPage + 1}</span> to{" "}
-              <span className="text-zinc-300">
-                {Math.min(page * itemsPerPage, filteredUsers.length)}
-              </span>{" "}
-              of <span className="text-zinc-300">{filteredUsers.length}</span> users
+              <span className="text-zinc-300">{Math.min(page * itemsPerPage, filteredUsers.length)}</span> of{" "}
+              <span className="text-zinc-300">{filteredUsers.length}</span> users
             </p>
             <div className="flex items-center gap-2">
               <Button
