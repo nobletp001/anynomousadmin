@@ -21,6 +21,7 @@ interface UserTrackingItem {
   username: string;
   isActive: boolean;
   lastSubmission: string | null;
+  lastTaskTitle: string | null;
   totalSubmissions: number;
   phone: string | null;
   bankName: string | null;
@@ -294,6 +295,11 @@ export function UserTrackingTab() {
                             <span>
                               Last Task:{" "}
                               <span className="font-semibold text-zinc-200">{formatDateTime(u.lastSubmission)}</span>
+                              {u.lastTaskTitle && (
+                                <span className="text-zinc-500 block mt-0.5 text-[11px] truncate max-w-44">
+                                  ({u.lastTaskTitle})
+                                </span>
+                              )}
                             </span>
                           </div>
                           <div className="flex items-center gap-1.5">
