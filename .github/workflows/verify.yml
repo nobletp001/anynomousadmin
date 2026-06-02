@@ -1,0 +1,59 @@
+name: Verify Admin Dashboard Code
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      # 1. Line Length Check (strictly max 150 characters on TS/JS files)
+      - name: Check Line Length
+        run: |
+          echo "🛡️ Checking line length limit (max 150 chars)..."
+          VIOLATIONS=0
+          # Find all JS/TS files in this repository (excluding standard ignores)
+          FILES=$(find . -type f -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | grep -v "node_modules" | grep -v ".next" | grep -v "dist" || true)
+          for FILE in $FILES; do
+            LONG_LINES=$(awk 'length($0) > 150 {printf "  Line %d (%d chars): %s\n", NR, length($0), substr($0, 1, 50) "..."}' "$FILE")
+            if [ ! -z "$LONG_LINES" ]; then
+              echo "❌ File '$FILE' has lines exceeding 150 characters limit:"
+              echo "$LONG_LINES"
+              VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+          done
+          if [ $VIOLATIONS -gt 0 ]; then
+            echo "🚨 Error: $VIOLATIONS file(s) exceed 150 characters line length limit."
+            exit 1
+          fi
+          echo "✓ All files adhere to the 150-character line length limit."
+
+      # 2. Install Dependencies
+      - name: Install Dependencies
+        run: npm ci
+
+      # 3. Security Audit
+      - name: Vulnerability Audit
+        run: npm audit --audit-level=high
+
+      # 4. Lint Check
+      - name: Lint Check
+        run: npm run lint
+
+      # 5. Compilation Check
+      - name: Compilation Check
+        run: npm run build
