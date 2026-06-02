@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, Plus, Trash2 } from "lucide-react";
+import { Sparkles, Plus, Trash2, GripVertical } from "lucide-react";
 
 interface InstructionsProps {
   editInstructions: string[];
@@ -7,6 +7,42 @@ interface InstructionsProps {
 }
 
 export function Instructions({ editInstructions, setEditInstructions }: InstructionsProps) {
+  const [draggedIdx, setDraggedIdx] = React.useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = React.useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIdx(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIdx !== index) {
+      setDragOverIdx(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === index) return;
+
+    setEditInstructions((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(draggedIdx, 1);
+      next.splice(index, 0, moved);
+      return next;
+    });
+
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+  };
+
   const loadRules = () => {
     setEditInstructions([
       "Click the target link to visit the platform page or profile.",
@@ -61,13 +97,38 @@ export function Instructions({ editInstructions, setEditInstructions }: Instruct
 
       <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
         {editInstructions.map((step, idx) => (
-          <div key={idx} className="flex gap-2 items-center">
-            <span className="text-[10px] text-zinc-500 font-mono w-4 text-right shrink-0">{idx + 1}.</span>
+          <div
+            key={idx}
+            onDragOver={(e) => handleDragOver(e, idx)}
+            onDrop={(e) => handleDrop(e, idx)}
+            className={
+              "flex gap-2 items-center p-1 rounded-xl transition-all " +
+              (draggedIdx === idx ? "opacity-40 " : "") +
+              (dragOverIdx === idx
+                ? "border border-dashed border-purple-500 bg-purple-500/5"
+                : "border border-transparent")
+            }
+          >
+            <div
+              draggable
+              onDragStart={(e) => handleDragStart(e, idx)}
+              onDragEnd={handleDragEnd}
+              className={
+                "cursor-grab active:cursor-grabbing p-1 hover:bg-zinc-800 rounded " +
+                "transition shrink-0 text-zinc-500 hover:text-zinc-300"
+              }
+            >
+              <GripVertical className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-[10px] text-zinc-550 font-mono w-4 text-right shrink-0">{idx + 1}.</span>
             <input
               type="text"
               value={step}
               onChange={(e) => handleStepChange(idx, e.target.value)}
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+              className={
+                "flex-1 bg-zinc-850 border border-zinc-700/60 rounded-lg px-3 py-1.5 " +
+                "text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+              }
             />
             <button
               type="button"
