@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
-import { Search, AlertCircle, MessageCircle, Calendar, Clock, UserCheck, UserMinus, Key } from "lucide-react";
+import { Search, AlertCircle, MessageCircle, Calendar, Clock, UserCheck, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui";
 
 interface ReferrerDetails {
@@ -20,9 +20,8 @@ interface UserTrackingItem {
   name: string;
   username: string;
   isActive: boolean;
-  lastLogin: string | null;
   lastSubmission: string | null;
-  lastPasscodeValidate: string | null;
+  totalSubmissions: number;
   phone: string | null;
   bankName: string | null;
   accountNumber: string | null;
@@ -83,7 +82,9 @@ export function UserTrackingTab() {
         if (!user.lastSubmission) {
           text = `Hello, why is your referral @${user.username} not performing tasks on PayFluence? Please reach out to them.`;
         } else {
-          text = `Hello, why is your referral @${user.username} not available/active on PayFluence? Please remind them to log in.`;
+          text =
+            `Hello, why is your referral @${user.username} ` +
+            `not performing tasks/active on PayFluence? Please remind them to perform tasks.`;
         }
       }
     } else {
@@ -96,7 +97,7 @@ export function UserTrackingTab() {
         if (!user.lastSubmission) {
           text = `Hello ${user.name}, why are you not performing tasks on PayFluence?`;
         } else {
-          text = `Hello ${user.name}, why are you not available/active on PayFluence?`;
+          text = `Hello ${user.name}, why are you not performing tasks/active on PayFluence?`;
         }
       }
     }
@@ -289,25 +290,16 @@ export function UserTrackingTab() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="space-y-1.5 text-xs text-zinc-350">
                           <div className="flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                            <span>
-                              Login: <span className="font-semibold text-zinc-200">{formatDateTime(u.lastLogin)}</span>
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
                             <Calendar className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
                             <span>
-                              Task:{" "}
+                              Last Task:{" "}
                               <span className="font-semibold text-zinc-200">{formatDateTime(u.lastSubmission)}</span>
                             </span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <Key className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                            <Clock className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
                             <span>
-                              Passcode:{" "}
-                              <span className="font-semibold text-zinc-200">
-                                {formatDateTime(u.lastPasscodeValidate)}
-                              </span>
+                              Total Tasks: <span className="font-semibold text-zinc-200">{u.totalSubmissions}</span>
                             </span>
                           </div>
                         </div>
