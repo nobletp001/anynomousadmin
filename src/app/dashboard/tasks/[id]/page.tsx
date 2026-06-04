@@ -62,7 +62,11 @@ export default function TaskSubmissionsPage() {
   const closeEditTask = () => editState.setIsEditingTask(false);
 
   const mutations = useTaskMutations(taskId, {
-    advanceToNextPending, closeRejectModal, clearBulkSelection, closeViewingSub, closeEditTask,
+    advanceToNextPending,
+    closeRejectModal,
+    clearBulkSelection,
+    closeViewingSub,
+    closeEditTask,
   });
 
   const openRejectModal = (sub: Submission) => {
@@ -87,7 +91,9 @@ export default function TaskSubmissionsPage() {
       });
       const data = await res.json();
       if (data.success) {
-        alert(`✅ @${username} is now under watch.\n${data.newAlerts?.length > 0 ? `${data.newAlerts.length} fraud signal(s) detected.` : "No immediate flags found — monitoring is active."}`);
+        alert(
+          `✅ @${username} is now under watch.\n${data.newAlerts?.length > 0 ? `${data.newAlerts.length} fraud signal(s) detected.` : "No immediate flags found — monitoring is active."}`
+        );
       } else {
         alert(`Failed to track user: ${data.error}`);
       }
@@ -97,11 +103,18 @@ export default function TaskSubmissionsPage() {
   };
 
   useKeyboardShortcuts({
-    viewingSub: state.viewingSub, rejectModal: state.rejectModal,
-    onCloseReject: closeRejectModal, onCloseDetails: () => state.setViewingSub(null),
-    rating: state.rating, setRating: state.setRating, feedback: state.feedback, submissions, setViewingSub: state.setViewingSub,
+    viewingSub: state.viewingSub,
+    rejectModal: state.rejectModal,
+    onCloseReject: closeRejectModal,
+    onCloseDetails: () => state.setViewingSub(null),
+    rating: state.rating,
+    setRating: state.setRating,
+    feedback: state.feedback,
+    submissions,
+    setViewingSub: state.setViewingSub,
     onApprove: (r, f) => mutations.approveSubmission.mutate({ subId: state.viewingSub!.id, rating: r, feedback: f }),
-    onRejectClick: openRejectModal, onCorrectionClick: openCorrectionModal,
+    onRejectClick: openRejectModal,
+    onCorrectionClick: openCorrectionModal,
   });
 
   if (submissionsQuery.isLoading) {
@@ -118,7 +131,9 @@ export default function TaskSubmissionsPage() {
       <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
         <AlertCircle className="w-10 h-10 text-red-400" />
         <p className="text-zinc-400 text-sm">Failed to load submissions</p>
-        <Button variant="outline" size="sm" onClick={() => submissionsQuery.refetch()}>Retry</Button>
+        <Button variant="outline" size="sm" onClick={() => submissionsQuery.refetch()}>
+          Retry
+        </Button>
       </div>
     );
   }
@@ -132,7 +147,19 @@ export default function TaskSubmissionsPage() {
     editState.setEditLink(task.link || "");
     editState.setEditAssignedOfficer(task.assignedOfficer || "");
     editState.setEditInstructions(task.instructions ? JSON.parse(task.instructions) : []);
-    editState.setEditCaption(task.caption || "");
+    let captionText = task.caption || "";
+    let captionMode: "text" | "array" = "text";
+    if (captionText.startsWith("[") && captionText.endsWith("]")) {
+      try {
+        const arr = JSON.parse(captionText);
+        if (Array.isArray(arr)) {
+          captionText = arr.join("\n\n");
+          captionMode = "array";
+        }
+      } catch (_e) {}
+    }
+    editState.setEditCaption(captionText);
+    editState.setEditCaptionMode(captionMode);
     editState.setEditTaskType(task.taskType || "follow");
     editState.setEditTargetPlatform(task.targetPlatform || "instagram");
     editState.setEditProofType(task.proofType === "url" ? "url" : "banner");
@@ -146,7 +173,11 @@ export default function TaskSubmissionsPage() {
     editState.setEditMaxPerHour(String(task.maxPerHour ?? ""));
     editState.setEditNoExpiry(!!task.lifeline);
     editState.setEditEnableTargeting(!!task.targetAudience);
-    editState.setEditAudience(task.targetAudience ? JSON.parse(task.targetAudience) : { gender: [], employmentStatus: [], educationLevel: [], state: [], minAge: "", maxAge: "" });
+    editState.setEditAudience(
+      task.targetAudience
+        ? JSON.parse(task.targetAudience)
+        : { gender: [], employmentStatus: [], educationLevel: [], state: [], minAge: "", maxAge: "" }
+    );
     editState.setEditImages(task.images ? JSON.parse(task.images).map((url: string) => ({ url })) : []);
     let promptsText = "";
     try {
@@ -164,7 +195,9 @@ export default function TaskSubmissionsPage() {
   return (
     <div className="space-y-6">
       <TaskDetailHeader
-        task={task} submissionsCount={submissions.length} onBack={() => router.back()}
+        task={task}
+        submissionsCount={submissions.length}
+        onBack={() => router.back()}
         onDownloadPDF={() => downloadPDFReport(task, submissions)}
         onEditClick={handleEditClick}
         onToggleStatusClick={() => mutations.toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}
@@ -173,23 +206,54 @@ export default function TaskSubmissionsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <SubmissionsTable
-          submissions={submissions} selectedIds={state.selectedIds} setSelectedIds={state.setSelectedIds}
-          viewingSub={state.viewingSub} setViewingSub={state.setViewingSub} searchFilter={state.searchFilter}
-          setSearchFilter={state.setSearchFilter} statusFilter={state.statusFilter} setStatusFilter={state.setStatusFilter}
-          openCorrectionModal={openCorrectionModal} openRejectModal={openRejectModal}
+          submissions={submissions}
+          selectedIds={state.selectedIds}
+          setSelectedIds={state.setSelectedIds}
+          viewingSub={state.viewingSub}
+          setViewingSub={state.setViewingSub}
+          searchFilter={state.searchFilter}
+          setSearchFilter={state.setSearchFilter}
+          statusFilter={state.statusFilter}
+          setStatusFilter={state.setStatusFilter}
+          openCorrectionModal={openCorrectionModal}
+          openRejectModal={openRejectModal}
         />
 
         {state.viewingSub && (
           <SubmissionDetailsModal
-            sub={state.viewingSub} submissions={submissions} task={task} rating={state.rating} setRating={state.setRating}
-            feedback={state.feedback} setFeedback={state.setFeedback} showReportForm={state.showReportForm}
-            setShowReportForm={state.setShowReportForm} reportDeductAmount={state.reportDeductAmount}
-            setReportDeductAmount={state.setReportDeductAmount} reportReason={state.reportReason}
-            setReportReason={state.setReportReason} isReportPending={mutations.reportSubmission.isPending}
-            onSubmitReport={() => mutations.reportSubmission.mutate({ subId: state.viewingSub!.id, deductedAmount: Number(state.reportDeductAmount) || 0, rejectionReason: state.reportReason })}
-            onZoomImage={(imgs, idx) => { state.setActiveImagesList(imgs); state.setActiveImageIndex(idx); }}
+            sub={state.viewingSub}
+            submissions={submissions}
+            task={task}
+            rating={state.rating}
+            setRating={state.setRating}
+            feedback={state.feedback}
+            setFeedback={state.setFeedback}
+            showReportForm={state.showReportForm}
+            setShowReportForm={state.setShowReportForm}
+            reportDeductAmount={state.reportDeductAmount}
+            setReportDeductAmount={state.setReportDeductAmount}
+            reportReason={state.reportReason}
+            setReportReason={state.setReportReason}
+            isReportPending={mutations.reportSubmission.isPending}
+            onSubmitReport={() =>
+              mutations.reportSubmission.mutate({
+                subId: state.viewingSub!.id,
+                deductedAmount: Number(state.reportDeductAmount) || 0,
+                rejectionReason: state.reportReason,
+              })
+            }
+            onZoomImage={(imgs, idx) => {
+              state.setActiveImagesList(imgs);
+              state.setActiveImageIndex(idx);
+            }}
             onClose={() => state.setViewingSub(null)}
-            onApprove={() => mutations.approveSubmission.mutate({ subId: state.viewingSub!.id, rating: state.rating || 5, feedback: state.feedback })}
+            onApprove={() =>
+              mutations.approveSubmission.mutate({
+                subId: state.viewingSub!.id,
+                rating: state.rating || 5,
+                feedback: state.feedback,
+              })
+            }
             onCorrectionClick={() => openCorrectionModal(state.viewingSub!)}
             onRejectClick={() => openRejectModal(state.viewingSub!)}
             isApprovePending={mutations.approveSubmission.isPending}
@@ -200,21 +264,50 @@ export default function TaskSubmissionsPage() {
 
       {state.selectedIds.size > 0 && (
         <BulkActionPanel
-          selectedCount={state.selectedIds.size} bulkMode={state.bulkMode} setBulkMode={state.setBulkMode}
-          bulkRating={state.bulkRating} setBulkRating={state.setBulkRating} bulkRejectReason={state.bulkRejectReason}
-          setBulkRejectReason={state.setBulkRejectReason} onClearSelection={() => state.setSelectedIds(new Set())}
-          onConfirmApprove={() => mutations.bulkAction.mutate({ ids: Array.from(state.selectedIds), action: "approve", rating: state.bulkRating || 5 })}
-          onConfirmReject={() => mutations.bulkAction.mutate({ ids: Array.from(state.selectedIds), action: "reject", rejectionReason: state.bulkRejectReason })}
+          selectedCount={state.selectedIds.size}
+          bulkMode={state.bulkMode}
+          setBulkMode={state.setBulkMode}
+          bulkRating={state.bulkRating}
+          setBulkRating={state.setBulkRating}
+          bulkRejectReason={state.bulkRejectReason}
+          setBulkRejectReason={state.setBulkRejectReason}
+          onClearSelection={() => state.setSelectedIds(new Set())}
+          onConfirmApprove={() =>
+            mutations.bulkAction.mutate({
+              ids: Array.from(state.selectedIds),
+              action: "approve",
+              rating: state.bulkRating || 5,
+            })
+          }
+          onConfirmReject={() =>
+            mutations.bulkAction.mutate({
+              ids: Array.from(state.selectedIds),
+              action: "reject",
+              rejectionReason: state.bulkRejectReason,
+            })
+          }
           isPending={mutations.bulkAction.isPending}
         />
       )}
 
       {state.rejectModal && (
         <RejectModal
-          rejectModal={state.rejectModal} deductAmount={state.deductAmount} setDeductAmount={state.setDeductAmount}
-          rejectReason={state.rejectReason} setRejectReason={state.setRejectReason} onClose={closeRejectModal}
-          onSubmitReject={() => mutations.rejectSubmission.mutate({ subId: state.rejectModal!.subId, reason: state.rejectReason, deducted: Number(state.deductAmount) || 0 })}
-          onSubmitCorrection={() => mutations.requestCorrection.mutate({ subId: state.rejectModal!.subId, reason: state.rejectReason })}
+          rejectModal={state.rejectModal}
+          deductAmount={state.deductAmount}
+          setDeductAmount={state.setDeductAmount}
+          rejectReason={state.rejectReason}
+          setRejectReason={state.setRejectReason}
+          onClose={closeRejectModal}
+          onSubmitReject={() =>
+            mutations.rejectSubmission.mutate({
+              subId: state.rejectModal!.subId,
+              reason: state.rejectReason,
+              deducted: Number(state.deductAmount) || 0,
+            })
+          }
+          onSubmitCorrection={() =>
+            mutations.requestCorrection.mutate({ subId: state.rejectModal!.subId, reason: state.rejectReason })
+          }
           isPending={mutations.rejectSubmission.isPending || mutations.requestCorrection.isPending}
           error={mutations.rejectSubmission.error || mutations.requestCorrection.error}
         />
@@ -222,17 +315,29 @@ export default function TaskSubmissionsPage() {
 
       {state.activeImageIndex !== null && state.activeImagesList.length > 0 && (
         <FullscreenImageZoom
-          activeIndex={state.activeImageIndex} imagesList={state.activeImagesList} username={state.viewingSub?.username}
+          activeIndex={state.activeImageIndex}
+          imagesList={state.activeImagesList}
+          username={state.viewingSub?.username}
           onClose={() => state.setActiveImageIndex(null)}
-          onPrev={() => state.setActiveImageIndex((idx) => idx !== null ? (idx - 1 + state.activeImagesList.length) % state.activeImagesList.length : null)}
-          onNext={() => state.setActiveImageIndex((idx) => idx !== null ? (idx + 1) % state.activeImagesList.length : null)}
+          onPrev={() =>
+            state.setActiveImageIndex((idx) =>
+              idx !== null ? (idx - 1 + state.activeImagesList.length) % state.activeImagesList.length : null
+            )
+          }
+          onNext={() =>
+            state.setActiveImageIndex((idx) => (idx !== null ? (idx + 1) % state.activeImagesList.length : null))
+          }
         />
       )}
 
       {editState.isEditingTask && task && (
         <EditTaskModal
-          task={task} editState={editState} officers={officers} onClose={() => editState.setIsEditingTask(false)}
-          updateTaskMutation={mutations.updateTask} uploadImageMutation={mutations.uploadImage}
+          task={task}
+          editState={editState}
+          officers={officers}
+          onClose={() => editState.setIsEditingTask(false)}
+          updateTaskMutation={mutations.updateTask}
+          uploadImageMutation={mutations.uploadImage}
         />
       )}
     </div>

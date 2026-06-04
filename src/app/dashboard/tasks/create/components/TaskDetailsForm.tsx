@@ -12,6 +12,8 @@ interface TaskDetailsFormProps {
   setDescription: (v: string) => void;
   caption: string;
   setCaption: (v: string) => void;
+  captionMode: "text" | "array";
+  setCaptionMode: (v: "text" | "array") => void;
   link: string;
   setLink: (v: string) => void;
   images: ImageEntry[];
@@ -21,12 +23,20 @@ interface TaskDetailsFormProps {
 }
 
 export function TaskDetailsForm({
-  title, setTitle,
-  description, setDescription,
-  caption, setCaption,
-  link, setLink,
-  images, setImages,
-  uploadError, setUploadError,
+  title,
+  setTitle,
+  description,
+  setDescription,
+  caption,
+  setCaption,
+  captionMode,
+  setCaptionMode,
+  link,
+  setLink,
+  images,
+  setImages,
+  uploadError,
+  setUploadError,
 }: TaskDetailsFormProps) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -83,13 +93,43 @@ export function TaskDetailsForm({
         />
       </div>
       <div>
-        <FieldLabel>
-          Caption <span className="text-zinc-650 font-normal">(optional — text users copy and post)</span>
-        </FieldLabel>
+        <div className="flex items-center justify-between mb-1.5">
+          <FieldLabel>
+            Caption <span className="text-zinc-650 font-normal">(optional — text users copy and post)</span>
+          </FieldLabel>
+          <div className="flex items-center gap-0.5 bg-zinc-950/60 p-0.5 rounded-lg border border-zinc-800/80">
+            <button
+              type="button"
+              onClick={() => setCaptionMode("text")}
+              className={`px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md transition-all duration-150 ${
+                captionMode === "text"
+                  ? "bg-purple-650/20 text-purple-400 border border-purple-500/30"
+                  : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+              }`}
+            >
+              Text
+            </button>
+            <button
+              type="button"
+              onClick={() => setCaptionMode("array")}
+              className={`px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md transition-all duration-150 ${
+                captionMode === "array"
+                  ? "bg-purple-650/20 text-purple-400 border border-purple-500/30"
+                  : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+              }`}
+            >
+              Array (Multi)
+            </button>
+          </div>
+        </div>
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
-          placeholder="Paste the exact caption users should copy to their post or status..."
+          placeholder={
+            captionMode === "array"
+              ? "Enter multiple caption options, separated by double newlines (two enters). One random option will be shown to users and locked when selected..."
+              : "Paste the exact caption users should copy to their post or status..."
+          }
           rows={4}
           className={`${inputCls} resize-none`}
         />
@@ -111,12 +151,19 @@ export function TaskDetailsForm({
           <FieldLabel>
             Images <span className="text-zinc-650 font-normal">(optional — up to {MAX_IMAGES})</span>
           </FieldLabel>
-          {images.length > 0 && <span className="text-[11px] text-zinc-550">{images.length} / {MAX_IMAGES}</span>}
+          {images.length > 0 && (
+            <span className="text-[11px] text-zinc-550">
+              {images.length} / {MAX_IMAGES}
+            </span>
+          )}
         </div>
         {images.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mb-2">
             {images.map((img, idx) => (
-              <div key={idx} className="relative rounded-xl overflow-hidden border border-zinc-700/60 group aspect-video">
+              <div
+                key={idx}
+                className="relative rounded-xl overflow-hidden border border-zinc-700/60 group aspect-video"
+              >
                 <img src={img.preview} alt={`Image ${idx + 1}`} className="w-full h-full object-cover" />
                 <button
                   type="button"
@@ -144,7 +191,11 @@ export function TaskDetailsForm({
           </div>
         )}
         <input
-          ref={fileRef} type="file" accept="image/*" multiple className="hidden"
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
           onChange={(e) => {
             if (e.target.files) handleFiles(e.target.files);
             e.target.value = "";

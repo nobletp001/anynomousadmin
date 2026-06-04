@@ -58,48 +58,80 @@ export default function CreateTaskPage() {
         />
 
         <TaskDetailsForm
-          title={state.title} setTitle={state.setTitle}
-          description={state.description} setDescription={state.setDescription}
-          caption={state.caption} setCaption={state.setCaption}
-          link={state.link} setLink={state.setLink}
-          images={state.images} setImages={state.setImages}
-          uploadError={state.uploadError} setUploadError={state.setUploadError}
+          title={state.title}
+          setTitle={state.setTitle}
+          description={state.description}
+          setDescription={state.setDescription}
+          caption={state.caption}
+          setCaption={state.setCaption}
+          captionMode={state.captionMode}
+          setCaptionMode={state.setCaptionMode}
+          link={state.link}
+          setLink={state.setLink}
+          images={state.images}
+          setImages={state.setImages}
+          uploadError={state.uploadError}
+          setUploadError={state.setUploadError}
         />
 
         <InstructionsForm
-          instructions={state.instructions} setInstructions={state.setInstructions}
-          draggedIdx={state.draggedIdx} setDraggedIdx={state.setDraggedIdx}
+          instructions={state.instructions}
+          setInstructions={state.setInstructions}
+          draggedIdx={state.draggedIdx}
+          setDraggedIdx={state.setDraggedIdx}
         />
 
         <TaskConfigForm
-          taskType={state.taskType} setTaskType={state.setTaskType}
-          targetPlatform={state.targetPlatform} setTargetPlatform={state.setTargetPlatform}
-          proofType={state.proofType} setProofType={state.setProofType}
-          acceptText={state.acceptText} setAcceptText={state.setAcceptText}
-          textLabel={state.textLabel} setTextLabel={state.setTextLabel}
-          acceptNumber={state.acceptNumber} setAcceptNumber={state.setAcceptNumber}
-          numberLabel={state.numberLabel} setNumberLabel={state.setNumberLabel}
-          acceptMultipleImages={state.acceptMultipleImages} setAcceptMultipleImages={state.setAcceptMultipleImages}
-          targetCount={state.targetCount} setTargetCount={state.setTargetCount}
-          adminContact={state.adminContact} setAdminContact={state.setAdminContact}
-          prompts={state.prompts} setPrompts={state.setPrompts}
-          requirePromptSelection={state.requirePromptSelection} setRequirePromptSelection={state.setRequirePromptSelection}
-          marketingText={state.marketingText} setMarketingText={state.setMarketingText}
+          taskType={state.taskType}
+          setTaskType={state.setTaskType}
+          targetPlatform={state.targetPlatform}
+          setTargetPlatform={state.setTargetPlatform}
+          proofType={state.proofType}
+          setProofType={state.setProofType}
+          acceptText={state.acceptText}
+          setAcceptText={state.setAcceptText}
+          textLabel={state.textLabel}
+          setTextLabel={state.setTextLabel}
+          acceptNumber={state.acceptNumber}
+          setAcceptNumber={state.setAcceptNumber}
+          numberLabel={state.numberLabel}
+          setNumberLabel={state.setNumberLabel}
+          acceptMultipleImages={state.acceptMultipleImages}
+          setAcceptMultipleImages={state.setAcceptMultipleImages}
+          targetCount={state.targetCount}
+          setTargetCount={state.setTargetCount}
+          adminContact={state.adminContact}
+          setAdminContact={state.setAdminContact}
+          prompts={state.prompts}
+          setPrompts={state.setPrompts}
+          requirePromptSelection={state.requirePromptSelection}
+          setRequirePromptSelection={state.setRequirePromptSelection}
+          marketingText={state.marketingText}
+          setMarketingText={state.setMarketingText}
         />
 
         <TargetAudienceForm
-          enableTargeting={state.enableTargeting} setEnableTargeting={state.setEnableTargeting}
-          audience={state.audience} setAudience={state.setAudience}
+          enableTargeting={state.enableTargeting}
+          setEnableTargeting={state.setEnableTargeting}
+          audience={state.audience}
+          setAudience={state.setAudience}
         />
 
         <RewardTimelineForm
-          amount={state.amount} setAmount={state.setAmount}
-          numberOfUsersNeeded={state.numberOfUsersNeeded} setNumberOfUsersNeeded={state.setNumberOfUsersNeeded}
-          maxPerHour={state.maxPerHour} setMaxPerHour={state.setMaxPerHour}
-          noExpiry={state.noExpiry} setNoExpiry={state.setNoExpiry}
-          timelineMs={state.timelineMs} setTimelineMs={state.setTimelineMs}
-          isPayFluenceTask={state.isPayFluenceTask} setIsPayFluenceTask={state.setIsPayFluenceTask}
-          volutterPayFluenceTaskPerformNumber={state.volutterPayFluenceTaskPerformNumber} setVolutterPayFluenceTaskPerformNumber={state.setVolutterPayFluenceTaskPerformNumber}
+          amount={state.amount}
+          setAmount={state.setAmount}
+          numberOfUsersNeeded={state.numberOfUsersNeeded}
+          setNumberOfUsersNeeded={state.setNumberOfUsersNeeded}
+          maxPerHour={state.maxPerHour}
+          setMaxPerHour={state.setMaxPerHour}
+          noExpiry={state.noExpiry}
+          setNoExpiry={state.setNoExpiry}
+          timelineMs={state.timelineMs}
+          setTimelineMs={state.setTimelineMs}
+          isPayFluenceTask={state.isPayFluenceTask}
+          setIsPayFluenceTask={state.setIsPayFluenceTask}
+          volutterPayFluenceTaskPerformNumber={state.volutterPayFluenceTaskPerformNumber}
+          setVolutterPayFluenceTaskPerformNumber={state.setVolutterPayFluenceTaskPerformNumber}
         />
 
         {mutations.createTask.error && (
@@ -113,7 +145,11 @@ export default function CreateTaskPage() {
             Cancel
           </Button>
           <Button variant="primary" size="md" type="submit" isLoading={isPending} disabled={!canSubmit}>
-            {mutations.uploadImage.isPending ? "Uploading images…" : mutations.createTask.isPending ? "Creating task…" : "Create Task"}
+            {mutations.uploadImage.isPending
+              ? "Uploading images…"
+              : mutations.createTask.isPending
+                ? "Creating task…"
+                : "Create Task"}
           </Button>
         </div>
       </form>

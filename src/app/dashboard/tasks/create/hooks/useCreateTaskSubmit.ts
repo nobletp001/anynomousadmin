@@ -2,10 +2,7 @@ import React from "react";
 import { CreateTaskState } from "./useCreateTaskState";
 import { useCreateTaskMutations } from "./useCreateTaskMutations";
 
-export function useCreateTaskSubmit(
-  state: CreateTaskState,
-  mutations: ReturnType<typeof useCreateTaskMutations>
-) {
+export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnType<typeof useCreateTaskMutations>) {
   const { uploadImage, createTask } = mutations;
 
   const canSubmit =
@@ -44,7 +41,18 @@ export function useCreateTaskSubmit(
     createTask.mutate({
       title: state.title.trim(),
       description: state.description.trim(),
-      caption: state.caption.trim() || undefined,
+      caption: ((): string | undefined => {
+        const val = state.caption.trim();
+        if (!val) return undefined;
+        if (state.captionMode === "array") {
+          const arr = val
+            .split("\n\n")
+            .map((c) => c.trim())
+            .filter(Boolean);
+          return arr.length ? JSON.stringify(arr) : undefined;
+        }
+        return val;
+      })(),
       link: state.link.trim() || undefined,
       instructions: filteredInstructions.length ? filteredInstructions : undefined,
       images: uploadedUrls.length ? uploadedUrls : undefined,
@@ -84,7 +92,9 @@ export function useCreateTaskSubmit(
       requirePromptSelection: state.requirePromptSelection,
       marketingText: state.marketingText.trim() || undefined,
       isPayFluenceTask: state.isPayFluenceTask,
-      volutterPayFluenceTaskPerformNumber: state.volutterPayFluenceTaskPerformNumber.trim() ? parseInt(state.volutterPayFluenceTaskPerformNumber) : undefined,
+      volutterPayFluenceTaskPerformNumber: state.volutterPayFluenceTaskPerformNumber.trim()
+        ? parseInt(state.volutterPayFluenceTaskPerformNumber)
+        : undefined,
       targetAudience: state.enableTargeting
         ? {
             ...(state.audience.gender.length ? { gender: state.audience.gender } : {}),

@@ -13,8 +13,9 @@ import {
   Trophy,
   ScanSearch,
   Coins,
+  Target,
+  Crown,
 } from "lucide-react";
-
 
 interface SidebarItem {
   name: string;
@@ -48,9 +49,21 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     roles: ["super-admin", "admin"],
   },
   {
+    name: "Monthly Goals",
+    href: "/dashboard/goals",
+    icon: Target,
+    roles: ["super-admin", "admin"],
+  },
+  {
     name: "Fraud & Security",
     href: "/dashboard/fraud",
     icon: ScanSearch,
+    roles: ["super-admin", "admin"],
+  },
+  {
+    name: "Family Management",
+    href: "/dashboard/family",
+    icon: Crown,
     roles: ["super-admin", "admin"],
   },
   {
@@ -70,12 +83,7 @@ interface SidebarContentProps {
   onLogoutClick: () => void;
 }
 
-export function SidebarContent({
-  user,
-  pathname,
-  onNavClick,
-  onLogoutClick,
-}: SidebarContentProps) {
+export function SidebarContent({ user, pathname, onNavClick, onLogoutClick }: SidebarContentProps) {
   return (
     <div className="flex flex-col h-full bg-zinc-900 text-zinc-300">
       <div className="h-16 flex items-center px-6 border-b border-zinc-800/80 gap-3 shrink-0">

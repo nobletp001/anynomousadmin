@@ -11,6 +11,7 @@ export function useEditTaskState() {
   const [editLink, setEditLink] = useState("");
   const [editAssignedOfficer, setEditAssignedOfficer] = useState("");
   const [editCaption, setEditCaption] = useState("");
+  const [editCaptionMode, setEditCaptionMode] = useState<"text" | "array">("text");
   const [editTaskType, setEditTaskType] = useState("follow");
   const [editTargetPlatform, setEditTargetPlatform] = useState("instagram");
   const [editProofType, setEditProofType] = useState<"banner" | "url">("banner");
@@ -34,41 +35,74 @@ export function useEditTaskState() {
   });
   const [editImages, setEditImages] = useState<Array<{ url?: string; file?: File; preview?: string }>>([]);
   const [uploadError, setUploadError] = useState("");
-  const [editAllowedSubmissions, setEditAllowedSubmissions] = useState<Array<{ username: string; allowedCount: number }>>([]);
+  const [editAllowedSubmissions, setEditAllowedSubmissions] = useState<
+    Array<{ username: string; allowedCount: number }>
+  >([]);
   const [editPrompts, setEditPrompts] = useState("");
   const [editRequirePromptSelection, setEditRequirePromptSelection] = useState(false);
   const [editMarketingText, setEditMarketingText] = useState("");
 
   return {
-    isEditingTask, setIsEditingTask,
-    editTimeline, setEditTimeline,
-    editLifeline, setEditLifeline,
-    editNumberOfUsers, setEditNumberOfUsers,
-    editInstructions, setEditInstructions,
-    editAmount, setEditAmount,
-    editLink, setEditLink,
-    editAssignedOfficer, setEditAssignedOfficer,
-    editCaption, setEditCaption,
-    editTaskType, setEditTaskType,
-    editTargetPlatform, setEditTargetPlatform,
-    editProofType, setEditProofType,
-    editAcceptText, setEditAcceptText,
-    editTextLabel, setEditTextLabel,
-    editAcceptNumber, setEditAcceptNumber,
-    editNumberLabel, setEditNumberLabel,
-    editAcceptMultipleImages, setEditAcceptMultipleImages,
-    editTargetCount, setEditTargetCount,
-    editAdminContact, setEditAdminContact,
-    editMaxPerHour, setEditMaxPerHour,
-    editNoExpiry, setEditNoExpiry,
-    editEnableTargeting, setEditEnableTargeting,
-    editAudience, setEditAudience,
-    editImages, setEditImages,
-    uploadError, setUploadError,
-    editAllowedSubmissions, setEditAllowedSubmissions,
-    editPrompts, setEditPrompts,
-    editRequirePromptSelection, setEditRequirePromptSelection,
-    editMarketingText, setEditMarketingText,
+    isEditingTask,
+    setIsEditingTask,
+    editTimeline,
+    setEditTimeline,
+    editLifeline,
+    setEditLifeline,
+    editNumberOfUsers,
+    setEditNumberOfUsers,
+    editInstructions,
+    setEditInstructions,
+    editAmount,
+    setEditAmount,
+    editLink,
+    setEditLink,
+    editAssignedOfficer,
+    setEditAssignedOfficer,
+    editCaption,
+    setEditCaption,
+    editCaptionMode,
+    setEditCaptionMode,
+    editTaskType,
+    setEditTaskType,
+    editTargetPlatform,
+    setEditTargetPlatform,
+    editProofType,
+    setEditProofType,
+    editAcceptText,
+    setEditAcceptText,
+    editTextLabel,
+    setEditTextLabel,
+    editAcceptNumber,
+    setEditAcceptNumber,
+    editNumberLabel,
+    setEditNumberLabel,
+    editAcceptMultipleImages,
+    setEditAcceptMultipleImages,
+    editTargetCount,
+    setEditTargetCount,
+    editAdminContact,
+    setEditAdminContact,
+    editMaxPerHour,
+    setEditMaxPerHour,
+    editNoExpiry,
+    setEditNoExpiry,
+    editEnableTargeting,
+    setEditEnableTargeting,
+    editAudience,
+    setEditAudience,
+    editImages,
+    setEditImages,
+    uploadError,
+    setUploadError,
+    editAllowedSubmissions,
+    setEditAllowedSubmissions,
+    editPrompts,
+    setEditPrompts,
+    editRequirePromptSelection,
+    setEditRequirePromptSelection,
+    editMarketingText,
+    setEditMarketingText,
   };
 }
 export type EditTaskState = ReturnType<typeof useEditTaskState>;
