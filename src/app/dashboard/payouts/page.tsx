@@ -8,6 +8,7 @@ import { usePayoutQueries } from "./hooks/usePayoutQueries";
 import { usePayoutMutations } from "./hooks/usePayoutMutations";
 import { PayoutRequestsTab } from "./components/PayoutRequestsTab";
 import { PayoutHistoryTab } from "./components/PayoutHistoryTab";
+import { PayoutControls } from "./components/PayoutControls";
 
 export default function PayoutsPage() {
   const state = usePayoutState();
@@ -53,7 +54,9 @@ export default function PayoutsPage() {
         <AlertCircle className="w-10 h-10 text-red-500" />
         <h3 className="text-sm font-bold text-zinc-200">Failed to load payout data</h3>
         <p className="text-zinc-550 text-xs max-w-sm">Please check your network connection and try again.</p>
-        <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-2">Retry</Button>
+        <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-2">
+          Retry
+        </Button>
       </div>
     );
   }
@@ -85,6 +88,8 @@ export default function PayoutsPage() {
           </button>
         </div>
       </div>
+
+      <PayoutControls />
 
       {state.actionError && (
         <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-red-500/20 bg-red-500/5 text-xs text-red-400">
