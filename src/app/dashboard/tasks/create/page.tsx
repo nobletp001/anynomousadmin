@@ -98,6 +98,8 @@ export default function CreateTaskPage() {
           setNumberLabel={state.setNumberLabel}
           acceptMultipleImages={state.acceptMultipleImages}
           setAcceptMultipleImages={state.setAcceptMultipleImages}
+          isTobeIncludereferralCount={state.isTobeIncludereferralCount}
+          setIsTobeIncludereferralCount={state.setIsTobeIncludereferralCount}
           targetCount={state.targetCount}
           setTargetCount={state.setTargetCount}
           adminContact={state.adminContact}

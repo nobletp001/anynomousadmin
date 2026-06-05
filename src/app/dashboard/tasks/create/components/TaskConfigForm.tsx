@@ -4,7 +4,6 @@ import { FieldLabel } from "./FieldLabel";
 import { TASK_TYPES, PLATFORMS } from "../constants/base";
 import { RichTextEditor } from "@/components/ui";
 
-
 interface TaskConfigFormProps {
   taskType: string;
   setTaskType: (v: string) => void;
@@ -22,6 +21,8 @@ interface TaskConfigFormProps {
   setNumberLabel: (v: string) => void;
   acceptMultipleImages: boolean;
   setAcceptMultipleImages: React.Dispatch<React.SetStateAction<boolean>>;
+  isTobeIncludereferralCount: boolean;
+  setIsTobeIncludereferralCount: (v: boolean) => void;
   targetCount: string;
   setTargetCount: (v: string) => void;
   adminContact: string;
@@ -35,19 +36,34 @@ interface TaskConfigFormProps {
 }
 
 export function TaskConfigForm({
-  taskType, setTaskType,
-  targetPlatform, setTargetPlatform,
-  proofType, setProofType,
-  acceptText, setAcceptText,
-  textLabel, setTextLabel,
-  acceptNumber, setAcceptNumber,
-  numberLabel, setNumberLabel,
-  acceptMultipleImages, setAcceptMultipleImages,
-  targetCount, setTargetCount,
-  adminContact, setAdminContact,
-  prompts, setPrompts,
-  requirePromptSelection, setRequirePromptSelection,
-  marketingText, setMarketingText,
+  taskType,
+  setTaskType,
+  targetPlatform,
+  setTargetPlatform,
+  proofType,
+  setProofType,
+  acceptText,
+  setAcceptText,
+  textLabel,
+  setTextLabel,
+  acceptNumber,
+  setAcceptNumber,
+  numberLabel,
+  setNumberLabel,
+  acceptMultipleImages,
+  setAcceptMultipleImages,
+  isTobeIncludereferralCount,
+  setIsTobeIncludereferralCount,
+  targetCount,
+  setTargetCount,
+  adminContact,
+  setAdminContact,
+  prompts,
+  setPrompts,
+  requirePromptSelection,
+  setRequirePromptSelection,
+  marketingText,
+  setMarketingText,
 }: TaskConfigFormProps) {
   const isJetpot = taskType === "jetpot";
   const isViews = taskType === "views";
@@ -70,7 +86,9 @@ export function TaskConfigForm({
             className={inputCls}
           >
             {TASK_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
             ))}
           </select>
         </div>
@@ -90,7 +108,9 @@ export function TaskConfigForm({
               <FieldLabel required>Target Platform</FieldLabel>
               <select value={targetPlatform} onChange={(e) => setTargetPlatform(e.target.value)} className={inputCls}>
                 {PLATFORMS.map((p) => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
                 ))}
               </select>
             </>
@@ -102,9 +122,12 @@ export function TaskConfigForm({
         <FieldLabel>Proof method</FieldLabel>
         <div className="grid grid-cols-2 gap-2">
           <button
-            type="button" onClick={() => setProofType("banner")}
+            type="button"
+            onClick={() => setProofType("banner")}
             className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold transition-all ${
-              proofType === "banner" ? "bg-amber-500/10 border-amber-500/40 text-amber-300" : "bg-zinc-800/40 border-zinc-700/60 text-zinc-500 hover:border-zinc-650"
+              proofType === "banner"
+                ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
+                : "bg-zinc-800/40 border-zinc-700/60 text-zinc-500 hover:border-zinc-655"
             }`}
           >
             <ImageIcon className="w-4 h-4 shrink-0" />
@@ -114,9 +137,12 @@ export function TaskConfigForm({
             </div>
           </button>
           <button
-            type="button" onClick={() => setProofType("url")}
+            type="button"
+            onClick={() => setProofType("url")}
             className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold transition-all ${
-              proofType === "url" ? "bg-blue-500/10 border-blue-500/40 text-blue-300" : "bg-zinc-800/40 border-zinc-700/60 text-zinc-500 hover:border-zinc-655"
+              proofType === "url"
+                ? "bg-blue-500/10 border-blue-500/40 text-blue-300"
+                : "bg-zinc-800/40 border-zinc-700/60 text-zinc-500 hover:border-zinc-655"
             }`}
           >
             <LinkIcon className="w-4 h-4 shrink-0" />
@@ -132,7 +158,9 @@ export function TaskConfigForm({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-zinc-400 font-medium">Collect Text</p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Ask users to also submit a WhatsApp number, username, etc.</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Ask users to also submit a WhatsApp number, username, etc.
+            </p>
           </div>
           <div
             onClick={() => {
@@ -141,13 +169,17 @@ export function TaskConfigForm({
             }}
             className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${acceptText ? "bg-emerald-500" : "bg-zinc-700"}`}
           >
-            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${acceptText ? "translate-x-4" : "translate-x-0"}`} />
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${acceptText ? "translate-x-4" : "translate-x-0"}`}
+            />
           </div>
         </div>
         {acceptText && (
           <input
-            value={textLabel} onChange={(e) => setTextLabel(e.target.value)}
-            placeholder="e.g. WhatsApp Number, TikTok Username..." className={inputCls}
+            value={textLabel}
+            onChange={(e) => setTextLabel(e.target.value)}
+            placeholder="e.g. WhatsApp Number, TikTok Username..."
+            className={inputCls}
           />
         )}
       </div>
@@ -165,13 +197,17 @@ export function TaskConfigForm({
             }}
             className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${acceptNumber ? "bg-emerald-500" : "bg-zinc-700"}`}
           >
-            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${acceptNumber ? "translate-x-4" : "translate-x-0"}`} />
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${acceptNumber ? "translate-x-4" : "translate-x-0"}`}
+            />
           </div>
         </div>
         {acceptNumber && (
           <input
-            value={numberLabel} onChange={(e) => setNumberLabel(e.target.value)}
-            placeholder="e.g. Number of Views, Watch Hours..." className={inputCls}
+            value={numberLabel}
+            onChange={(e) => setNumberLabel(e.target.value)}
+            placeholder="e.g. Number of Views, Watch Hours..."
+            className={inputCls}
           />
         )}
       </div>
@@ -180,31 +216,68 @@ export function TaskConfigForm({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-zinc-400 font-medium">Accept Multiple Screenshot Proofs</p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Allow users to upload up to 5 screenshots instead of just one.</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Allow users to upload up to 5 screenshots instead of just one.
+            </p>
           </div>
           <div
             onClick={() => setAcceptMultipleImages(!acceptMultipleImages)}
             className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${acceptMultipleImages ? "bg-emerald-500" : "bg-zinc-700"}`}
           >
-            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${acceptMultipleImages ? "translate-x-4" : "translate-x-0"}`} />
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${acceptMultipleImages ? "translate-x-4" : "translate-x-0"}`}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-400 font-medium">Include in Referral Count</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Release referral bonus to the referrer when users complete this task.
+            </p>
+          </div>
+          <div
+            onClick={() => setIsTobeIncludereferralCount(!isTobeIncludereferralCount)}
+            className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${
+              isTobeIncludereferralCount ? "bg-emerald-500" : "bg-zinc-700"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                isTobeIncludereferralCount ? "translate-x-4" : "translate-x-0"
+              }`}
+            />
           </div>
         </div>
       </div>
 
       <div>
-        <FieldLabel required={isViews}>Minimum View Count {!isViews && <span className="text-zinc-650 font-normal">(optional)</span>}</FieldLabel>
+        <FieldLabel required={isViews}>
+          Minimum View Count {!isViews && <span className="text-zinc-650 font-normal">(optional)</span>}
+        </FieldLabel>
         <input
-          type="number" min="1" value={targetCount} onChange={(e) => setTargetCount(e.target.value)}
-          placeholder={isViews ? "e.g. 1000 (required)" : "e.g. 50 (optional)"} className={inputCls}
+          type="number"
+          min="1"
+          value={targetCount}
+          onChange={(e) => setTargetCount(e.target.value)}
+          placeholder={isViews ? "e.g. 1000 (required)" : "e.g. 50 (optional)"}
+          className={inputCls}
         />
       </div>
 
       {isJetpot && (
         <div>
-          <FieldLabel>Admin WhatsApp <span className="text-zinc-600 font-normal">(buyers message this number)</span></FieldLabel>
+          <FieldLabel>
+            Admin WhatsApp <span className="text-zinc-600 font-normal">(buyers message this number)</span>
+          </FieldLabel>
           <input
-            value={adminContact} onChange={(e) => setAdminContact(e.target.value)}
-            placeholder="+2348..." className={inputCls}
+            value={adminContact}
+            onChange={(e) => setAdminContact(e.target.value)}
+            placeholder="+2348..."
+            className={inputCls}
           />
         </div>
       )}
@@ -213,13 +286,17 @@ export function TaskConfigForm({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-zinc-400 font-medium">Require Prompt Selection & Copy</p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Force users to select and copy a prompt before submission.</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Force users to select and copy a prompt before submission.
+            </p>
           </div>
           <div
             onClick={() => setRequirePromptSelection(!requirePromptSelection)}
             className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${requirePromptSelection ? "bg-emerald-500" : "bg-zinc-700"}`}
           >
-            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${requirePromptSelection ? "translate-x-4" : "translate-x-0"}`} />
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${requirePromptSelection ? "translate-x-4" : "translate-x-0"}`}
+            />
           </div>
         </div>
       </div>
@@ -237,11 +314,7 @@ export function TaskConfigForm({
 
       <div>
         <FieldLabel>Copywriting / Marketing Text (Modal)</FieldLabel>
-        <RichTextEditor
-          value={marketingText}
-          onChange={setMarketingText}
-          placeholder="Write here..."
-        />
+        <RichTextEditor value={marketingText} onChange={setMarketingText} placeholder="Write here..." />
       </div>
     </div>
   );

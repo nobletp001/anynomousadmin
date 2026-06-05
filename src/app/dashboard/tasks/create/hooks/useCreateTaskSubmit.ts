@@ -92,6 +92,7 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       requirePromptSelection: state.requirePromptSelection,
       marketingText: state.marketingText.trim() || undefined,
       isPayFluenceTask: state.isPayFluenceTask,
+      isTobeIncludereferralCount: state.isTobeIncludereferralCount,
       volutterPayFluenceTaskPerformNumber: state.volutterPayFluenceTaskPerformNumber.trim()
         ? parseInt(state.volutterPayFluenceTaskPerformNumber)
         : undefined,

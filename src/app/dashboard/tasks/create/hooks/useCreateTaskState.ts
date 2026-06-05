@@ -39,6 +39,7 @@ export function useCreateTaskState() {
   const [marketingText, setMarketingText] = useState("");
   const [isPayFluenceTask, setIsPayFluenceTask] = useState(false);
   const [volutterPayFluenceTaskPerformNumber, setVolutterPayFluenceTaskPerformNumber] = useState("");
+  const [isTobeIncludereferralCount, setIsTobeIncludereferralCount] = useState(true);
   const [enableTargeting, setEnableTargeting] = useState(false);
   const [audience, setAudience] = useState<AudienceFilter>({
     gender: [],
@@ -128,6 +129,8 @@ export function useCreateTaskState() {
     setIsPayFluenceTask,
     volutterPayFluenceTaskPerformNumber,
     setVolutterPayFluenceTaskPerformNumber,
+    isTobeIncludereferralCount,
+    setIsTobeIncludereferralCount,
   };
 }
 

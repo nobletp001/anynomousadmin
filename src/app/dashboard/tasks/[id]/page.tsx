@@ -168,6 +168,9 @@ export default function TaskSubmissionsPage() {
     editState.setEditAcceptNumber(!!task.acceptNumber);
     editState.setEditNumberLabel(task.numberLabel || "");
     editState.setEditAcceptMultipleImages(!!task.acceptMultipleImages);
+    editState.setEditIsTobeIncludereferralCount(
+      task.isTobeIncludereferralCount !== undefined ? !!task.isTobeIncludereferralCount : true
+    );
     editState.setEditTargetCount(String(task.targetCount ?? ""));
     editState.setEditAdminContact(task.adminContact || "");
     editState.setEditMaxPerHour(String(task.maxPerHour ?? ""));

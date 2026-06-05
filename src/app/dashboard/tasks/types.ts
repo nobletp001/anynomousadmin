@@ -16,6 +16,7 @@ export interface Task {
   createdBy: string;
   createdAt: string;
   submissionCount: number;
+  isTobeIncludereferralCount?: boolean | null;
 }
 
 export interface TasksResponse {

@@ -4,7 +4,6 @@ import { FieldLabel } from "./FieldLabel";
 import { TASK_TYPES, PLATFORMS } from "../../types";
 import { RichTextEditor } from "@/components/ui";
 
-
 const inputCls =
   "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
 
@@ -25,6 +24,8 @@ interface ConfigProps {
   setEditNumberLabel: (v: string) => void;
   editAcceptMultipleImages: boolean;
   setEditAcceptMultipleImages: React.Dispatch<React.SetStateAction<boolean>>;
+  editIsTobeIncludereferralCount: boolean;
+  setEditIsTobeIncludereferralCount: React.Dispatch<React.SetStateAction<boolean>>;
   editTargetCount: string;
   setEditTargetCount: (v: string) => void;
   editAdminContact: string;
@@ -54,6 +55,8 @@ export function Config({
   setEditNumberLabel,
   editAcceptMultipleImages,
   setEditAcceptMultipleImages,
+  editIsTobeIncludereferralCount,
+  setEditIsTobeIncludereferralCount,
   editTargetCount,
   setEditTargetCount,
   editAdminContact,
@@ -83,7 +86,9 @@ export function Config({
             className={inputCls}
           >
             {TASK_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
             ))}
           </select>
         </div>
@@ -107,7 +112,9 @@ export function Config({
                 className={inputCls}
               >
                 {PLATFORMS.map((p) => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
                 ))}
               </select>
             </>
@@ -152,7 +159,9 @@ export function Config({
             <p className="text-[11px] text-zinc-555 mt-0.5">Ask users to submit a WhatsApp number, username, etc.</p>
           </div>
           <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
-            <span className={`text-xs font-semibold transition-colors ${editAcceptText ? "text-emerald-400" : "text-zinc-555"}`}>
+            <span
+              className={`text-xs font-semibold transition-colors ${editAcceptText ? "text-emerald-400" : "text-zinc-555"}`}
+            >
               {editAcceptText ? "On" : "Off"}
             </span>
             <div
@@ -162,7 +171,9 @@ export function Config({
               }}
               className={`relative w-9 h-5 rounded-full transition-all ${editAcceptText ? "bg-emerald-500" : "bg-zinc-700"}`}
             >
-              <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editAcceptText ? "translate-x-4" : "translate-x-0"}`} />
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editAcceptText ? "translate-x-4" : "translate-x-0"}`}
+              />
             </div>
           </label>
         </div>
@@ -183,7 +194,9 @@ export function Config({
             <p className="text-[11px] text-zinc-555 mt-0.5">Ask users to submit a numeric value like views count.</p>
           </div>
           <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
-            <span className={`text-xs font-semibold transition-colors ${editAcceptNumber ? "text-emerald-400" : "text-zinc-555"}`}>
+            <span
+              className={`text-xs font-semibold transition-colors ${editAcceptNumber ? "text-emerald-400" : "text-zinc-555"}`}
+            >
               {editAcceptNumber ? "On" : "Off"}
             </span>
             <div
@@ -193,7 +206,9 @@ export function Config({
               }}
               className={`relative w-9 h-5 rounded-full transition-all ${editAcceptNumber ? "bg-emerald-500" : "bg-zinc-700"}`}
             >
-              <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editAcceptNumber ? "translate-x-4" : "translate-x-0"}`} />
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editAcceptNumber ? "translate-x-4" : "translate-x-0"}`}
+              />
             </div>
           </label>
         </div>
@@ -211,17 +226,53 @@ export function Config({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-zinc-400 font-medium">Accept Multiple Screenshot Proofs</p>
-            <p className="text-[11px] text-zinc-555 mt-0.5">Allow users to upload up to 5 screenshots instead of one.</p>
+            <p className="text-[11px] text-zinc-555 mt-0.5">
+              Allow users to upload up to 5 screenshots instead of one.
+            </p>
           </div>
           <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
-            <span className={`text-xs font-semibold transition-colors ${editAcceptMultipleImages ? "text-emerald-400" : "text-zinc-555"}`}>
+            <span
+              className={`text-xs font-semibold transition-colors ${editAcceptMultipleImages ? "text-emerald-400" : "text-zinc-555"}`}
+            >
               {editAcceptMultipleImages ? "On" : "Off"}
             </span>
             <div
               onClick={() => setEditAcceptMultipleImages(!editAcceptMultipleImages)}
               className={`relative w-9 h-5 rounded-full transition-all ${editAcceptMultipleImages ? "bg-emerald-500" : "bg-zinc-700"}`}
             >
-              <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editAcceptMultipleImages ? "translate-x-4" : "translate-x-0"}`} />
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editAcceptMultipleImages ? "translate-x-4" : "translate-x-0"}`}
+              />
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-400 font-medium">Include in Referral Count</p>
+            <p className="text-[11px] text-zinc-555 mt-0.5">
+              Release referral bonus to the referrer when users complete this task.
+            </p>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+            <span
+              className={`text-xs font-semibold transition-colors ${editIsTobeIncludereferralCount ? "text-emerald-400" : "text-zinc-555"}`}
+            >
+              {editIsTobeIncludereferralCount ? "On" : "Off"}
+            </span>
+            <div
+              onClick={() => setEditIsTobeIncludereferralCount(!editIsTobeIncludereferralCount)}
+              className={`relative w-9 h-5 rounded-full transition-all ${
+                editIsTobeIncludereferralCount ? "bg-emerald-500" : "bg-zinc-700"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                  editIsTobeIncludereferralCount ? "translate-x-4" : "translate-x-0"
+                }`}
+              />
             </div>
           </label>
         </div>
@@ -259,17 +310,23 @@ export function Config({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-zinc-400 font-medium">Require Prompt Selection & Copy</p>
-            <p className="text-[11px] text-zinc-555 mt-0.5">Force users to select and copy a prompt before submission.</p>
+            <p className="text-[11px] text-zinc-555 mt-0.5">
+              Force users to select and copy a prompt before submission.
+            </p>
           </div>
           <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
-            <span className={`text-xs font-semibold transition-colors ${editRequirePromptSelection ? "text-emerald-400" : "text-zinc-555"}`}>
+            <span
+              className={`text-xs font-semibold transition-colors ${editRequirePromptSelection ? "text-emerald-400" : "text-zinc-555"}`}
+            >
               {editRequirePromptSelection ? "On" : "Off"}
             </span>
             <div
               onClick={() => setEditRequirePromptSelection(!editRequirePromptSelection)}
               className={`relative w-9 h-5 rounded-full transition-all ${editRequirePromptSelection ? "bg-emerald-500" : "bg-zinc-700"}`}
             >
-              <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editRequirePromptSelection ? "translate-x-4" : "translate-x-0"}`} />
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editRequirePromptSelection ? "translate-x-4" : "translate-x-0"}`}
+              />
             </div>
           </label>
         </div>
@@ -288,11 +345,7 @@ export function Config({
 
       <div>
         <FieldLabel>Copywriting / Marketing Text (Modal)</FieldLabel>
-        <RichTextEditor
-          value={editMarketingText}
-          onChange={setEditMarketingText}
-          placeholder="Write here..."
-        />
+        <RichTextEditor value={editMarketingText} onChange={setEditMarketingText} placeholder="Write here..." />
       </div>
     </div>
   );

@@ -103,6 +103,7 @@ export function EditTaskModal({
       acceptNumber: editState.editAcceptNumber,
       numberLabel: editState.editAcceptNumber ? editState.editNumberLabel.trim() : null,
       acceptMultipleImages: editState.editAcceptMultipleImages,
+      isTobeIncludereferralCount: editState.editIsTobeIncludereferralCount,
       targetCount: editState.editTargetCount.trim() ? editState.editTargetCount : null,
       adminContact: editState.editAdminContact.trim() || null,
       maxPerHour: editState.editMaxPerHour.trim() ? parseInt(editState.editMaxPerHour) : null,
@@ -221,6 +222,8 @@ export function EditTaskModal({
             setEditNumberLabel={editState.setEditNumberLabel}
             editAcceptMultipleImages={editState.editAcceptMultipleImages}
             setEditAcceptMultipleImages={editState.setEditAcceptMultipleImages}
+            editIsTobeIncludereferralCount={editState.editIsTobeIncludereferralCount}
+            setEditIsTobeIncludereferralCount={editState.setEditIsTobeIncludereferralCount}
             editTargetCount={editState.editTargetCount}
             setEditTargetCount={editState.setEditTargetCount}
             editAdminContact={editState.editAdminContact}
