@@ -8,6 +8,7 @@ import { useUsersMutations } from "./hooks/useUsersMutations";
 import { useUsersState } from "./hooks/useUsersState";
 import { TopPerformers } from "./components/TopPerformers";
 import { UsersTable } from "./components/UsersTable";
+import { GWVerifiedTable } from "./components/GWVerifiedTable";
 import { UserDetailModal } from "./components/UserDetailModal";
 import { UserTrackingTab } from "./components/UserTrackingTab";
 import { ShieldOff, CreditCard, ClipboardX } from "lucide-react";
@@ -15,12 +16,13 @@ import { ShieldOff, CreditCard, ClipboardX } from "lucide-react";
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const state = useUsersState();
-  const [activeTab, setActiveTab] = useState<"all" | "tracking">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "tracking" | "gw">("all");
 
-  const { usersQuery, detailQuery, topUsersQuery } = useUsersQueries(
+  const { usersQuery, gwQuery, detailQuery, topUsersQuery } = useUsersQueries(
     state.page,
     state.debouncedSearch,
-    state.selectedUser
+    state.selectedUser,
+    activeTab
   );
   const { updateFlags } = useUsersMutations(state.page);
 
@@ -54,6 +56,7 @@ export default function UsersPage() {
       state.setActionAmount("");
       queryClient.invalidateQueries({ queryKey: ["admin-user-detail", state.selectedUser] });
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-gw-users"] });
     } catch (err: any) {
       console.error(err);
       state.setActionError(err.response?.data?.error || err.message || "Failed to submit action");
@@ -68,8 +71,11 @@ export default function UsersPage() {
     setTimeout(() => state.setCopiedId(null), 2000);
   };
 
-  const data = usersQuery.data;
-  const totalPages = data ? Math.ceil(data.total / data.limit) : 1;
+  const showAll = activeTab === "all";
+  const showGW = activeTab === "gw";
+
+  const activeQueryData = showAll ? usersQuery.data : showGW ? gwQuery.data : null;
+  const totalPages = activeQueryData ? Math.ceil(activeQueryData.total / activeQueryData.limit) : 1;
 
   return (
     <div className="space-y-6">
@@ -79,14 +85,19 @@ export default function UsersPage() {
           <p className="text-zinc-400 text-sm mt-1">
             {activeTab === "all"
               ? "All registered accounts — newest first"
-              : "Track active/inactive user engagement and referrals"}
+              : activeTab === "gw"
+                ? "Google & WhatsApp verified accounts — newest first"
+                : "Track active/inactive user engagement and referrals"}
           </p>
         </div>
-        
+
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex gap-1 p-1 bg-zinc-900/60 border border-zinc-800/80 rounded-xl">
             <button
-              onClick={() => setActiveTab("all")}
+              onClick={() => {
+                setActiveTab("all");
+                state.setPage(1);
+              }}
               className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === "all" ? "bg-purple-600 text-white shadow-lg" : "text-zinc-405 hover:text-zinc-250"
               }`}
@@ -94,7 +105,21 @@ export default function UsersPage() {
               All Users
             </button>
             <button
-              onClick={() => setActiveTab("tracking")}
+              onClick={() => {
+                setActiveTab("gw");
+                state.setPage(1);
+              }}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "gw" ? "bg-purple-600 text-white shadow-lg" : "text-zinc-405 hover:text-zinc-250"
+              }`}
+            >
+              GW Verified
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("tracking");
+                state.setPage(1);
+              }}
               className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === "tracking" ? "bg-purple-600 text-white shadow-lg" : "text-zinc-405 hover:text-zinc-250"
               }`}
@@ -103,36 +128,53 @@ export default function UsersPage() {
             </button>
           </div>
 
-          {activeTab === "all" && (
+          {(activeTab === "all" || activeTab === "gw") && (
             <div className="w-72">
               <input
                 type="text"
                 placeholder="Search by name, @username, or email..."
                 value={state.search}
                 onChange={(e) => state.setSearch(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-105 placeholder:text-zinc-500 focus:outline-none focus:border-purple-500/50 transition-colors"
+                className={
+                  "w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 " +
+                  "text-sm text-zinc-105 placeholder:text-zinc-500 focus:outline-none " +
+                  "focus:border-purple-500/50 transition-colors"
+                }
               />
             </div>
           )}
         </div>
       </div>
 
-      {activeTab === "all" ? (
+      {activeTab === "tracking" ? (
+        <UserTrackingTab />
+      ) : (
         <>
-          <TopPerformers
-            topPerformers={topUsersQuery.data?.data || []}
-            onSelectUser={state.setSelectedUser}
-          />
+          {activeTab === "all" && (
+            <TopPerformers topPerformers={topUsersQuery.data?.data || []} onSelectUser={state.setSelectedUser} />
+          )}
 
-          <UsersTable
-            users={data?.data || []}
-            onSelectUser={state.setSelectedUser}
-            onUpdateFlags={(id, flags) => updateFlags.mutate({ id, flags })}
-            page={state.page}
-            setPage={state.setPage}
-            totalPages={totalPages}
-            totalUsers={data?.total || 0}
-          />
+          {activeTab === "all" ? (
+            <UsersTable
+              users={usersQuery.data?.data || []}
+              onSelectUser={state.setSelectedUser}
+              onUpdateFlags={(id, flags) => updateFlags.mutate({ id, flags })}
+              page={state.page}
+              setPage={state.setPage}
+              totalPages={totalPages}
+              totalUsers={usersQuery.data?.total || 0}
+            />
+          ) : (
+            <GWVerifiedTable
+              users={gwQuery.data?.data || []}
+              onSelectUser={state.setSelectedUser}
+              onUpdateFlags={(id, flags) => updateFlags.mutate({ id, flags })}
+              page={state.page}
+              setPage={state.setPage}
+              totalPages={totalPages}
+              totalUsers={gwQuery.data?.total || 0}
+            />
+          )}
 
           <div className="flex items-center gap-6 text-[11px] text-zinc-650 px-1">
             <div className="flex items-center gap-1.5">
@@ -149,8 +191,6 @@ export default function UsersPage() {
             </div>
           </div>
         </>
-      ) : (
-        <UserTrackingTab />
       )}
 
       {state.selectedUser && (

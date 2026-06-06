@@ -8,6 +8,7 @@ export interface User {
   disabled: boolean;
   withdrawalDisabled: boolean;
   taskDisabled: boolean;
+  whatsappNumber?: string | null;
 }
 
 export interface UsersResponse {
