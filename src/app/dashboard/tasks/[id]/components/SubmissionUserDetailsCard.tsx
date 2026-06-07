@@ -2,7 +2,7 @@ import React from "react";
 import { Badge } from "@/components/ui";
 import { AlertCircle, Users } from "lucide-react";
 import { Submission } from "../types";
-import { formatAmount, statusVariant } from "../utils";
+import { formatAmount, statusVariant, getHammingDistance } from "../utils";
 
 interface SubmissionUserDetailsCardProps {
   sub: Submission;
@@ -10,26 +10,60 @@ interface SubmissionUserDetailsCardProps {
   onCompareUser?: (username: string) => void;
 }
 
-export function SubmissionUserDetailsCard({
-  sub,
-  submissions,
-  onCompareUser,
-}: SubmissionUserDetailsCardProps) {
+export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: SubmissionUserDetailsCardProps) {
   const whatsappNum = (sub.user as any)?.whatsappNumber;
   const accountNumber = (sub.user as any)?.accountNumber;
   const bankName = (sub.user as any)?.bankName;
   const accountName = (sub.user as any)?.accountName;
 
   const dupSub = submissions.find(
-    (s) => s.id !== sub.id && s.username !== sub.username && s.proof === sub.proof && s.proofType === sub.proofType && sub.proof && sub.proofType !== "text"
+    (s) =>
+      s.id !== sub.id &&
+      s.username !== sub.username &&
+      s.proof === sub.proof &&
+      s.proofType === sub.proofType &&
+      sub.proof &&
+      sub.proofType !== "text"
   );
-  const ipSub = submissions.find((s) => s.id !== sub.id && s.username !== sub.username && s.ipAddress === sub.ipAddress && sub.ipAddress);
-  const devSub = submissions.find((s) => s.id !== sub.id && s.username !== sub.username && s.deviceId === sub.deviceId && sub.deviceId);
+  const ipSub = submissions.find(
+    (s) => s.id !== sub.id && s.username !== sub.username && s.ipAddress === sub.ipAddress && sub.ipAddress
+  );
+  const devSub = submissions.find(
+    (s) => s.id !== sub.id && s.username !== sub.username && s.deviceId === sub.deviceId && sub.deviceId
+  );
   const bankSub = submissions.find(
-    (s) => s.id !== sub.id && s.username !== sub.username && (s.user as any)?.accountNumber === accountNumber && accountNumber
+    (s) =>
+      s.id !== sub.id &&
+      s.username !== sub.username &&
+      (s.user as any)?.accountNumber === accountNumber &&
+      accountNumber
   );
 
-  const hasAlerts = dupSub || ipSub || devSub || bankSub;
+  const dfSub = submissions.find(
+    (s) =>
+      s.id !== sub.id &&
+      s.username !== sub.username &&
+      s.deviceFingerprint === sub.deviceFingerprint &&
+      sub.deviceFingerprint &&
+      sub.deviceFingerprint !== "server-side"
+  );
+
+  let maxSimilarity = 0;
+  let similarSub: Submission | null = null;
+  if (sub.imageHash && sub.proofType !== "text") {
+    for (const s of submissions) {
+      if (s.id !== sub.id && s.username !== sub.username && s.imageHash && s.proofType !== "text") {
+        const distance = getHammingDistance(sub.imageHash, s.imageHash);
+        const similarity = Math.round(((64 - distance) / 64) * 100);
+        if (similarity >= 70 && similarity > maxSimilarity) {
+          maxSimilarity = similarity;
+          similarSub = s;
+        }
+      }
+    }
+  }
+
+  const hasAlerts = dupSub || ipSub || devSub || bankSub || dfSub || similarSub;
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 space-y-4">
@@ -46,7 +80,7 @@ export function SubmissionUserDetailsCard({
             <p className="text-zinc-555 text-xs truncate">@{sub.username}</p>
           </div>
         </div>
-        
+
         {onCompareUser && hasAlerts && (
           <button
             onClick={() => onCompareUser(sub.username)}
@@ -78,9 +112,15 @@ export function SubmissionUserDetailsCard({
         <div className="pt-2 border-t border-zinc-900/60 text-xs">
           <p className="text-[10px] text-zinc-500 uppercase font-semibold mb-1">Bank Details</p>
           <div className="space-y-0.5 text-zinc-350">
-            <p className="font-mono"><span className="text-zinc-550">Acc:</span> {accountNumber}</p>
-            <p><span className="text-zinc-550">Bank:</span> {bankName}</p>
-            <p className="truncate"><span className="text-zinc-550">Name:</span> {accountName}</p>
+            <p className="font-mono">
+              <span className="text-zinc-550">Acc:</span> {accountNumber}
+            </p>
+            <p>
+              <span className="text-zinc-550">Bank:</span> {bankName}
+            </p>
+            <p className="truncate">
+              <span className="text-zinc-550">Name:</span> {accountName}
+            </p>
           </div>
         </div>
       )}
@@ -99,6 +139,20 @@ export function SubmissionUserDetailsCard({
                     className="font-bold underline text-red-300 hover:text-red-200 cursor-pointer"
                   >
                     @{dupSub.username}
+                  </button>
+                </div>
+              </div>
+            )}
+            {similarSub && (
+              <div className="flex items-start gap-2 text-xs text-red-400 bg-red-950/20 border border-red-900/30 rounded-lg px-3 py-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  Similar proof ({maxSimilarity}% similarity) matching{" "}
+                  <button
+                    onClick={() => onCompareUser?.(similarSub!.username)}
+                    className="font-bold underline text-red-300 hover:text-red-200 cursor-pointer"
+                  >
+                    @{similarSub.username}
                   </button>
                 </div>
               </div>
@@ -130,6 +184,20 @@ export function SubmissionUserDetailsCard({
                     @{devSub.username}
                   </button>{" "}
                   (Device: {sub.deviceId?.substring(0, 8)}...)
+                </div>
+              </div>
+            )}
+            {dfSub && (
+              <div className="flex items-start gap-2 text-xs text-yellow-500 bg-yellow-955/20 border border-yellow-900/30 rounded-lg px-3 py-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  Same Device Fingerprint as{" "}
+                  <button
+                    onClick={() => onCompareUser?.(dfSub.username)}
+                    className="font-bold underline text-yellow-400 hover:text-yellow-350 cursor-pointer"
+                  >
+                    @{dfSub.username}
+                  </button>
                 </div>
               </div>
             )}

@@ -56,7 +56,9 @@ export function getDuplicateWarning(sub: Submission, submissions: Submission[]) 
 
 export function getIpWarning(sub: Submission, submissions: Submission[]) {
   if (!sub.ipAddress) return null;
-  const duplicate = submissions.find((s) => s.id !== sub.id && s.username !== sub.username && s.ipAddress === sub.ipAddress);
+  const duplicate = submissions.find(
+    (s) => s.id !== sub.id && s.username !== sub.username && s.ipAddress === sub.ipAddress
+  );
   if (duplicate) {
     return `Same IP address as @${duplicate.username}`;
   }
@@ -65,7 +67,9 @@ export function getIpWarning(sub: Submission, submissions: Submission[]) {
 
 export function getDeviceWarning(sub: Submission, submissions: Submission[]) {
   if (!sub.deviceId) return null;
-  const duplicate = submissions.find((s) => s.id !== sub.id && s.username !== sub.username && s.deviceId === sub.deviceId);
+  const duplicate = submissions.find(
+    (s) => s.id !== sub.id && s.username !== sub.username && s.deviceId === sub.deviceId
+  );
   if (duplicate) {
     return `Same Device ID as @${duplicate.username}`;
   }
@@ -84,3 +88,17 @@ export function getBankWarning(sub: Submission, submissions: Submission[]) {
   return null;
 }
 
+export function getHammingDistance(hash1?: string | null, hash2?: string | null): number {
+  if (!hash1 || !hash2 || hash1.length !== 16 || hash2.length !== 16) return 999;
+  let distance = 0;
+  for (let i = 0; i < 16; i++) {
+    const val1 = parseInt(hash1[i], 16);
+    const val2 = parseInt(hash2[i], 16);
+    let xor = val1 ^ val2;
+    while (xor > 0) {
+      if (xor & 1) distance++;
+      xor >>= 1;
+    }
+  }
+  return distance;
+}

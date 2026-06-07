@@ -150,6 +150,8 @@ export interface Submission {
   ipAddress?: string | null;
   deviceId?: string | null;
   selectedPrompt?: string | null;
+  deviceFingerprint?: string | null;
+  imageHash?: string | null;
 }
 
 export interface SubmissionsResponse {
