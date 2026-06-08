@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui";
 import { AlertCircle, Users } from "lucide-react";
 import { Submission } from "../types";
 import { formatAmount, statusVariant, getHammingDistance } from "../utils";
+import { FraudAlertsList } from "./FraudAlertsList";
+import { SubmissionCollisionModal } from "./SubmissionCollisionModal";
 
 interface SubmissionUserDetailsCardProps {
   sub: Submission;
@@ -11,6 +13,8 @@ interface SubmissionUserDetailsCardProps {
 }
 
 export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: SubmissionUserDetailsCardProps) {
+  const [collision, setCollision] = useState<{ type: string; value: string } | null>(null);
+
   const whatsappNum = (sub.user as any)?.whatsappNumber;
   const accountNumber = (sub.user as any)?.accountNumber;
   const bankName = (sub.user as any)?.bankName;
@@ -219,6 +223,19 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
         </div>
       )}
 
+      {/* DB fraud alerts — all types logged by the platform */}
+      {sub.fraudAlerts && sub.fraudAlerts.length > 0 && (
+        <FraudAlertsList
+          alerts={sub.fraudAlerts}
+          imageHash={sub.imageHash}
+          ipAddress={sub.ipAddress}
+          deviceId={sub.deviceId}
+          deviceFingerprint={sub.deviceFingerprint}
+          bankAccountNumber={(sub.user as any)?.accountNumber}
+          onInvestigate={(type, value) => setCollision({ type, value })}
+        />
+      )}
+
       {whatsappNum && (
         <div className="pt-2 border-t border-zinc-900/60 flex flex-col gap-0.5">
           <p className="text-[10px] text-zinc-500 uppercase font-semibold">WhatsApp Contact</p>
@@ -231,6 +248,10 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
             {whatsappNum}
           </a>
         </div>
+      )}
+
+      {collision && (
+        <SubmissionCollisionModal type={collision.type} value={collision.value} onClose={() => setCollision(null)} />
       )}
     </div>
   );

@@ -131,6 +131,30 @@ export interface UserInfo {
   username: string;
 }
 
+export interface FraudAlert {
+  id: number;
+  username: string;
+  alertType: string;
+  severity: string;
+  description: string;
+  metadata: string | null;
+  resolved: boolean;
+  createdAt: string;
+}
+
+export interface ImageCollisionMatch {
+  submissionId: number;
+  taskId: number;
+  taskTitle: string;
+  username: string;
+  proof: string;
+  proofType: string;
+  status: string;
+  createdAt: string;
+  ipAddress: string | null;
+  deviceFingerprint: string | null;
+}
+
 export interface Submission {
   id: number;
   taskId: number;
@@ -152,6 +176,7 @@ export interface Submission {
   selectedPrompt?: string | null;
   deviceFingerprint?: string | null;
   imageHash?: string | null;
+  fraudAlerts?: FraudAlert[];
 }
 
 export interface SubmissionsResponse {
