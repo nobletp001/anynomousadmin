@@ -39,6 +39,9 @@ export default function LoginPage() {
       }
       sessionStorage.setItem("admin_token", response.data.token);
       sessionStorage.setItem("admin_user", JSON.stringify(response.data.user));
+      if (response.data.refreshToken) {
+        sessionStorage.setItem("admin_refresh_token", response.data.refreshToken);
+      }
       return response.data.user;
     },
     onSuccess: (userData) => {
