@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge } from "@/components/ui";
-import { CheckCircle, AlertCircle, XCircle, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
+import { CheckCircle, AlertCircle, XCircle, RotateCcw, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { Submission } from "../types";
 import {
   formatAmount,
@@ -21,6 +21,7 @@ interface SubmissionRowProps {
   onReview: () => void;
   onCorrection: () => void;
   onReject: () => void;
+  onReverseReject?: () => void;
 }
 
 export function SubmissionRow({
@@ -32,6 +33,7 @@ export function SubmissionRow({
   onReview,
   onCorrection,
   onReject,
+  onReverseReject,
 }: SubmissionRowProps) {
   const isSelectable = sub.status === "pending" || sub.status === "needs_correction";
   const whatsappNum = (sub.user as any)?.whatsappNumber;
@@ -40,11 +42,7 @@ export function SubmissionRow({
     <tr
       onClick={onReview}
       className={`hover:bg-zinc-800/20 transition-colors cursor-pointer ${
-        isViewing
-          ? "bg-purple-500/10 border-l-2 border-l-purple-500"
-          : selectedIds.has(sub.id)
-            ? "bg-purple-500/5"
-            : ""
+        isViewing ? "bg-purple-500/10 border-l-2 border-l-purple-500" : selectedIds.has(sub.id) ? "bg-purple-500/5" : ""
       }`}
     >
       <td className="px-4 py-4 w-10" onClick={(e) => e.stopPropagation()}>
@@ -103,9 +101,7 @@ export function SubmissionRow({
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-xs font-semibold text-emerald-400">
-        {formatAmount(sub.userBalance)}
-      </td>
+      <td className="px-6 py-4 text-xs font-semibold text-emerald-400">{formatAmount(sub.userBalance)}</td>
       <td className="px-6 py-4">
         <div className="space-y-1.5 py-1">
           {sub.proofType === "link" ? (
@@ -161,9 +157,7 @@ export function SubmissionRow({
           )}
         </div>
       </td>
-      <td className="px-6 py-4 text-zinc-500 text-xs whitespace-nowrap">
-        {formatDate(sub.createdAt)}
-      </td>
+      <td className="px-6 py-4 text-zinc-500 text-xs whitespace-nowrap">{formatDate(sub.createdAt)}</td>
       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
         {isSelectable && (
           <div className="flex items-center gap-2">
@@ -189,6 +183,15 @@ export function SubmissionRow({
               Reject
             </button>
           </div>
+        )}
+        {sub.status === "rejected" && onReverseReject && (
+          <button
+            onClick={onReverseReject}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reverse
+          </button>
         )}
       </td>
     </tr>

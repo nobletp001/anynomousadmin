@@ -15,6 +15,7 @@ interface SubmissionsTableProps {
   setStatusFilter: (v: string) => void;
   openCorrectionModal: (sub: Submission) => void;
   openRejectModal: (sub: Submission) => void;
+  openReverseModal: (sub: Submission) => void;
 }
 
 export function SubmissionsTable({
@@ -29,14 +30,11 @@ export function SubmissionsTable({
   setStatusFilter,
   openCorrectionModal,
   openRejectModal,
+  openReverseModal,
 }: SubmissionsTableProps) {
-  const selectableSubmissions = submissions.filter(
-    (s) => s.status === "pending" || s.status === "needs_correction"
-  );
+  const selectableSubmissions = submissions.filter((s) => s.status === "pending" || s.status === "needs_correction");
 
-  const allSelected =
-    selectableSubmissions.length > 0 &&
-    selectableSubmissions.every((s) => selectedIds.has(s.id));
+  const allSelected = selectableSubmissions.length > 0 && selectableSubmissions.every((s) => selectedIds.has(s.id));
 
   const handleSelectAllChange = () => {
     if (allSelected) {
@@ -126,6 +124,7 @@ export function SubmissionsTable({
                     onReview={() => setViewingSub(sub)}
                     onCorrection={() => openCorrectionModal(sub)}
                     onReject={() => openRejectModal(sub)}
+                    onReverseReject={() => openReverseModal(sub)}
                   />
                 ))}
               </tbody>

@@ -98,6 +98,11 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
       apiClient.post("/admin/upload", { base64, mimeType }) as any,
   });
 
+  const reverseSubmission = useMutation({
+    mutationFn: (subId: number) => apiClient.post(`/admin/submissions/${subId}/reverse`) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
   return {
     approveSubmission,
     rejectSubmission,
@@ -107,5 +112,6 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     reportSubmission,
     updateTask,
     uploadImage,
+    reverseSubmission,
   };
 }

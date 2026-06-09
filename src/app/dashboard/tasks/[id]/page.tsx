@@ -13,6 +13,7 @@ import { TaskDetailHeader } from "./components/TaskDetailHeader";
 import { SubmissionsTable } from "./components/SubmissionsTable";
 import { SubmissionDetailsModal } from "./components/SubmissionDetailsModal";
 import { RejectModal } from "./components/RejectModal";
+import { ReverseSubmissionModal } from "./components/ReverseSubmissionModal";
 import { BulkActionPanel } from "./components/BulkActionPanel";
 import { EditTaskModal } from "./components/EditTaskModal";
 import { FullscreenImageZoom } from "./components/FullscreenImageZoom";
@@ -28,6 +29,11 @@ export default function TaskSubmissionsPage() {
   const taskId = useParams().id as string;
   const state = useTaskState();
   const editState = useEditTaskState();
+  const [reverseModal, setReverseModal] = React.useState<{
+    subId: number;
+    username: string;
+    deductedAmount: number;
+  } | null>(null);
 
   const { submissionsQuery, officersQuery } = useTaskQueries(taskId, state.statusFilter, state.debouncedSearch);
   const task = submissionsQuery.data?.task;
@@ -222,6 +228,9 @@ export default function TaskSubmissionsPage() {
           setStatusFilter={state.setStatusFilter}
           openCorrectionModal={openCorrectionModal}
           openRejectModal={openRejectModal}
+          openReverseModal={(sub) =>
+            setReverseModal({ subId: sub.id, username: sub.username, deductedAmount: sub.deductedAmount ?? 0 })
+          }
         />
 
         {state.viewingSub && (
@@ -315,6 +324,21 @@ export default function TaskSubmissionsPage() {
           }
           isPending={mutations.rejectSubmission.isPending || mutations.requestCorrection.isPending}
           error={mutations.rejectSubmission.error || mutations.requestCorrection.error}
+        />
+      )}
+
+      {reverseModal && (
+        <ReverseSubmissionModal
+          username={reverseModal.username}
+          deductedAmount={reverseModal.deductedAmount}
+          isPending={mutations.reverseSubmission.isPending}
+          error={mutations.reverseSubmission.error}
+          onClose={() => setReverseModal(null)}
+          onConfirm={() =>
+            mutations.reverseSubmission.mutate(reverseModal.subId, {
+              onSuccess: () => setReverseModal(null),
+            })
+          }
         />
       )}
 

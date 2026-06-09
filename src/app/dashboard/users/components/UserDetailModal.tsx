@@ -25,22 +25,27 @@ interface UserDetailModalProps {
   handleSendAction: (e: React.FormEvent) => void;
   copiedId: string | null;
   handleCopyRef: (refId: string) => void;
+  onActionReverseSuccess?: () => void;
 }
 
 export function UserDetailModal({
-  selectedUser,
+  selectedUser: _selectedUser,
   onClose,
   userDetail,
   isLoadingDetail,
-  actionType, setActionType,
-  actionAmount, setActionAmount,
-  actionMessage, setActionMessage,
+  actionType,
+  setActionType,
+  actionAmount,
+  setActionAmount,
+  actionMessage,
+  setActionMessage,
   actionError,
   actionSuccess,
   actionSubmitting,
   handleSendAction,
   copiedId,
   handleCopyRef,
+  onActionReverseSuccess,
 }: UserDetailModalProps) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -93,14 +98,24 @@ export function UserDetailModal({
                   <div className="h-px bg-zinc-800 my-4" />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                    <AdminActionsHistory actions={actions} onCopyRef={handleCopyRef} copiedId={copiedId} />
+                    <AdminActionsHistory
+                      actions={actions}
+                      onCopyRef={handleCopyRef}
+                      copiedId={copiedId}
+                      onReverseSuccess={onActionReverseSuccess}
+                    />
 
                     <AdminActionForm
-                      actionType={actionType} setActionType={setActionType}
-                      actionAmount={actionAmount} setActionAmount={setActionAmount}
-                      actionMessage={actionMessage} setActionMessage={setActionMessage}
-                      actionError={actionError} actionSuccess={actionSuccess}
-                      isSubmitting={actionSubmitting} onSubmit={handleSendAction}
+                      actionType={actionType}
+                      setActionType={setActionType}
+                      actionAmount={actionAmount}
+                      setActionAmount={setActionAmount}
+                      actionMessage={actionMessage}
+                      setActionMessage={setActionMessage}
+                      actionError={actionError}
+                      actionSuccess={actionSuccess}
+                      isSubmitting={actionSubmitting}
+                      onSubmit={handleSendAction}
                     />
                   </div>
                 </div>

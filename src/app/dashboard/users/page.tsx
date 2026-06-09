@@ -211,6 +211,10 @@ export default function UsersPage() {
           handleSendAction={handleSendAction}
           copiedId={state.copiedId}
           handleCopyRef={handleCopyRef}
+          onActionReverseSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["admin-user-detail", state.selectedUser] });
+            queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+          }}
         />
       )}
     </div>
