@@ -17,6 +17,7 @@ import { BulkActionPanel } from "./components/BulkActionPanel";
 import { EditTaskModal } from "./components/EditTaskModal";
 import { FullscreenImageZoom } from "./components/FullscreenImageZoom";
 import { downloadPDFReport } from "./pdf-report";
+import { downloadExcelReport } from "./excel-report";
 import { Submission } from "./types";
 
 const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -202,6 +203,7 @@ export default function TaskSubmissionsPage() {
         submissionsCount={submissions.length}
         onBack={() => router.back()}
         onDownloadPDF={() => downloadPDFReport(task, submissions)}
+        onDownloadExcel={() => downloadExcelReport(task, submissions)}
         onEditClick={handleEditClick}
         onToggleStatusClick={() => mutations.toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}
         toggleStatusPending={mutations.toggleTaskStatus.isPending}

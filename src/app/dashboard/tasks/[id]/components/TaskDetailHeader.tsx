@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge } from "@/components/ui";
-import { ArrowLeft, Download, ExternalLink } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, FileSpreadsheet } from "lucide-react";
 import { Task } from "../types";
 import { formatAmount } from "../utils";
 
@@ -9,6 +9,7 @@ interface TaskDetailHeaderProps {
   submissionsCount: number;
   onBack: () => void;
   onDownloadPDF: () => void;
+  onDownloadExcel: () => void;
   onEditClick: () => void;
   onToggleStatusClick: () => void;
   toggleStatusPending: boolean;
@@ -19,6 +20,7 @@ export function TaskDetailHeader({
   submissionsCount,
   onBack,
   onDownloadPDF,
+  onDownloadExcel,
   onEditClick,
   onToggleStatusClick,
   toggleStatusPending,
@@ -64,6 +66,13 @@ export function TaskDetailHeader({
               Export PDF Report
             </button>
             <button
+              onClick={onDownloadExcel}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-600/30 hover:text-white transition-colors"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              Export Excel
+            </button>
+            <button
               onClick={onEditClick}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-750 hover:text-white transition-colors"
             >
@@ -78,11 +87,7 @@ export function TaskDetailHeader({
                   : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300"
               }`}
             >
-              {toggleStatusPending
-                ? "Updating..."
-                : task.status === "active"
-                  ? "Close Task"
-                  : "Re-open Task"}
+              {toggleStatusPending ? "Updating..." : task.status === "active" ? "Close Task" : "Re-open Task"}
             </button>
             {task.link && (
               <a
