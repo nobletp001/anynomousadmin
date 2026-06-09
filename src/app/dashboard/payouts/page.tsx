@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { AlertCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { AlertCircle, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui";
 import { usePayoutState } from "./hooks/usePayoutState";
 import { usePayoutQueries } from "./hooks/usePayoutQueries";
@@ -9,18 +9,59 @@ import { usePayoutMutations } from "./hooks/usePayoutMutations";
 import { PayoutRequestsTab } from "./components/PayoutRequestsTab";
 import { PayoutHistoryTab } from "./components/PayoutHistoryTab";
 import { PayoutControls } from "./components/PayoutControls";
+import { PayoutClaim } from "./types";
+import { fmt } from "./utils";
+
+interface PendingConfirm {
+  id: number;
+  confirmToken: string;
+  expiresAt: number;
+  claim: PayoutClaim;
+}
 
 export default function PayoutsPage() {
   const state = usePayoutState();
   const { data, isLoading, error, refetch } = usePayoutQueries();
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
+  const [secsLeft, setSecsLeft] = useState(60);
+
+  const claims = data?.data ?? [];
+  const requests = claims.filter((c) => c.status === "in review");
 
   const mutations = usePayoutMutations({
     onSuccess: () => state.setActionError(null),
     onError: (err) => state.setActionError(err?.message || "Failed to update status"),
+    onConfirmRequired: (confirmToken, expiresInSeconds, claimId) => {
+      const claim = requests.find((c) => c.id === claimId);
+      if (!claim) return;
+      setPendingConfirm({
+        id: claimId,
+        confirmToken,
+        expiresAt: Date.now() + expiresInSeconds * 1000,
+        claim,
+      });
+      setSecsLeft(expiresInSeconds);
+      state.setActionError(null);
+    },
   });
 
-  const claims = data?.data ?? [];
-  const requests = claims.filter((c) => c.status === "in review");
+  // Countdown timer for the confirmation modal
+  useEffect(() => {
+    if (!pendingConfirm) return;
+    if (secsLeft <= 0) {
+      setPendingConfirm(null);
+      state.setActionError("Confirmation window expired — click Mark Paid again to get a new token.");
+      return;
+    }
+    const t = setTimeout(() => setSecsLeft((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [pendingConfirm, secsLeft]);
+
+  const handleConfirm = () => {
+    if (!pendingConfirm) return;
+    mutations.mutate({ id: pendingConfirm.id, status: "paid", confirmToken: pendingConfirm.confirmToken });
+    setPendingConfirm(null);
+  };
 
   if (isLoading) {
     return (
@@ -63,6 +104,57 @@ export default function PayoutsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Large-payout confirmation modal */}
+      {pendingConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-sm mx-4 rounded-2xl border border-amber-500/30 bg-zinc-950 shadow-2xl overflow-hidden">
+            <div className="flex items-center gap-3 px-6 py-4 border-b border-zinc-800/60 bg-amber-500/5">
+              <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />
+              <span className="text-sm font-extrabold text-amber-300 uppercase tracking-wider">
+                Large Payout — Confirm
+              </span>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <p className="text-sm text-zinc-300">
+                You are about to approve a payout of{" "}
+                <span className="font-black text-emerald-400">{fmt(pendingConfirm.claim.amount)}</span> to{" "}
+                <span className="font-bold text-zinc-100">@{pendingConfirm.claim.username}</span>.
+              </p>
+              <p className="text-xs text-zinc-500">
+                This amount exceeds the ₦3,000 threshold and requires a second confirmation.
+              </p>
+              <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800/60">
+                <span className="text-xs text-zinc-500">Confirmation window</span>
+                <span
+                  className={`text-sm font-black tabular-nums ${secsLeft <= 10 ? "text-red-400" : "text-zinc-200"}`}
+                >
+                  {secsLeft}s
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-2 px-6 pb-5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPendingConfirm(null)}
+                className="flex-1 border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+                disabled={mutations.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleConfirm}
+                disabled={mutations.isPending || secsLeft <= 0}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+              >
+                {mutations.isPending ? "Processing…" : "Confirm Payment"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-zinc-100 tracking-tight">Payouts</h1>
