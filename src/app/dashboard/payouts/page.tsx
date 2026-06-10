@@ -9,6 +9,7 @@ import { usePayoutMutations } from "./hooks/usePayoutMutations";
 import { PayoutRequestsTab } from "./components/PayoutRequestsTab";
 import { PayoutHistoryTab } from "./components/PayoutHistoryTab";
 import { PayoutControls } from "./components/PayoutControls";
+import { PayoutBreakdownModal } from "./components/PayoutBreakdownModal";
 import { PayoutClaim } from "./types";
 import { fmt } from "./utils";
 
@@ -24,6 +25,7 @@ export default function PayoutsPage() {
   const { data, isLoading, error, refetch } = usePayoutQueries();
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
   const [secsLeft, setSecsLeft] = useState(60);
+  const [breakdownClaim, setBreakdownClaim] = useState<PayoutClaim | null>(null);
 
   const claims = data?.data ?? [];
   const requests = claims.filter((c) => c.status === "in review");
@@ -190,10 +192,22 @@ export default function PayoutsPage() {
         </div>
       )}
 
+      {/* Breakdown modal — opens before the existing large-payout confirm modal */}
+      {breakdownClaim && (
+        <PayoutBreakdownModal
+          claim={breakdownClaim}
+          onClose={() => setBreakdownClaim(null)}
+          onPay={(id) => mutations.mutate({ id, status: "paid" })}
+          onReject={(id) => mutations.mutate({ id, status: "rejected" })}
+          actionDisabled={mutations.isPending}
+        />
+      )}
+
       {state.tab === "requests" ? (
         <PayoutRequestsTab
           requests={requests}
           onAction={(id, status) => mutations.mutate({ id, status })}
+          onViewBreakdown={(claim) => setBreakdownClaim(claim)}
           disabled={mutations.isPending}
         />
       ) : (

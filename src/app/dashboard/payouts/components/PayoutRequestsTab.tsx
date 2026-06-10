@@ -6,10 +6,11 @@ import { PayoutRequestRow } from "./PayoutRequestRow";
 interface PayoutRequestsTabProps {
   requests: PayoutClaim[];
   onAction: (id: number, status: "paid" | "rejected") => void;
+  onViewBreakdown: (claim: PayoutClaim) => void;
   disabled: boolean;
 }
 
-export function PayoutRequestsTab({ requests, onAction, disabled }: PayoutRequestsTabProps) {
+export function PayoutRequestsTab({ requests, onAction, onViewBreakdown, disabled }: PayoutRequestsTabProps) {
   return (
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
       {requests.length === 0 ? (
@@ -25,7 +26,13 @@ export function PayoutRequestsTab({ requests, onAction, disabled }: PayoutReques
       ) : (
         <div className="divide-y divide-zinc-800/40">
           {requests.map((r) => (
-            <PayoutRequestRow key={r.id} r={r} onAction={onAction} disabled={disabled} />
+            <PayoutRequestRow
+              key={r.id}
+              r={r}
+              onAction={onAction}
+              onViewBreakdown={onViewBreakdown}
+              disabled={disabled}
+            />
           ))}
         </div>
       )}

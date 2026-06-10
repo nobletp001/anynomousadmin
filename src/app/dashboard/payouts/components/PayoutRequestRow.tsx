@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui";
 import { PayoutClaim } from "../types";
 import { fmt } from "../utils";
@@ -8,10 +8,11 @@ import { BankCard } from "./BankCard";
 interface PayoutRequestRowProps {
   r: PayoutClaim;
   onAction: (id: number, status: "paid" | "rejected") => void;
+  onViewBreakdown: (claim: PayoutClaim) => void;
   disabled: boolean;
 }
 
-export function PayoutRequestRow({ r, onAction, disabled }: PayoutRequestRowProps) {
+export function PayoutRequestRow({ r, onAction, onViewBreakdown, disabled }: PayoutRequestRowProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-4 px-6 py-5 hover:bg-zinc-800/10 transition-colors">
       <div className="flex items-center gap-3 shrink-0 md:w-56">
@@ -48,11 +49,21 @@ export function PayoutRequestRow({ r, onAction, disabled }: PayoutRequestRowProp
         <Button
           variant="outline"
           size="sm"
+          onClick={() => onViewBreakdown(r)}
+          disabled={disabled}
+          className="border-purple-500/30 text-purple-400 bg-purple-500/5 hover:bg-purple-500 hover:text-white"
+        >
+          <Search className="w-3.5 h-3.5 mr-1.5" />
+          Review
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => onAction(r.id, "paid")}
           disabled={disabled}
           className="border-emerald-500/30 text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500 hover:text-white"
         >
-          Mark Paid
+          Pay
         </Button>
         <Button
           variant="outline"
