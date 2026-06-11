@@ -24,6 +24,7 @@ interface RewardTimelineProps {
   setEditScheduledAt: (v: string) => void;
   editIsPinned: boolean;
   setEditIsPinned: (v: boolean) => void;
+  editProofType: string;
 }
 
 export function RewardTimeline({
@@ -45,6 +46,7 @@ export function RewardTimeline({
   setEditScheduledAt,
   editIsPinned,
   setEditIsPinned,
+  editProofType,
 }: RewardTimelineProps) {
   const [scheduleDate, setScheduleDate] = React.useState("");
   const [scheduleHour, setScheduleHour] = React.useState("12");
@@ -127,7 +129,7 @@ export function RewardTimeline({
           <FieldLabel required>Reward Amount (₦)</FieldLabel>
           <input
             type="number"
-            min="1"
+            min={editProofType === "text" ? "0" : "1"}
             value={editAmount}
             onChange={(e) => setEditAmount(e.target.value)}
             className={inputCls}

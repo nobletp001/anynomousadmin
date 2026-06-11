@@ -170,6 +170,7 @@ export default function CreateTaskPage() {
           setScheduledAt={state.setScheduledAt}
           isPinned={state.isPinned}
           setIsPinned={state.setIsPinned}
+          isAppTesting={state.isAppTesting}
         />
 
         {mutations.createTask.error && (

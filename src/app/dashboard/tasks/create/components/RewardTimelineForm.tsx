@@ -22,6 +22,7 @@ interface RewardTimelineFormProps {
   setScheduledAt: (v: string) => void;
   isPinned: boolean;
   setIsPinned: (v: boolean) => void;
+  isAppTesting: boolean;
 }
 
 export function RewardTimelineForm({
@@ -43,6 +44,7 @@ export function RewardTimelineForm({
   setScheduledAt,
   isPinned,
   setIsPinned,
+  isAppTesting,
 }: RewardTimelineFormProps) {
   const inputCls =
     "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-105 placeholder:text-zinc-655 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
@@ -151,7 +153,7 @@ export function RewardTimelineForm({
           ) : (
             <input
               type="number"
-              min="1"
+              min={isAppTesting ? "0" : "1"}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="500"

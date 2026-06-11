@@ -262,6 +262,7 @@ export function EditTaskModal({
             setEditScheduledAt={editState.setEditScheduledAt}
             editIsPinned={editState.editIsPinned}
             setEditIsPinned={editState.setEditIsPinned}
+            editProofType={editState.editProofType}
           />
           <AllowedSubmissions editState={editState} />
         </div>
