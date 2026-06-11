@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui";
 import { AlertCircle, Users } from "lucide-react";
 import { Submission } from "../types";
-import { formatAmount, statusVariant, getHammingDistance } from "../utils";
+import { formatAmount, statusVariant } from "../utils";
 import { FraudAlertsList } from "./FraudAlertsList";
 import { SubmissionCollisionModal } from "./SubmissionCollisionModal";
+import { apiClient } from "@/services/api-client";
 
 interface SubmissionUserDetailsCardProps {
   sub: Submission;
@@ -52,22 +53,22 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
       sub.deviceFingerprint !== "server-side"
   );
 
-  let maxSimilarity = 0;
-  let similarSub: Submission | null = null;
-  if (sub.imageHash && sub.proofType !== "text") {
-    for (const s of submissions) {
-      if (s.id !== sub.id && s.username !== sub.username && s.imageHash && s.proofType !== "text") {
-        const distance = getHammingDistance(sub.imageHash, s.imageHash);
-        const similarity = Math.round(((64 - distance) / 64) * 100);
-        if (similarity >= 70 && similarity > maxSimilarity) {
-          maxSimilarity = similarity;
-          similarSub = s;
-        }
-      }
-    }
-  }
+  const [similarMatches, setSimilarMatches] = useState<any[]>([]);
 
-  const hasAlerts = dupSub || ipSub || devSub || bankSub || dfSub || similarSub;
+  useEffect(() => {
+    if (sub.proofType !== "text" && sub.id) {
+      apiClient
+        .get(`/admin/fraud/image-collision/${sub.id}`)
+        .then((res: any) => {
+          setSimilarMatches(res.matches || []);
+        })
+        .catch(console.error);
+    } else {
+      if (similarMatches.length > 0) setSimilarMatches([]);
+    }
+  }, [sub.id, sub.proofType]);
+
+  const hasAlerts = dupSub || ipSub || devSub || bankSub || dfSub || similarMatches.length > 0;
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 space-y-4">
@@ -147,20 +148,23 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
                 </div>
               </div>
             )}
-            {similarSub && (
-              <div className="flex items-start gap-2 text-xs text-red-400 bg-red-950/20 border border-red-900/30 rounded-lg px-3 py-2">
+            {similarMatches.map((match) => (
+              <div
+                key={match.submissionId}
+                className="flex items-start gap-2 text-xs text-red-400 bg-red-950/20 border border-red-900/30 rounded-lg px-3 py-2"
+              >
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <div className="leading-relaxed">
-                  Similar proof ({maxSimilarity}% similarity) matching{" "}
+                <div className="leading-relaxed flex-1">
+                  Similar proof ({match.similarity}% similarity) matching{" "}
                   <button
-                    onClick={() => onCompareUser?.(similarSub!.username)}
+                    onClick={() => setCollision({ type: "user_images", value: match.username })}
                     className="font-bold underline text-red-300 hover:text-red-200 cursor-pointer"
                   >
-                    @{similarSub.username}
+                    @{match.username}
                   </button>
                 </div>
               </div>
-            )}
+            ))}
             {ipSub && (
               <div className="flex items-start gap-2 text-xs text-amber-400 bg-amber-955/20 border border-amber-900/30 rounded-lg px-3 py-2">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />

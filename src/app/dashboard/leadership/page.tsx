@@ -28,7 +28,7 @@ export default function LeadershipPage() {
         `/admin/leadership?month=${selectedMonth}&year=${selectedYear}`
       );
       if (res && res.success) {
-        setData(res.data);
+        setData(res);
       } else {
         setError("Failed to parse leaderboard statistics.");
       }

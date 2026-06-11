@@ -48,6 +48,33 @@ export function ReferralEarningsList({ referralBreakdown }: ReferralEarningsList
               </div>
               <span className="text-[10px] text-zinc-500">{r.approvedCount} tasks</span>
             </div>
+            {r.recentTasks && r.recentTasks.length > 0 && (
+              <div className="mt-2 pt-2 border-t border-zinc-800/40 space-y-1">
+                <p className="text-[9px] text-zinc-500 uppercase font-semibold">Contributing completions:</p>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {r.recentTasks.map((t: any) => (
+                    <div
+                      key={t.submissionId}
+                      className="flex items-center justify-between text-[10px] bg-zinc-950/30 px-2 py-1 rounded"
+                    >
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-zinc-300 truncate font-medium">{t.taskTitle}</span>
+                        {t.isDouble && (
+                          <span className="px-1 py-0.5 rounded text-[8px] font-bold uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                            Double
+                          </span>
+                        )}
+                      </div>
+                      <span
+                        className={`font-mono font-bold shrink-0 ${t.contribution > 0 ? "text-purple-400" : "text-zinc-600"}`}
+                      >
+                        +{fmt2(t.contribution)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

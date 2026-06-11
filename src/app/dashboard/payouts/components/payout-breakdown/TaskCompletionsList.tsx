@@ -39,6 +39,11 @@ export function TaskCompletionsList({
               <div className="flex items-center gap-2 min-w-0">
                 <TokenBadge status={t.tokenStatus} />
                 <span className="text-xs text-zinc-300 truncate">{t.taskTitle}</span>
+                {t.isDouble && (
+                  <span className="px-1 py-0.5 rounded text-[8px] font-bold uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                    Double
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <span className="text-xs font-bold text-zinc-100">{fmt2(t.amount)}</span>

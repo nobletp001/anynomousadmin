@@ -26,7 +26,7 @@ export function UserBreakdownModal({ username, month, year, monthLabel, onClose 
         const res = await apiClient.get<any, UserBreakdownResponse>(
           `/admin/leadership/user-breakdown?username=${username}&month=${month}&year=${year}`
         );
-        if (res && res.success) setData(res.data);
+        if (res && res.success) setData(res);
         else setError("Failed to fetch breakdown details.");
       } catch (err: any) {
         setError(err.message || "Failed to load breakdown.");

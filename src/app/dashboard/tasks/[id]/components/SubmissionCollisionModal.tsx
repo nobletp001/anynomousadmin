@@ -15,7 +15,8 @@ const TYPE_LABELS: Record<string, string> = {
   bank: "Bank Account",
   ip: "IP Address",
   device: "Device ID / Fingerprint",
-  image: "Image Hash (Duplicate Proof)",
+  image: "Image Hash / Similar Proof",
+  user_images: "User Submitted Proofs",
 };
 
 export function SubmissionCollisionModal({ type, value, onClose }: SubmissionCollisionModalProps) {
@@ -126,6 +127,11 @@ function ImageCollisionList({ matches }: { matches: ImageCollisionMatch[] }) {
           <div className="flex-1 min-w-0 space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold text-sm text-zinc-200">@{m.username}</span>
+              {(m as any).similarity !== undefined && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  {(m as any).similarity}% match
+                </span>
+              )}
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
                   m.status === "approved"
@@ -175,7 +181,45 @@ function AccountCollisionList({ items }: { items: any[] }) {
             </div>
           )}
           {item.submissions?.length > 0 && (
-            <p className="text-[10px] text-zinc-600">{item.submissions.length} task submission(s)</p>
+            <div className="space-y-2 mt-3 pt-3 border-t border-zinc-800/60">
+              <p className="text-[10px] text-zinc-500 uppercase font-semibold">
+                Submitted Proofs ({item.submissions.length})
+              </p>
+              <div className="grid grid-cols-4 gap-2">
+                {item.submissions.map((sub: any) => {
+                  let proofs: string[] = [];
+                  if (sub.proof) {
+                    if (sub.proof.startsWith("[") && sub.proof.endsWith("]")) {
+                      try {
+                        proofs = JSON.parse(sub.proof);
+                      } catch {
+                        proofs = [sub.proof];
+                      }
+                    } else {
+                      proofs = [sub.proof];
+                    }
+                  }
+                  return proofs.map((url, idx) => (
+                    <div
+                      key={`${sub.id}-${idx}`}
+                      className="relative group aspect-square rounded-lg border border-zinc-850 overflow-hidden bg-zinc-900 flex items-center justify-center"
+                    >
+                      {sub.proofType !== "text" && url ? (
+                        <img src={url} alt="proof" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="p-1 text-center text-[9px] text-zinc-500 font-medium line-clamp-3">
+                          {sub.textResponse || "Text Proof"}
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-1.5 text-[8px] text-zinc-300 pointer-events-none">
+                        <p className="truncate font-semibold">{sub.taskTitle}</p>
+                        <p className="text-zinc-500 font-mono uppercase font-bold mt-0.5">{sub.status}</p>
+                      </div>
+                    </div>
+                  ));
+                })}
+              </div>
+            </div>
           )}
         </div>
       ))}
