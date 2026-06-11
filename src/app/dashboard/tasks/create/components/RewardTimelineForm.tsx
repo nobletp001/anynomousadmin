@@ -143,17 +143,17 @@ export function RewardTimelineForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <FieldLabel required>Amount per User (₦)</FieldLabel>
-          {isPayFluenceTask ? (
+          {isPayFluenceTask || isAppTesting ? (
             <input
               type="text"
-              value="₦0 (Volunteer Task)"
+              value={isAppTesting ? "₦0 (App Testing)" : "₦0 (Volunteer Task)"}
               disabled
               className={`${inputCls} opacity-60 cursor-not-allowed bg-zinc-800/40 font-semibold`}
             />
           ) : (
             <input
               type="number"
-              min={isAppTesting ? "0" : "1"}
+              min="1"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="500"

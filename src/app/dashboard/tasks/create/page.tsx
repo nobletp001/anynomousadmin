@@ -66,6 +66,9 @@ export default function CreateTaskPage() {
                 state.setProofType("text");
                 state.setAcceptText(true);
                 state.setTextLabel("Registered email, username, or test feedback");
+                state.setAmount("0");
+              } else {
+                state.setAmount("");
               }
             }}
             className={`relative w-10 h-6 rounded-full transition-all cursor-pointer ${
