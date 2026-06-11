@@ -31,8 +31,8 @@ export default function TaskSubmissionsPage() {
   } | null>(null);
 
   const { submissionsQuery, officersQuery } = useTaskQueries(taskId, state.statusFilter, state.debouncedSearch);
-  const task = submissionsQuery.data?.task;
-  const submissions = submissionsQuery.data?.submissions ?? [];
+  const task = submissionsQuery.data?.data?.task;
+  const submissions = submissionsQuery.data?.data?.submissions ?? [];
   const officers = officersQuery.data?.data ?? [];
 
   const advanceToNextPending = (currentSubId: number) => {

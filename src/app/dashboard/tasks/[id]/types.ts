@@ -183,8 +183,10 @@ export interface Submission {
 
 export interface SubmissionsResponse {
   success: boolean;
-  task: Task;
-  submissions: Submission[];
+  data: {
+    task: Task;
+    submissions: Submission[];
+  };
 }
 
 export interface RejectModal {
