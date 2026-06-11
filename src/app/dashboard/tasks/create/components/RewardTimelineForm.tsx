@@ -47,6 +47,33 @@ export function RewardTimelineForm({
   const inputCls =
     "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-105 placeholder:text-zinc-655 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
 
+  const [scheduleDate, setScheduleDate] = React.useState("");
+  const [scheduleTime, setScheduleTime] = React.useState("");
+
+  React.useEffect(() => {
+    if (scheduledAt) {
+      const parts = scheduledAt.split(/[T ]/);
+      const date = parts[0] || "";
+      const time = parts[1] ? parts[1].slice(0, 5) : "";
+      setScheduleDate(date);
+      setScheduleTime(time);
+    } else {
+      setScheduleDate("");
+      setScheduleTime("");
+    }
+  }, [scheduledAt]);
+
+  const handleDateTimeChange = (dateVal: string, timeVal: string) => {
+    setScheduleDate(dateVal);
+    setScheduleTime(timeVal);
+    if (dateVal) {
+      const t = timeVal || "12:00";
+      setScheduledAt(`${dateVal}T${t}`);
+    } else {
+      setScheduledAt("");
+    }
+  };
+
   const fmt = (n: number) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
@@ -195,13 +222,27 @@ export function RewardTimelineForm({
         <FieldLabel>
           Schedule Task Start <span className="text-zinc-600 font-normal">(optional — future start time)</span>
         </FieldLabel>
-        <input
-          type="datetime-local"
-          value={scheduledAt}
-          onChange={(e) => setScheduledAt(e.target.value)}
-          min={getLocalMinDateTime()}
-          className={inputCls}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <span className="text-[10px] font-medium text-zinc-500 mb-1 block">Start Date</span>
+            <input
+              type="date"
+              value={scheduleDate}
+              onChange={(e) => handleDateTimeChange(e.target.value, scheduleTime)}
+              min={getLocalMinDateTime().split("T")[0]}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <span className="text-[10px] font-medium text-zinc-500 mb-1 block">Start Time</span>
+            <input
+              type="time"
+              value={scheduleTime}
+              onChange={(e) => handleDateTimeChange(scheduleDate, e.target.value)}
+              className={inputCls}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center justify-between pt-2">
