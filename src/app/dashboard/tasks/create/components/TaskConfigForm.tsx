@@ -1,5 +1,5 @@
 import React from "react";
-import { Image as ImageIcon, Link as LinkIcon, FileText } from "lucide-react";
+import { Image as ImageIcon, Link as LinkIcon } from "lucide-react";
 import { FieldLabel } from "./FieldLabel";
 import { TASK_TYPES, PLATFORMS } from "../constants/base";
 import { RichTextEditor } from "@/components/ui";
@@ -9,8 +9,8 @@ interface TaskConfigFormProps {
   setTaskType: (v: string) => void;
   targetPlatform: string;
   setTargetPlatform: (v: string) => void;
-  proofType: "banner" | "url" | "text";
-  setProofType: (v: "banner" | "url" | "text") => void;
+  proofType: "banner" | "url";
+  setProofType: (v: "banner" | "url") => void;
   acceptText: boolean;
   setAcceptText: (v: boolean) => void;
   textLabel: string;
@@ -33,7 +33,10 @@ interface TaskConfigFormProps {
   setRequirePromptSelection: (v: boolean) => void;
   marketingText: string;
   setMarketingText: (v: string) => void;
-  isAppTesting: boolean;
+  collectUserName: boolean;
+  setCollectUserName: (v: boolean) => void;
+  targetUsername: string;
+  setTargetUsername: (v: string) => void;
 }
 
 export function TaskConfigForm({
@@ -65,7 +68,10 @@ export function TaskConfigForm({
   setRequirePromptSelection,
   marketingText,
   setMarketingText,
-  isAppTesting,
+  collectUserName,
+  setCollectUserName,
+  targetUsername,
+  setTargetUsername,
 }: TaskConfigFormProps) {
   const isJetpot = taskType === "jetpot";
   const isViews = taskType === "views";
@@ -80,14 +86,13 @@ export function TaskConfigForm({
         <div>
           <FieldLabel required>Task Type</FieldLabel>
           <select
-            disabled={isAppTesting}
             value={taskType}
             onChange={(e) => {
               const t = e.target.value;
               setTaskType(t);
               setTargetPlatform(t === "use-app" ? "" : "instagram");
             }}
-            className={`${inputCls} ${isAppTesting ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={inputCls}
           >
             {TASK_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
@@ -101,22 +106,16 @@ export function TaskConfigForm({
             <>
               <FieldLabel required>App Name</FieldLabel>
               <input
-                disabled={isAppTesting}
                 value={targetPlatform}
                 onChange={(e) => setTargetPlatform(e.target.value)}
                 placeholder="e.g. Kena, Moniass, OPay..."
-                className={`${inputCls} ${isAppTesting ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={inputCls}
               />
             </>
           ) : (
             <>
               <FieldLabel required>Target Platform</FieldLabel>
-              <select
-                disabled={isAppTesting}
-                value={targetPlatform}
-                onChange={(e) => setTargetPlatform(e.target.value)}
-                className={`${inputCls} ${isAppTesting ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
+              <select value={targetPlatform} onChange={(e) => setTargetPlatform(e.target.value)} className={inputCls}>
                 {PLATFORMS.map((p) => (
                   <option key={p.value} value={p.value}>
                     {p.label}
@@ -130,16 +129,15 @@ export function TaskConfigForm({
 
       <div>
         <FieldLabel>Proof method</FieldLabel>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
-            disabled={isAppTesting}
             onClick={() => setProofType("banner")}
             className={`flex items-center gap-2 px-3 py-3 rounded-xl border text-sm font-semibold transition-all ${
               proofType === "banner"
                 ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
                 : "bg-zinc-800/40 border-zinc-700/60 text-zinc-550 hover:border-zinc-655"
-            } ${isAppTesting ? "opacity-40 cursor-not-allowed" : ""}`}
+            }`}
           >
             <ImageIcon className="w-4 h-4 shrink-0" />
             <div className="text-left">
@@ -149,34 +147,17 @@ export function TaskConfigForm({
           </button>
           <button
             type="button"
-            disabled={isAppTesting}
             onClick={() => setProofType("url")}
             className={`flex items-center gap-2 px-3 py-3 rounded-xl border text-sm font-semibold transition-all ${
               proofType === "url"
                 ? "bg-blue-500/10 border-blue-500/40 text-blue-300"
                 : "bg-zinc-800/40 border-zinc-700/60 text-zinc-550 hover:border-zinc-655"
-            } ${isAppTesting ? "opacity-40 cursor-not-allowed" : ""}`}
+            }`}
           >
             <LinkIcon className="w-4 h-4 shrink-0" />
             <div className="text-left">
               <p className="text-xs font-bold">URL / Link</p>
               <p className="text-[10px] font-normal opacity-70">User pastes URL</p>
-            </div>
-          </button>
-          <button
-            type="button"
-            disabled={isAppTesting}
-            onClick={() => setProofType("text")}
-            className={`flex items-center gap-2 px-3 py-3 rounded-xl border text-sm font-semibold transition-all ${
-              proofType === "text"
-                ? "bg-purple-500/10 border-purple-500/40 text-purple-300"
-                : "bg-zinc-800/40 border-zinc-700/60 text-zinc-550 hover:border-zinc-655"
-            } ${isAppTesting ? "opacity-90" : ""}`}
-          >
-            <FileText className="w-4 h-4 shrink-0" />
-            <div className="text-left">
-              <p className="text-xs font-bold">Text Only</p>
-              <p className="text-[10px] font-normal opacity-70">User submits text</p>
             </div>
           </button>
         </div>
@@ -192,13 +173,12 @@ export function TaskConfigForm({
           </div>
           <div
             onClick={() => {
-              if (isAppTesting) return;
               setAcceptText(!acceptText);
               if (acceptText) setTextLabel("");
             }}
             className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${
               acceptText ? "bg-emerald-500" : "bg-zinc-700"
-            } ${isAppTesting ? "opacity-50 cursor-not-allowed" : ""}`}
+            }`}
           >
             <span
               className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
@@ -255,12 +235,11 @@ export function TaskConfigForm({
           </div>
           <div
             onClick={() => {
-              if (isAppTesting) return;
               setAcceptMultipleImages(!acceptMultipleImages);
             }}
             className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${
               acceptMultipleImages ? "bg-emerald-500" : "bg-zinc-700"
-            } ${isAppTesting ? "opacity-40 cursor-not-allowed" : ""}`}
+            }`}
           >
             <span
               className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
@@ -339,6 +318,36 @@ export function TaskConfigForm({
             />
           </div>
         </div>
+      </div>
+
+      <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-400 font-medium">Collect Target Username (collectUserName)</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Exclude users who have already done a task for this target username.
+            </p>
+          </div>
+          <div
+            onClick={() => {
+              setCollectUserName(!collectUserName);
+              if (collectUserName) setTargetUsername("");
+            }}
+            className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${collectUserName ? "bg-emerald-500" : "bg-zinc-700"}`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${collectUserName ? "translate-x-4" : "translate-x-0"}`}
+            />
+          </div>
+        </div>
+        {collectUserName && (
+          <input
+            value={targetUsername}
+            onChange={(e) => setTargetUsername(e.target.value)}
+            placeholder="Enter target username (e.g. johndoe)..."
+            className={inputCls}
+          />
+        )}
       </div>
 
       <div>

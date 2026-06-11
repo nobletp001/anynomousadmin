@@ -1,5 +1,5 @@
 import React from "react";
-import { Image as ImageIcon, Link as LinkIcon, FileText } from "lucide-react";
+import { Image as ImageIcon, Link as LinkIcon } from "lucide-react";
 import { FieldLabel } from "./FieldLabel";
 import { TASK_TYPES, PLATFORMS } from "../../types";
 import { RichTextEditor } from "@/components/ui";
@@ -12,8 +12,8 @@ interface ConfigProps {
   setEditTaskType: (v: string) => void;
   editTargetPlatform: string;
   setEditTargetPlatform: (v: string) => void;
-  editProofType: "banner" | "url" | "text";
-  setEditProofType: (v: "banner" | "url" | "text") => void;
+  editProofType: "banner" | "url";
+  setEditProofType: (v: "banner" | "url") => void;
   editAcceptText: boolean;
   setEditAcceptText: React.Dispatch<React.SetStateAction<boolean>>;
   editTextLabel: string;
@@ -36,6 +36,10 @@ interface ConfigProps {
   setEditRequirePromptSelection: React.Dispatch<React.SetStateAction<boolean>>;
   editMarketingText: string;
   setEditMarketingText: (v: string) => void;
+  editCollectUserName: boolean;
+  setEditCollectUserName: (v: boolean) => void;
+  editTargetUsername: string;
+  setEditTargetUsername: (v: string) => void;
 }
 
 export function Config({
@@ -67,6 +71,10 @@ export function Config({
   setEditRequirePromptSelection,
   editMarketingText,
   setEditMarketingText,
+  editCollectUserName,
+  setEditCollectUserName,
+  editTargetUsername,
+  setEditTargetUsername,
 }: ConfigProps) {
   const isUseApp = editTaskType === "use-app";
 
@@ -124,7 +132,7 @@ export function Config({
 
       <div>
         <FieldLabel>Proof Method</FieldLabel>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => setEditProofType("banner")}
@@ -148,18 +156,6 @@ export function Config({
           >
             <LinkIcon className="w-3.5 h-3.5 shrink-0" />
             <span className="font-bold text-[10px]">URL / Link</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setEditProofType("text")}
-            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all ${
-              editProofType === "text"
-                ? "bg-purple-500/10 border-purple-500/40 text-purple-300"
-                : "bg-zinc-800/40 border-zinc-700/60 text-zinc-500 hover:border-zinc-600"
-            }`}
-          >
-            <FileText className="w-3.5 h-3.5 shrink-0" />
-            <span className="font-bold text-[10px]">Text Only</span>
           </button>
         </div>
       </div>
@@ -342,6 +338,43 @@ export function Config({
             </div>
           </label>
         </div>
+      </div>
+
+      <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-400 font-medium">Collect Target Username (collectUserName)</p>
+            <p className="text-[11px] text-zinc-555 mt-0.5">
+              Exclude users who have already done a task for this target username.
+            </p>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+            <span
+              className={`text-xs font-semibold transition-colors ${editCollectUserName ? "text-emerald-400" : "text-zinc-555"}`}
+            >
+              {editCollectUserName ? "On" : "Off"}
+            </span>
+            <div
+              onClick={() => {
+                setEditCollectUserName(!editCollectUserName);
+                if (editCollectUserName) setEditTargetUsername("");
+              }}
+              className={`relative w-9 h-5 rounded-full transition-all ${editCollectUserName ? "bg-emerald-500" : "bg-zinc-700"}`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editCollectUserName ? "translate-x-4" : "translate-x-0"}`}
+              />
+            </div>
+          </label>
+        </div>
+        {editCollectUserName && (
+          <input
+            value={editTargetUsername}
+            onChange={(e) => setEditTargetUsername(e.target.value)}
+            placeholder="Enter target username (e.g. johndoe)..."
+            className={inputCls}
+          />
+        )}
       </div>
 
       <div>

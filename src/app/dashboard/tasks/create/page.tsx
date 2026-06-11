@@ -49,40 +49,6 @@ export default function CreateTaskPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         <AIAssistant state={state} />
 
-        <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-200">App Testing Campaign</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              Optimize configuration for app testing tasks (requires text proof, sets presets).
-            </p>
-          </div>
-          <div
-            onClick={() => {
-              const nextVal = !state.isAppTesting;
-              state.setIsAppTesting(nextVal);
-              if (nextVal) {
-                state.setTaskType("use-app");
-                state.setTargetPlatform("Testing App");
-                state.setProofType("text");
-                state.setAcceptText(true);
-                state.setTextLabel("Registered email, username, or test feedback");
-                state.setAmount("0");
-              } else {
-                state.setAmount("");
-              }
-            }}
-            className={`relative w-10 h-6 rounded-full transition-all cursor-pointer ${
-              state.isAppTesting ? "bg-purple-500" : "bg-zinc-700"
-            }`}
-          >
-            <span
-              className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-all ${
-                state.isAppTesting ? "translate-x-4" : "translate-x-0"
-              }`}
-            />
-          </div>
-        </div>
-
         <QuickPresets onApplyPreset={(val) => applyPresetToState(val, state)} />
 
         <TaskAssignment
@@ -144,7 +110,10 @@ export default function CreateTaskPage() {
           setRequirePromptSelection={state.setRequirePromptSelection}
           marketingText={state.marketingText}
           setMarketingText={state.setMarketingText}
-          isAppTesting={state.isAppTesting}
+          collectUserName={state.collectUserName}
+          setCollectUserName={state.setCollectUserName}
+          targetUsername={state.targetUsername}
+          setTargetUsername={state.setTargetUsername}
         />
 
         <TargetAudienceForm
@@ -173,7 +142,6 @@ export default function CreateTaskPage() {
           setScheduledAt={state.setScheduledAt}
           isPinned={state.isPinned}
           setIsPinned={state.setIsPinned}
-          isAppTesting={state.isAppTesting}
         />
 
         {mutations.createTask.error && (

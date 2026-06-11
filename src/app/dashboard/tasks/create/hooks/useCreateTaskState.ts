@@ -27,8 +27,7 @@ export function useCreateTaskState() {
   const [showPromptRepo, setShowPromptRepo] = useState(false);
   const [images, setImages] = useState<ImageEntry[]>([]);
   const [uploadError, setUploadError] = useState("");
-  const [proofType, setProofType] = useState<"banner" | "url" | "text">("banner");
-  const [isAppTesting, setIsAppTesting] = useState(false);
+  const [proofType, setProofType] = useState<"banner" | "url">("banner");
   const [acceptText, setAcceptText] = useState(false);
   const [textLabel, setTextLabel] = useState("");
   const [acceptNumber, setAcceptNumber] = useState(false);
@@ -44,6 +43,8 @@ export function useCreateTaskState() {
   const [enableTargeting, setEnableTargeting] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
   const [isPinned, setIsPinned] = useState(false);
+  const [collectUserName, setCollectUserName] = useState(false);
+  const [targetUsername, setTargetUsername] = useState("");
   const [audience, setAudience] = useState<AudienceFilter>({
     gender: [],
     employmentStatus: [],
@@ -138,8 +139,10 @@ export function useCreateTaskState() {
     setVolutterPayFluenceTaskPerformNumber,
     isTobeIncludereferralCount,
     setIsTobeIncludereferralCount,
-    isAppTesting,
-    setIsAppTesting,
+    collectUserName,
+    setCollectUserName,
+    targetUsername,
+    setTargetUsername,
   };
 }
 

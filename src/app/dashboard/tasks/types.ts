@@ -19,6 +19,8 @@ export interface Task {
   isTobeIncludereferralCount?: boolean | null;
   scheduledAt?: string | null;
   isPinned?: boolean;
+  collectUserName?: boolean | null;
+  targetUsername?: string | null;
 }
 
 export interface TasksResponse {

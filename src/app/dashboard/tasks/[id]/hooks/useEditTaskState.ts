@@ -14,7 +14,7 @@ export function useEditTaskState() {
   const [editCaptionMode, setEditCaptionMode] = useState<"text" | "array">("text");
   const [editTaskType, setEditTaskType] = useState("follow");
   const [editTargetPlatform, setEditTargetPlatform] = useState("instagram");
-  const [editProofType, setEditProofType] = useState<"banner" | "url" | "text">("banner");
+  const [editProofType, setEditProofType] = useState<"banner" | "url">("banner");
   const [editAcceptText, setEditAcceptText] = useState(false);
   const [editTextLabel, setEditTextLabel] = useState("");
   const [editAcceptNumber, setEditAcceptNumber] = useState(false);
@@ -44,6 +44,8 @@ export function useEditTaskState() {
   const [editMarketingText, setEditMarketingText] = useState("");
   const [editScheduledAt, setEditScheduledAt] = useState("");
   const [editIsPinned, setEditIsPinned] = useState(false);
+  const [editCollectUserName, setEditCollectUserName] = useState(false);
+  const [editTargetUsername, setEditTargetUsername] = useState("");
 
   return {
     editScheduledAt,
@@ -112,6 +114,10 @@ export function useEditTaskState() {
     setEditRequirePromptSelection,
     editMarketingText,
     setEditMarketingText,
+    editCollectUserName,
+    setEditCollectUserName,
+    editTargetUsername,
+    setEditTargetUsername,
   };
 }
 export type EditTaskState = ReturnType<typeof useEditTaskState>;

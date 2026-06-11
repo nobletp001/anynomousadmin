@@ -22,7 +22,6 @@ interface RewardTimelineFormProps {
   setScheduledAt: (v: string) => void;
   isPinned: boolean;
   setIsPinned: (v: boolean) => void;
-  isAppTesting: boolean;
 }
 
 export function RewardTimelineForm({
@@ -44,7 +43,6 @@ export function RewardTimelineForm({
   setScheduledAt,
   isPinned,
   setIsPinned,
-  isAppTesting,
 }: RewardTimelineFormProps) {
   const inputCls =
     "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-105 placeholder:text-zinc-655 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
@@ -143,10 +141,10 @@ export function RewardTimelineForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <FieldLabel required>Amount per User (₦)</FieldLabel>
-          {isPayFluenceTask || isAppTesting ? (
+          {isPayFluenceTask ? (
             <input
               type="text"
-              value={isAppTesting ? "₦0 (App Testing)" : "₦0 (Volunteer Task)"}
+              value="₦0 (Volunteer Task)"
               disabled
               className={`${inputCls} opacity-60 cursor-not-allowed bg-zinc-800/40 font-semibold`}
             />

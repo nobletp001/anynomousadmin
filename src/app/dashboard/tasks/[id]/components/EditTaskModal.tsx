@@ -105,6 +105,8 @@ export function EditTaskModal({
       numberLabel: editState.editAcceptNumber ? editState.editNumberLabel.trim() : null,
       acceptMultipleImages: editState.editAcceptMultipleImages,
       isTobeIncludereferralCount: editState.editIsTobeIncludereferralCount,
+      collectUserName: editState.editCollectUserName,
+      targetUsername: editState.editCollectUserName ? editState.editTargetUsername.trim() || null : null,
       targetCount: editState.editTargetCount.trim() ? editState.editTargetCount : null,
       adminContact: editState.editAdminContact.trim() || null,
       maxPerHour: editState.editMaxPerHour.trim() ? parseInt(editState.editMaxPerHour) : null,
@@ -236,6 +238,10 @@ export function EditTaskModal({
             setEditRequirePromptSelection={editState.setEditRequirePromptSelection}
             editMarketingText={editState.editMarketingText}
             setEditMarketingText={editState.setEditMarketingText}
+            editCollectUserName={editState.editCollectUserName}
+            setEditCollectUserName={editState.setEditCollectUserName}
+            editTargetUsername={editState.editTargetUsername}
+            setEditTargetUsername={editState.setEditTargetUsername}
           />
           <Targeting
             editEnableTargeting={editState.editEnableTargeting}
@@ -262,7 +268,6 @@ export function EditTaskModal({
             setEditScheduledAt={editState.setEditScheduledAt}
             editIsPinned={editState.editIsPinned}
             setEditIsPinned={editState.setEditIsPinned}
-            editProofType={editState.editProofType}
           />
           <AllowedSubmissions editState={editState} />
         </div>
