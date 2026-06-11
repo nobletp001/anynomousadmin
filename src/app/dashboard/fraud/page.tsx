@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ScanSearch, AlertTriangle, Eye, CreditCard, Wifi, Smartphone, RefreshCw, Activity, ShieldCheck, ShieldOff } from "lucide-react";
+import {
+  ScanSearch,
+  AlertTriangle,
+  Eye,
+  CreditCard,
+  Wifi,
+  Smartphone,
+  RefreshCw,
+  Activity,
+  ShieldCheck,
+  ShieldOff,
+} from "lucide-react";
 import { apiFetch } from "./utils";
 import { AlertsTab } from "./components/AlertsTab";
 import { MonitoredTab } from "./components/MonitoredTab";
@@ -29,7 +40,10 @@ export default function FraudPage() {
   const [analyzeResult, setAnalyzeResult] = useState<any>(null);
   const [analyzeUsername, setAnalyzeUsername] = useState("");
 
-  const [investigatingCollision, setInvestigatingCollision] = useState<{ type: "bank" | "ip" | "device"; value: string } | null>(null);
+  const [investigatingCollision, setInvestigatingCollision] = useState<{
+    type: "bank" | "ip" | "device";
+    value: string;
+  } | null>(null);
   const [collisionDetails, setCollisionDetails] = useState<any[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
@@ -108,7 +122,7 @@ export default function FraudPage() {
     setAnalyzingUser(analyzeUsername.trim());
     setAnalyzeResult(null);
     const data = await apiFetch(`/api/admin/fraud/analyze/${analyzeUsername.trim()}`, { method: "POST" });
-    setAnalyzeResult(data);
+    setAnalyzeResult(data.success ? { success: true, ...data.data } : data);
     setAnalyzingUser(null);
     loadSummary();
     loadAlerts();
@@ -148,9 +162,7 @@ export default function FraudPage() {
     if (data.success) {
       setCollisionDetails((prev) =>
         prev.map((item) =>
-          item.user.username === username
-            ? { ...item, user: { ...item.user, monitored: !currentMonitored } }
-            : item
+          item.user.username === username ? { ...item, user: { ...item.user, monitored: !currentMonitored } } : item
         )
       );
       loadMonitored();
@@ -190,9 +202,7 @@ export default function FraudPage() {
     if (data.success) {
       setCollisionDetails((prev) =>
         prev.map((item) =>
-          item.user.id === userId
-            ? { ...item, user: { ...item.user, taskDisabled: !currentTaskDisabled } }
-            : item
+          item.user.id === userId ? { ...item, user: { ...item.user, taskDisabled: !currentTaskDisabled } } : item
         )
       );
     }
@@ -250,7 +260,9 @@ export default function FraudPage() {
             <ScanSearch className="w-5 h-5 text-violet-400" />
             Fraud & Security
           </h1>
-          <p className="text-sm text-zinc-500 mt-0.5">Monitor suspicious activity, track account collisions, and manage watchlist</p>
+          <p className="text-sm text-zinc-500 mt-0.5">
+            Monitor suspicious activity, track account collisions, and manage watchlist
+          </p>
         </div>
         <button
           onClick={loadAll}
@@ -266,10 +278,34 @@ export default function FraudPage() {
       {summary && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Unresolved Alerts", value: summary.unresolvedAlerts, icon: AlertTriangle, color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
-            { label: "Critical Alerts", value: summary.criticalAlerts, icon: ShieldOff, color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" },
-            { label: "Monitored Users", value: summary.monitoredUsers, icon: Eye, color: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20" },
-            { label: "Bank Collisions", value: summary.bankCollisions, icon: CreditCard, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+            {
+              label: "Unresolved Alerts",
+              value: summary.unresolvedAlerts,
+              icon: AlertTriangle,
+              color: "text-red-400",
+              bg: "bg-red-500/10 border-red-500/20",
+            },
+            {
+              label: "Critical Alerts",
+              value: summary.criticalAlerts,
+              icon: ShieldOff,
+              color: "text-orange-400",
+              bg: "bg-orange-500/10 border-orange-500/20",
+            },
+            {
+              label: "Monitored Users",
+              value: summary.monitoredUsers,
+              icon: Eye,
+              color: "text-violet-400",
+              bg: "bg-violet-500/10 border-violet-500/20",
+            },
+            {
+              label: "Bank Collisions",
+              value: summary.bankCollisions,
+              icon: CreditCard,
+              color: "text-amber-400",
+              bg: "bg-amber-500/10 border-amber-500/20",
+            },
           ].map((card) => (
             <div key={card.label} className={`rounded-2xl border p-5 ${card.bg}`}>
               <div className="flex items-center gap-2 mb-2">
@@ -306,7 +342,9 @@ export default function FraudPage() {
         </div>
 
         {analyzeResult && (
-          <div className={`mt-4 rounded-xl border p-4 ${analyzeResult.success ? "border-violet-500/20 bg-violet-500/5" : "border-red-500/20 bg-red-500/5"}`}>
+          <div
+            className={`mt-4 rounded-xl border p-4 ${analyzeResult.success ? "border-violet-500/20 bg-violet-500/5" : "border-red-500/20 bg-red-500/5"}`}
+          >
             {analyzeResult.success ? (
               <div>
                 <p className="text-sm font-bold text-zinc-200 mb-2">
@@ -318,7 +356,10 @@ export default function FraudPage() {
                 {analyzeResult.allFlags?.length > 0 ? (
                   <div className="space-y-2">
                     {analyzeResult.allFlags.map((f: any, i: number) => (
-                      <div key={i} className="flex items-start gap-2 bg-zinc-900 rounded-lg px-3 py-2 border border-zinc-800">
+                      <div
+                        key={i}
+                        className="flex items-start gap-2 bg-zinc-900 rounded-lg px-3 py-2 border border-zinc-800"
+                      >
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase bg-zinc-800 border border-zinc-700 text-zinc-400 select-none">
                           {f.severity}
                         </span>
@@ -335,7 +376,10 @@ export default function FraudPage() {
             ) : (
               <p className="text-xs text-red-400">{analyzeResult.error}</p>
             )}
-            <button onClick={() => setAnalyzeResult(null)} className="mt-3 text-[10px] text-zinc-500 hover:text-zinc-400 transition-colors cursor-pointer">
+            <button
+              onClick={() => setAnalyzeResult(null)}
+              className="mt-3 text-[10px] text-zinc-500 hover:text-zinc-400 transition-colors cursor-pointer"
+            >
               Dismiss
             </button>
           </div>
@@ -357,7 +401,9 @@ export default function FraudPage() {
             <tab.icon className="w-3.5 h-3.5" />
             {tab.label}
             {(tab.count ?? 0) > 0 && (
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.id ? "bg-violet-500/20 text-violet-300" : "bg-zinc-800 text-zinc-500"}`}>
+              <span
+                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.id ? "bg-violet-500/20 text-violet-300" : "bg-zinc-800 text-zinc-500"}`}
+              >
                 {tab.count}
               </span>
             )}
