@@ -47,27 +47,50 @@ export function RewardTimeline({
   setEditIsPinned,
 }: RewardTimelineProps) {
   const [scheduleDate, setScheduleDate] = React.useState("");
-  const [scheduleTime, setScheduleTime] = React.useState("");
+  const [scheduleHour, setScheduleHour] = React.useState("12");
+  const [scheduleMinute, setScheduleMinute] = React.useState("00");
+  const [schedulePeriod, setSchedulePeriod] = React.useState("PM");
 
   React.useEffect(() => {
     if (editScheduledAt) {
       const parts = editScheduledAt.split(/[T ]/);
       const date = parts[0] || "";
-      const time = parts[1] ? parts[1].slice(0, 5) : "";
       setScheduleDate(date);
-      setScheduleTime(time);
+
+      const time = parts[1] || "";
+      if (time) {
+        const [h24, m] = time.split(":");
+        const h24Num = parseInt(h24) || 0;
+        const mStr = m ? m.slice(0, 2) : "00";
+
+        let h12 = h24Num % 12;
+        if (h12 === 0) h12 = 12;
+        const period = h24Num >= 12 ? "PM" : "AM";
+
+        setScheduleHour(String(h12).padStart(2, "0"));
+        setScheduleMinute(mStr);
+        setSchedulePeriod(period);
+      }
     } else {
       setScheduleDate("");
-      setScheduleTime("");
+      setScheduleHour("12");
+      setScheduleMinute("00");
+      setSchedulePeriod("PM");
     }
   }, [editScheduledAt]);
 
-  const handleDateTimeChange = (dateVal: string, timeVal: string) => {
+  const updateDateTime = (dateVal: string, hourVal: string, minVal: string, periodVal: string) => {
     setScheduleDate(dateVal);
-    setScheduleTime(timeVal);
     if (dateVal) {
-      const t = timeVal || "12:00";
-      setEditScheduledAt(`${dateVal}T${t}`);
+      let h24 = parseInt(hourVal) || 12;
+      if (periodVal === "PM" && h24 < 12) {
+        h24 += 12;
+      } else if (periodVal === "AM" && h24 === 12) {
+        h24 = 0;
+      }
+      const h24Str = String(h24).padStart(2, "0");
+      const mStr = minVal.padStart(2, "0");
+      setEditScheduledAt(`${dateVal}T${h24Str}:${mStr}`);
     } else {
       setEditScheduledAt("");
     }
@@ -160,7 +183,7 @@ export function RewardTimeline({
 
       <div>
         <FieldLabel>
-          Schedule Task Start <span className="text-zinc-650 font-normal">(optional — future start time)</span>
+          Schedule Task Start <span className="text-zinc-655 font-normal">(optional — future start time)</span>
         </FieldLabel>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -168,19 +191,61 @@ export function RewardTimeline({
             <input
               type="date"
               value={scheduleDate}
-              onChange={(e) => handleDateTimeChange(e.target.value, scheduleTime)}
+              onChange={(e) => updateDateTime(e.target.value, scheduleHour, scheduleMinute, schedulePeriod)}
               min={getLocalMinDateTime().split("T")[0]}
               className={inputCls}
             />
           </div>
           <div>
             <span className="text-[10px] font-medium text-zinc-500 mb-1 block">Start Time</span>
-            <input
-              type="time"
-              value={scheduleTime}
-              onChange={(e) => handleDateTimeChange(scheduleDate, e.target.value)}
-              className={inputCls}
-            />
+            <div className="flex gap-1">
+              <select
+                value={scheduleHour}
+                onChange={(e) => {
+                  setScheduleHour(e.target.value);
+                  updateDateTime(scheduleDate, e.target.value, scheduleMinute, schedulePeriod);
+                }}
+                className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-2 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-purple-500/50 transition-colors w-[34%]"
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => {
+                  const val = String(h).padStart(2, "0");
+                  return (
+                    <option key={val} value={val}>
+                      {val}
+                    </option>
+                  );
+                })}
+              </select>
+              <span className="text-zinc-500 self-center font-bold px-0.5">:</span>
+              <select
+                value={scheduleMinute}
+                onChange={(e) => {
+                  setScheduleMinute(e.target.value);
+                  updateDateTime(scheduleDate, scheduleHour, e.target.value, schedulePeriod);
+                }}
+                className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-2 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-purple-500/50 transition-colors w-[34%]"
+              >
+                {Array.from({ length: 60 }, (_, i) => i).map((m) => {
+                  const val = String(m).padStart(2, "0");
+                  return (
+                    <option key={val} value={val}>
+                      {val}
+                    </option>
+                  );
+                })}
+              </select>
+              <select
+                value={schedulePeriod}
+                onChange={(e) => {
+                  setSchedulePeriod(e.target.value);
+                  updateDateTime(scheduleDate, scheduleHour, scheduleMinute, e.target.value);
+                }}
+                className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-2 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-purple-500/50 transition-colors w-[28%]"
+              >
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
