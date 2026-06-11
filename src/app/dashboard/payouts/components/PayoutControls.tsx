@@ -34,9 +34,9 @@ export function PayoutControls() {
   const fetchSettings = async () => {
     try {
       const res = (await apiClient.get("/admin/payouts/settings")) as any;
-      if (res?.success) {
-        setGeneralMin(res.minPayoutAmount);
-        setGeneralInput(res.minPayoutAmount.toString());
+      if (res?.success && res.data?.minPayoutAmount != null) {
+        setGeneralMin(res.data.minPayoutAmount);
+        setGeneralInput(res.data.minPayoutAmount.toString());
       }
     } catch (err: any) {
       console.error("Failed to load settings:", err);
