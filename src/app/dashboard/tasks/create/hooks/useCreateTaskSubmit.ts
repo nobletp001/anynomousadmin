@@ -9,7 +9,7 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
     state.title.trim() &&
     state.description.trim() &&
     state.targetPlatform.trim() &&
-    (state.isPayFluenceTask || Number(state.amount) > 0) &&
+    (state.isPayFluenceTask || state.isAppTesting || Number(state.amount) > 0) &&
     Number(state.numberOfUsersNeeded) > 0 &&
     (state.taskType !== "views" || Number(state.targetCount) > 0);
 
@@ -66,7 +66,7 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       acceptMultipleImages: state.acceptMultipleImages,
       maxPerHour: state.maxPerHour.trim() ? parseInt(state.maxPerHour) : undefined,
       lifeline: state.noExpiry,
-      amount: state.isPayFluenceTask ? "0" : state.amount,
+      amount: (state.isPayFluenceTask || state.isAppTesting) && !state.amount ? "0" : state.amount,
       numberOfUsersNeeded: state.numberOfUsersNeeded,
       timeline,
       targetCount: state.targetCount.trim() ? state.targetCount : undefined,

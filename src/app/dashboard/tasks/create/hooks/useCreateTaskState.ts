@@ -27,7 +27,8 @@ export function useCreateTaskState() {
   const [showPromptRepo, setShowPromptRepo] = useState(false);
   const [images, setImages] = useState<ImageEntry[]>([]);
   const [uploadError, setUploadError] = useState("");
-  const [proofType, setProofType] = useState<"banner" | "url">("banner");
+  const [proofType, setProofType] = useState<"banner" | "url" | "text">("banner");
+  const [isAppTesting, setIsAppTesting] = useState(false);
   const [acceptText, setAcceptText] = useState(false);
   const [textLabel, setTextLabel] = useState("");
   const [acceptNumber, setAcceptNumber] = useState(false);
@@ -137,6 +138,8 @@ export function useCreateTaskState() {
     setVolutterPayFluenceTaskPerformNumber,
     isTobeIncludereferralCount,
     setIsTobeIncludereferralCount,
+    isAppTesting,
+    setIsAppTesting,
   };
 }
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Image as ImageIcon, Link as LinkIcon } from "lucide-react";
+import { Image as ImageIcon, Link as LinkIcon, FileText } from "lucide-react";
 import { FieldLabel } from "./FieldLabel";
 import { TASK_TYPES, PLATFORMS } from "../../types";
 import { RichTextEditor } from "@/components/ui";
@@ -12,8 +12,8 @@ interface ConfigProps {
   setEditTaskType: (v: string) => void;
   editTargetPlatform: string;
   setEditTargetPlatform: (v: string) => void;
-  editProofType: "banner" | "url";
-  setEditProofType: (v: "banner" | "url") => void;
+  editProofType: "banner" | "url" | "text";
+  setEditProofType: (v: "banner" | "url" | "text") => void;
   editAcceptText: boolean;
   setEditAcceptText: React.Dispatch<React.SetStateAction<boolean>>;
   editTextLabel: string;
@@ -124,7 +124,7 @@ export function Config({
 
       <div>
         <FieldLabel>Proof Method</FieldLabel>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
             onClick={() => setEditProofType("banner")}
@@ -135,7 +135,7 @@ export function Config({
             }`}
           >
             <ImageIcon className="w-3.5 h-3.5 shrink-0" />
-            <span className="font-bold">Image / Screenshot</span>
+            <span className="font-bold text-[10px]">Screenshot</span>
           </button>
           <button
             type="button"
@@ -147,7 +147,19 @@ export function Config({
             }`}
           >
             <LinkIcon className="w-3.5 h-3.5 shrink-0" />
-            <span className="font-bold">URL / Link</span>
+            <span className="font-bold text-[10px]">URL / Link</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditProofType("text")}
+            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all ${
+              editProofType === "text"
+                ? "bg-purple-500/10 border-purple-500/40 text-purple-300"
+                : "bg-zinc-800/40 border-zinc-700/60 text-zinc-500 hover:border-zinc-600"
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5 shrink-0" />
+            <span className="font-bold text-[10px]">Text Only</span>
           </button>
         </div>
       </div>

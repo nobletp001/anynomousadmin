@@ -110,6 +110,8 @@ export default function CreateTaskPage() {
           setRequirePromptSelection={state.setRequirePromptSelection}
           marketingText={state.marketingText}
           setMarketingText={state.setMarketingText}
+          isAppTesting={state.isAppTesting}
+          setIsAppTesting={state.setIsAppTesting}
         />
 
         <TargetAudienceForm

@@ -14,7 +14,7 @@ export function useEditTaskState() {
   const [editCaptionMode, setEditCaptionMode] = useState<"text" | "array">("text");
   const [editTaskType, setEditTaskType] = useState("follow");
   const [editTargetPlatform, setEditTargetPlatform] = useState("instagram");
-  const [editProofType, setEditProofType] = useState<"banner" | "url">("banner");
+  const [editProofType, setEditProofType] = useState<"banner" | "url" | "text">("banner");
   const [editAcceptText, setEditAcceptText] = useState(false);
   const [editTextLabel, setEditTextLabel] = useState("");
   const [editAcceptNumber, setEditAcceptNumber] = useState(false);

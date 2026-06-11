@@ -164,7 +164,7 @@ export default function TaskSubmissionsPage() {
     editState.setEditCaptionMode(captionMode);
     editState.setEditTaskType(task.taskType || "follow");
     editState.setEditTargetPlatform(task.targetPlatform || "instagram");
-    editState.setEditProofType(task.proofType === "url" ? "url" : "banner");
+    editState.setEditProofType(task.proofType === "url" ? "url" : task.proofType === "text" ? "text" : "banner");
     editState.setEditAcceptText(!!task.acceptText);
     editState.setEditTextLabel(task.textLabel || "");
     editState.setEditAcceptNumber(!!task.acceptNumber);
