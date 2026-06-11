@@ -60,7 +60,7 @@ export function SubmissionDetailsModal({
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  
+
   // Comparison state
   const [comparisonSub, setComparisonSub] = useState<Submission | null>(null);
 
@@ -74,14 +74,19 @@ export function SubmissionDetailsModal({
     if (comparisonSub) {
       apiClient.post(`/admin/fraud/analyze/${sub.username}`).catch(console.error);
       apiClient.post(`/admin/fraud/analyze/${comparisonSub.username}`).catch(console.error);
-      apiClient.patch(`/admin/fraud/users/${sub.username}/monitor`, { monitored: true, runAnalysis: true }).catch(console.error);
-      apiClient.patch(`/admin/fraud/users/${comparisonSub.username}/monitor`, { monitored: true, runAnalysis: true }).catch(console.error);
+      apiClient
+        .patch(`/admin/fraud/users/${sub.username}/monitor`, { monitored: true, runAnalysis: true })
+        .catch(console.error);
+      apiClient
+        .patch(`/admin/fraud/users/${comparisonSub.username}/monitor`, { monitored: true, runAnalysis: true })
+        .catch(console.error);
     }
   }, [comparisonSub, sub.username]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest("button") || target.closest("input") || target.closest("textarea") || target.closest("a")) return;
+    if (target.closest("button") || target.closest("input") || target.closest("textarea") || target.closest("a"))
+      return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - pos.x, y: e.clientY - pos.y });
   };
@@ -107,10 +112,87 @@ export function SubmissionDetailsModal({
     if (match) {
       setComparisonSub(match);
     } else {
-      alert(`User @${username} has not submitted this task, but is flagged for collision details. We've logged this collision context in Fraud.`);
+      alert(
+        `User @${username} has not submitted this task, but is flagged for collision details. We've logged this collision context in Fraud.`
+      );
       apiClient.post(`/admin/fraud/analyze/${sub.username}`).catch(console.error);
       apiClient.post(`/admin/fraud/analyze/${username}`).catch(console.error);
     }
+  };
+
+  const handleApproveClick = async () => {
+    const accountNumber = (sub.user as any)?.accountNumber;
+    const dupSub = submissions.find(
+      (s) =>
+        s.id !== sub.id &&
+        s.username !== sub.username &&
+        s.proof === sub.proof &&
+        s.proofType === sub.proofType &&
+        sub.proof &&
+        sub.proofType !== "text"
+    );
+    const ipSub = submissions.find(
+      (s) => s.id !== sub.id && s.username !== sub.username && s.ipAddress === sub.ipAddress && sub.ipAddress
+    );
+    const devSub = submissions.find(
+      (s) => s.id !== sub.id && s.username !== sub.username && s.deviceId === sub.deviceId && sub.deviceId
+    );
+    const bankSub = submissions.find(
+      (s) =>
+        s.id !== sub.id &&
+        s.username !== sub.username &&
+        (s.user as any)?.accountNumber === accountNumber &&
+        accountNumber
+    );
+    const dfSub = submissions.find(
+      (s) =>
+        s.id !== sub.id &&
+        s.username !== sub.username &&
+        s.deviceFingerprint === sub.deviceFingerprint &&
+        sub.deviceFingerprint &&
+        sub.deviceFingerprint !== "server-side"
+    );
+
+    let similarMatchesCount = 0;
+    if (sub.proofType !== "text" && sub.id) {
+      try {
+        const res: any = await apiClient.get(`/admin/fraud/image-collision/${sub.id}`);
+        similarMatchesCount = (res.matches || []).length;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    const hasAlerts =
+      dupSub ||
+      ipSub ||
+      devSub ||
+      bankSub ||
+      dfSub ||
+      similarMatchesCount > 0 ||
+      (sub.fraudAlerts && sub.fraudAlerts.length > 0);
+
+    if (hasAlerts) {
+      let warningMessage = "⚠️ WARNING: This submission has security/fraud alerts:\n\n";
+      if (dupSub) warningMessage += `- 100% exact duplicate proof matching @${dupSub.username}\n`;
+      if (similarMatchesCount > 0) {
+        warningMessage += `- Similar proof image collision detected (${similarMatchesCount} match(es))\n`;
+      }
+      if (ipSub) warningMessage += `- Shared IP Address with @${ipSub.username}\n`;
+      if (devSub) warningMessage += `- Shared Device ID with @${devSub.username}\n`;
+      if (dfSub) warningMessage += `- Shared Device Fingerprint with @${dfSub.username}\n`;
+      if (bankSub) warningMessage += `- Shared Bank Account with @${bankSub.username}\n`;
+      if (sub.fraudAlerts && sub.fraudAlerts.length > 0) {
+        warningMessage += `- User has ${sub.fraudAlerts.length} existing fraud alert(s)\n`;
+      }
+
+      warningMessage += "\nAre you sure you want to approve this submission?";
+      if (!window.confirm(warningMessage)) {
+        return;
+      }
+    }
+
+    onApprove();
   };
 
   const isPending = sub.status === "pending" || sub.status === "needs_correction";
@@ -138,7 +220,10 @@ export function SubmissionDetailsModal({
               Submitted by <span className="font-bold text-white">@{sub.username}</span> · {formatDate(sub.createdAt)}
             </p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -211,7 +296,7 @@ export function SubmissionDetailsModal({
                   Reject Submission
                 </button>
                 <button
-                  onClick={onApprove}
+                  onClick={handleApproveClick}
                   disabled={isApprovePending}
                   className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 text-zinc-950 hover:bg-emerald-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 >
