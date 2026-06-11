@@ -22,7 +22,7 @@ export default function TasksPage() {
     onDeleteSuccess: () => state.setConfirmDelete(null),
     onDeleteAllSuccess: () => state.setConfirmDeleteAll(false),
   };
-  const { deleteTask, deleteAllTasks } = useTasksMutations(callbacks);
+  const { deleteTask, deleteAllTasks, togglePinTask } = useTasksMutations(callbacks);
 
   const user = userQuery.data;
   const canManage = user?.role === "super-admin" || user?.role === "admin";
@@ -118,6 +118,32 @@ export default function TasksPage() {
         </div>
       ) : (
         <div className="space-y-8">
+          {allTasks.filter((t) => t.isPinned).length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-extrabold uppercase tracking-widest text-amber-500">
+                  Quick Access (Pinned)
+                </span>
+                <div className="flex-1 h-px bg-amber-500/20" />
+              </div>
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+                {allTasks
+                  .filter((t) => t.isPinned)
+                  .map((task) => (
+                    <div key={`pinned-${task.id}`} className="min-w-[320px] max-w-[360px] flex-shrink-0">
+                      <TaskCard
+                        task={task}
+                        canManage={canManage}
+                        onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
+                        onDeleteClick={() => state.setConfirmDelete({ id: task.id, title: task.title })}
+                        onPinClick={() => togglePinTask.mutate({ id: task.id, isPinned: !task.isPinned })}
+                      />
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
           {groups.map(({ label, tasks }) => (
             <div key={label} className="space-y-4">
               <div className="flex items-center gap-3">
@@ -135,6 +161,7 @@ export default function TasksPage() {
                     canManage={canManage}
                     onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
                     onDeleteClick={() => state.setConfirmDelete({ id: task.id, title: task.title })}
+                    onPinClick={() => togglePinTask.mutate({ id: task.id, isPinned: !task.isPinned })}
                   />
                 ))}
               </div>

@@ -1,26 +1,34 @@
 import React from "react";
-import { Trash2, UserCircle2, Coins, Users, Infinity as InfinityIcon, Calendar, ChevronRight, Share2 } from "lucide-react";
+import {
+  Trash2,
+  UserCircle2,
+  Coins,
+  Users,
+  Infinity as InfinityIcon,
+  Calendar,
+  ChevronRight,
+  Share2,
+  Pin,
+} from "lucide-react";
 import { Badge } from "@/components/ui";
 import { Task } from "../types";
-import {
-  PLATFORM_COLORS,
-  platformLabel,
-  taskTypeLabel,
-  formatAmount,
-  formatDate,
-  isExpired,
-} from "../utils";
+import { PLATFORM_COLORS, platformLabel, taskTypeLabel, formatAmount, formatDate, isExpired } from "../utils";
 
 interface TaskCardProps {
   task: Task;
   canManage: boolean;
   onClick: () => void;
   onDeleteClick: () => void;
+  onPinClick?: () => void;
 }
 
-const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || (typeof window !== "undefined" ? window.location.origin.replace(":3001", ":3000").replace("admin.", "") : "http://localhost:3000");
+const FRONTEND_URL =
+  process.env.NEXT_PUBLIC_FRONTEND_URL ||
+  (typeof window !== "undefined"
+    ? window.location.origin.replace(":3001", ":3000").replace("admin.", "")
+    : "http://localhost:3000");
 
-export function TaskCard({ task, canManage, onClick, onDeleteClick }: TaskCardProps) {
+export function TaskCard({ task, canManage, onClick, onDeleteClick, onPinClick }: TaskCardProps) {
   const progress =
     task.numberOfUsersNeeded > 0 ? Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100)) : 0;
   const expired = isExpired(task);
@@ -31,11 +39,13 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick }: TaskCardPr
     const text = `Earn ₦${task.amount.toLocaleString()} — ${task.title}\n\nComplete this quick ${platformLabel(task.targetPlatform)} campaign on PayFluence to earn ₦${task.amount.toLocaleString()} instantly!\n\n👉 ${url}`;
 
     if (navigator.share) {
-      navigator.share({
-        title: `Earn ₦${task.amount.toLocaleString()} — ${task.title}`,
-        text: text,
-        url: url
-      }).catch(() => {});
+      navigator
+        .share({
+          title: `Earn ₦${task.amount.toLocaleString()} — ${task.title}`,
+          text: text,
+          url: url,
+        })
+        .catch(() => {});
     } else {
       navigator.clipboard.writeText(text).then(() => {
         alert("Frontend task link and details copied to clipboard!");
@@ -55,6 +65,17 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick }: TaskCardPr
         >
           <Share2 className="w-4 h-4" />
         </button>
+        {canManage && onPinClick && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPinClick();
+            }}
+            className={`p-1.5 rounded-lg transition-colors ${task.isPinned ? "text-amber-400 bg-amber-500/10 opacity-100" : "text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10 opacity-0 group-hover:opacity-100"}`}
+          >
+            <Pin className="w-4 h-4" />
+          </button>
+        )}
         {canManage && (
           <button
             onClick={(e) => {
@@ -68,10 +89,18 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick }: TaskCardPr
         )}
       </div>
 
-      {/* Creator fingerprint */}
-      <div className="flex items-center gap-2 mb-3 px-2.5 py-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700/40 w-fit">
-        <UserCircle2 className="w-3 h-3 text-purple-400 shrink-0" />
-        <span className="text-[10px] font-bold text-purple-300 tracking-wide">@{task.createdBy}</span>
+      {/* Creator fingerprint & Pin Status */}
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700/40 w-fit">
+          <UserCircle2 className="w-3 h-3 text-purple-400 shrink-0" />
+          <span className="text-[10px] font-bold text-purple-300 tracking-wide">@{task.createdBy}</span>
+        </div>
+        {task.isPinned && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 w-fit">
+            <Pin className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-pulse" />
+            <span className="text-[9px] font-extrabold text-amber-300 tracking-wider">PINNED</span>
+          </div>
+        )}
       </div>
 
       <div className="flex items-start gap-3 mb-3 pr-8">

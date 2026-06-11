@@ -41,6 +41,8 @@ export function useCreateTaskState() {
   const [volutterPayFluenceTaskPerformNumber, setVolutterPayFluenceTaskPerformNumber] = useState("");
   const [isTobeIncludereferralCount, setIsTobeIncludereferralCount] = useState(true);
   const [enableTargeting, setEnableTargeting] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [isPinned, setIsPinned] = useState(false);
   const [audience, setAudience] = useState<AudienceFilter>({
     gender: [],
     employmentStatus: [],
@@ -51,6 +53,10 @@ export function useCreateTaskState() {
   });
 
   return {
+    scheduledAt,
+    setScheduledAt,
+    isPinned,
+    setIsPinned,
     title,
     setTitle,
     description,

@@ -49,6 +49,21 @@ function getInvestigateAction(
     return { type: "device", value: deviceId || deviceFingerprint! };
   }
   if (alert.alertType === "bank_collision" && bankAccountNumber) return { type: "bank", value: bankAccountNumber };
+
+  // suspicious_pattern alerts written by the task-submission collision detector carry metadata
+  // with ip / deviceId / deviceFingerprint — parse and derive the investigate action
+  if (alert.alertType === "suspicious_pattern" && alert.metadata) {
+    try {
+      const meta = JSON.parse(alert.metadata) as Record<string, unknown>;
+      if (typeof meta.ip === "string" && meta.ip) return { type: "ip", value: meta.ip };
+      if (typeof meta.deviceId === "string" && meta.deviceId) return { type: "device", value: meta.deviceId };
+      if (typeof meta.deviceFingerprint === "string" && meta.deviceFingerprint)
+        return { type: "device", value: meta.deviceFingerprint };
+    } catch {
+      // malformed metadata — skip
+    }
+  }
+
   return null;
 }
 

@@ -8,29 +8,38 @@ interface InstructionsFormProps {
   setDraggedIdx: (v: number | null) => void;
 }
 
-export function InstructionsForm({
-  instructions,
-  setInstructions,
-  draggedIdx,
-  setDraggedIdx,
-}: InstructionsFormProps) {
+export function InstructionsForm({ instructions, setInstructions, draggedIdx, setDraggedIdx }: InstructionsFormProps) {
+  const [dragOverIdx, setDragOverIdx] = React.useState<number | null>(null);
+
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIdx(index);
-    e.dataTransfer.setData("text/plain", index.toString());
     e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
+    if (draggedIdx !== index) {
+      setDragOverIdx(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
     if (draggedIdx === null || draggedIdx === index) return;
     setInstructions((prev) => {
-      const list = [...prev];
-      const draggedItem = list[draggedIdx];
-      list.splice(draggedIdx, 1);
-      list.splice(index, 0, draggedItem);
-      return list;
+      const next = [...prev];
+      const [moved] = next.splice(draggedIdx, 1);
+      next.splice(index, 0, moved);
+      return next;
     });
-    setDraggedIdx(index);
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIdx(null);
+    setDragOverIdx(null);
   };
 
   const loadPresetRules = () => {
@@ -46,7 +55,7 @@ export function InstructionsForm({
   };
 
   const inputCls =
-    "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
+    "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
 
   return (
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 space-y-4">
@@ -76,38 +85,47 @@ export function InstructionsForm({
         {instructions.map((step, idx) => (
           <div
             key={idx}
-            draggable
-            onDragStart={(e) => handleDragStart(e, idx)}
             onDragOver={(e) => handleDragOver(e, idx)}
-            onDragEnd={() => setDraggedIdx(null)}
-            className={`flex items-center gap-2 transition-all duration-200 ${
-              draggedIdx === idx ? "opacity-30 scale-[0.98] border-purple-500/50 bg-purple-950/5" : ""
+            onDrop={(e) => handleDrop(e, idx)}
+            className={`flex items-center gap-2 p-1 rounded-xl transition-all ${
+              draggedIdx === idx ? "opacity-35" : ""
+            } ${
+              dragOverIdx === idx
+                ? "border border-dashed border-purple-500 bg-purple-500/5"
+                : "border border-transparent"
             }`}
           >
-            <div className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-zinc-650 hover:text-zinc-400 transition-colors shrink-0">
+            <div
+              draggable
+              onDragStart={(e) => handleDragStart(e, idx)}
+              onDragEnd={handleDragEnd}
+              className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-zinc-500 hover:text-zinc-300 transition-colors shrink-0"
+            >
               <GripVertical className="w-4 h-4" />
             </div>
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-zinc-500 text-[10px] font-bold">
-              {idx + 1}
-            </span>
-            <input
-              value={step}
-              onChange={(e) => {
-                const val = e.target.value;
-                setInstructions((prev) => prev.map((s, i) => (i === idx ? val : s)));
-              }}
-              placeholder={`Step ${idx + 1}...`}
-              className={`${inputCls} flex-1`}
-            />
-            {instructions.length > 1 && (
-              <button
-                type="button"
-                onClick={() => setInstructions((prev) => prev.filter((_, i) => i !== idx))}
-                className="p-1.5 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
+            <div className={`flex items-center gap-2 flex-1 ${draggedIdx !== null ? "pointer-events-none" : ""}`}>
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-zinc-500 text-[10px] font-bold">
+                {idx + 1}
+              </span>
+              <input
+                value={step}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setInstructions((prev) => prev.map((s, i) => (i === idx ? val : s)));
+                }}
+                placeholder={`Step ${idx + 1}...`}
+                className={`${inputCls} flex-1`}
+              />
+              {instructions.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setInstructions((prev) => prev.filter((_, i) => i !== idx))}
+                  className="p-1.5 rounded-lg text-zinc-550 hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>

@@ -120,23 +120,25 @@ export function Instructions({ editInstructions, setEditInstructions }: Instruct
             >
               <GripVertical className="w-3.5 h-3.5" />
             </div>
-            <span className="text-[10px] text-zinc-550 font-mono w-4 text-right shrink-0">{idx + 1}.</span>
-            <input
-              type="text"
-              value={step}
-              onChange={(e) => handleStepChange(idx, e.target.value)}
-              className={
-                "flex-1 bg-zinc-850 border border-zinc-700/60 rounded-lg px-3 py-1.5 " +
-                "text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
-              }
-            />
-            <button
-              type="button"
-              onClick={() => removeStep(idx)}
-              className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            <div className={`flex items-center gap-2 flex-1 ${draggedIdx !== null ? "pointer-events-none" : ""}`}>
+              <span className="text-[10px] text-zinc-550 font-mono w-4 text-right shrink-0">{idx + 1}.</span>
+              <input
+                type="text"
+                value={step}
+                onChange={(e) => handleStepChange(idx, e.target.value)}
+                className={
+                  "flex-1 bg-zinc-850 border border-zinc-700/60 rounded-lg px-3 py-1.5 " +
+                  "text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50"
+                }
+              />
+              <button
+                type="button"
+                onClick={() => removeStep(idx)}
+                className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         ))}
         {editInstructions.length === 0 && (

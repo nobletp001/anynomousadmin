@@ -123,14 +123,31 @@ export function SubmissionRow({
           )}
 
           <div className="flex flex-wrap gap-1.5 mt-1">
-            {sub.textResponse && (
-              <span
-                className="inline-block max-w-44 truncate text-[10px] text-zinc-305 bg-zinc-900 border border-zinc-800/80 rounded px-2 py-0.5 font-medium"
-                title={sub.textResponse}
-              >
-                Text: {sub.textResponse}
-              </span>
-            )}
+            {sub.textResponse &&
+              (/^(https?:\/\/)?([a-z0-9\-]+\.)+[a-z]{2,}/i.test(sub.textResponse.trim()) ? (
+                <a
+                  href={
+                    sub.textResponse.trim().startsWith("http")
+                      ? sub.textResponse.trim()
+                      : `https://${sub.textResponse.trim()}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1 max-w-44 truncate text-[10px] text-blue-400 hover:text-blue-300 bg-blue-950/20 border border-blue-900/30 rounded px-2 py-0.5 font-medium transition-colors"
+                  title={sub.textResponse}
+                >
+                  <LinkIcon className="w-2.5 h-2.5 shrink-0" />
+                  {sub.textResponse}
+                </a>
+              ) : (
+                <span
+                  className="inline-block max-w-44 truncate text-[10px] text-zinc-305 bg-zinc-900 border border-zinc-800/80 rounded px-2 py-0.5 font-medium"
+                  title={sub.textResponse}
+                >
+                  Text: {sub.textResponse}
+                </span>
+              ))}
             {sub.numberResponse && (
               <span
                 className="inline-block max-w-44 truncate text-[10px] text-purple-300 bg-purple-955/20 border border-purple-900/30 rounded px-2 py-0.5 font-medium"

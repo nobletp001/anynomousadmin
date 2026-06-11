@@ -11,12 +11,7 @@ import { useEditTaskState } from "./hooks/useEditTaskState";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { TaskDetailHeader } from "./components/TaskDetailHeader";
 import { SubmissionsTable } from "./components/SubmissionsTable";
-import { SubmissionDetailsModal } from "./components/SubmissionDetailsModal";
-import { RejectModal } from "./components/RejectModal";
-import { ReverseSubmissionModal } from "./components/ReverseSubmissionModal";
-import { BulkActionPanel } from "./components/BulkActionPanel";
-import { EditTaskModal } from "./components/EditTaskModal";
-import { FullscreenImageZoom } from "./components/FullscreenImageZoom";
+import { TaskDetailModals } from "./components/TaskDetailModals";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
 import { Submission } from "./types";
@@ -199,6 +194,14 @@ export default function TaskSubmissionsPage() {
     editState.setEditPrompts(promptsText);
     editState.setEditRequirePromptSelection(!!task.requirePromptSelection);
     editState.setEditMarketingText(task.marketingText || "");
+    editState.setEditScheduledAt(
+      task.scheduledAt
+        ? new Date(new Date(task.scheduledAt).getTime() - new Date(task.scheduledAt).getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 16)
+        : ""
+    );
+    editState.setEditIsPinned(!!task.isPinned);
     editState.setUploadError("");
   };
 
@@ -232,143 +235,22 @@ export default function TaskSubmissionsPage() {
             setReverseModal({ subId: sub.id, username: sub.username, deductedAmount: sub.deductedAmount ?? 0 })
           }
         />
-
-        {state.viewingSub && (
-          <SubmissionDetailsModal
-            sub={state.viewingSub}
-            submissions={submissions}
-            task={task}
-            rating={state.rating}
-            setRating={state.setRating}
-            feedback={state.feedback}
-            setFeedback={state.setFeedback}
-            showReportForm={state.showReportForm}
-            setShowReportForm={state.setShowReportForm}
-            reportDeductAmount={state.reportDeductAmount}
-            setReportDeductAmount={state.setReportDeductAmount}
-            reportReason={state.reportReason}
-            setReportReason={state.setReportReason}
-            isReportPending={mutations.reportSubmission.isPending}
-            onSubmitReport={() =>
-              mutations.reportSubmission.mutate({
-                subId: state.viewingSub!.id,
-                deductedAmount: Number(state.reportDeductAmount) || 0,
-                rejectionReason: state.reportReason,
-              })
-            }
-            onZoomImage={(imgs, idx) => {
-              state.setActiveImagesList(imgs);
-              state.setActiveImageIndex(idx);
-            }}
-            onClose={() => state.setViewingSub(null)}
-            onApprove={() =>
-              mutations.approveSubmission.mutate({
-                subId: state.viewingSub!.id,
-                rating: state.rating || 5,
-                feedback: state.feedback,
-              })
-            }
-            onCorrectionClick={() => openCorrectionModal(state.viewingSub!)}
-            onRejectClick={() => openRejectModal(state.viewingSub!)}
-            isApprovePending={mutations.approveSubmission.isPending}
-            onWatchUser={handleWatchUser}
-          />
-        )}
       </div>
 
-      {state.selectedIds.size > 0 && (
-        <BulkActionPanel
-          selectedCount={state.selectedIds.size}
-          bulkMode={state.bulkMode}
-          setBulkMode={state.setBulkMode}
-          bulkRating={state.bulkRating}
-          setBulkRating={state.setBulkRating}
-          bulkRejectReason={state.bulkRejectReason}
-          setBulkRejectReason={state.setBulkRejectReason}
-          onClearSelection={() => state.setSelectedIds(new Set())}
-          onConfirmApprove={() =>
-            mutations.bulkAction.mutate({
-              ids: Array.from(state.selectedIds),
-              action: "approve",
-              rating: state.bulkRating || 5,
-            })
-          }
-          onConfirmReject={() =>
-            mutations.bulkAction.mutate({
-              ids: Array.from(state.selectedIds),
-              action: "reject",
-              rejectionReason: state.bulkRejectReason,
-            })
-          }
-          isPending={mutations.bulkAction.isPending}
-        />
-      )}
-
-      {state.rejectModal && (
-        <RejectModal
-          rejectModal={state.rejectModal}
-          deductAmount={state.deductAmount}
-          setDeductAmount={state.setDeductAmount}
-          rejectReason={state.rejectReason}
-          setRejectReason={state.setRejectReason}
-          onClose={closeRejectModal}
-          onSubmitReject={() =>
-            mutations.rejectSubmission.mutate({
-              subId: state.rejectModal!.subId,
-              reason: state.rejectReason,
-              deducted: Number(state.deductAmount) || 0,
-            })
-          }
-          onSubmitCorrection={() =>
-            mutations.requestCorrection.mutate({ subId: state.rejectModal!.subId, reason: state.rejectReason })
-          }
-          isPending={mutations.rejectSubmission.isPending || mutations.requestCorrection.isPending}
-          error={mutations.rejectSubmission.error || mutations.requestCorrection.error}
-        />
-      )}
-
-      {reverseModal && (
-        <ReverseSubmissionModal
-          username={reverseModal.username}
-          deductedAmount={reverseModal.deductedAmount}
-          isPending={mutations.reverseSubmission.isPending}
-          error={mutations.reverseSubmission.error}
-          onClose={() => setReverseModal(null)}
-          onConfirm={() =>
-            mutations.reverseSubmission.mutate(reverseModal.subId, {
-              onSuccess: () => setReverseModal(null),
-            })
-          }
-        />
-      )}
-
-      {state.activeImageIndex !== null && state.activeImagesList.length > 0 && (
-        <FullscreenImageZoom
-          activeIndex={state.activeImageIndex}
-          imagesList={state.activeImagesList}
-          username={state.viewingSub?.username}
-          onClose={() => state.setActiveImageIndex(null)}
-          onPrev={() =>
-            state.setActiveImageIndex((idx) =>
-              idx !== null ? (idx - 1 + state.activeImagesList.length) % state.activeImagesList.length : null
-            )
-          }
-          onNext={() =>
-            state.setActiveImageIndex((idx) => (idx !== null ? (idx + 1) % state.activeImagesList.length : null))
-          }
-        />
-      )}
-
-      {editState.isEditingTask && task && (
-        <EditTaskModal
-          task={task}
-          editState={editState}
-          officers={officers}
-          onClose={() => editState.setIsEditingTask(false)}
-          updateTaskMutation={mutations.updateTask}
-          uploadImageMutation={mutations.uploadImage}
-        />
-      )}
+      <TaskDetailModals
+        task={task}
+        submissions={submissions}
+        editState={editState}
+        state={state}
+        mutations={mutations}
+        reverseModal={reverseModal}
+        setReverseModal={setReverseModal}
+        officers={officers}
+        closeRejectModal={closeRejectModal}
+        openCorrectionModal={openCorrectionModal}
+        openRejectModal={openRejectModal}
+        handleWatchUser={handleWatchUser}
+      />
     </div>
   );
 }

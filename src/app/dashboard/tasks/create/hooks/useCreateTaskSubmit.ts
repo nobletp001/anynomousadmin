@@ -93,6 +93,8 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       marketingText: state.marketingText.trim() || undefined,
       isPayFluenceTask: state.isPayFluenceTask,
       isTobeIncludereferralCount: state.isTobeIncludereferralCount,
+      scheduledAt: state.scheduledAt ? new Date(state.scheduledAt).toISOString() : undefined,
+      isPinned: state.isPinned,
       volutterPayFluenceTaskPerformNumber: state.volutterPayFluenceTaskPerformNumber.trim()
         ? parseInt(state.volutterPayFluenceTaskPerformNumber)
         : undefined,

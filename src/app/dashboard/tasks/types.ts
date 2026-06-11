@@ -17,6 +17,8 @@ export interface Task {
   createdAt: string;
   submissionCount: number;
   isTobeIncludereferralCount?: boolean | null;
+  scheduledAt?: string | null;
+  isPinned?: boolean;
 }
 
 export interface TasksResponse {

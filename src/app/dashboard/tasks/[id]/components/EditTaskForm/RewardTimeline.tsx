@@ -20,6 +20,10 @@ interface RewardTimelineProps {
   editAssignedOfficer: string;
   setEditAssignedOfficer: (v: string) => void;
   officers: any[];
+  editScheduledAt: string;
+  setEditScheduledAt: (v: string) => void;
+  editIsPinned: boolean;
+  setEditIsPinned: (v: boolean) => void;
 }
 
 export function RewardTimeline({
@@ -37,7 +41,21 @@ export function RewardTimeline({
   editAssignedOfficer,
   setEditAssignedOfficer,
   officers,
+  editScheduledAt,
+  setEditScheduledAt,
+  editIsPinned,
+  setEditIsPinned,
 }: RewardTimelineProps) {
+  const getLocalMinDateTime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   return (
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
       <h2 className="text-sm font-semibold text-zinc-300 pb-2 border-b border-zinc-800/60">Reward &amp; Timeline</h2>
@@ -85,16 +103,22 @@ export function RewardTimeline({
         <div className="flex items-center justify-between mb-1.5">
           <FieldLabel>Task Duration</FieldLabel>
           <label className="flex items-center gap-2 cursor-pointer select-none">
-            <span className={`text-xs font-semibold transition-colors ${editNoExpiry ? "text-violet-400" : "text-zinc-500"}`}>
+            <span
+              className={`text-xs font-semibold transition-colors ${editNoExpiry ? "text-violet-400" : "text-zinc-500"}`}
+            >
               No expiry
             </span>
             <div
               onClick={() => setEditNoExpiry(!editNoExpiry)}
               className={`relative w-9 h-5 rounded-full transition-all ${editNoExpiry ? "bg-violet-500" : "bg-zinc-700"}`}
             >
-              <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-all shadow ${editNoExpiry ? "translate-x-4" : "translate-x-0"}`} />
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-all shadow ${editNoExpiry ? "translate-x-4" : "translate-x-0"}`}
+              />
             </div>
-            <InfinityIcon className={`w-4 h-4 transition-colors ${editNoExpiry ? "text-violet-400" : "text-zinc-600"}`} />
+            <InfinityIcon
+              className={`w-4 h-4 transition-colors ${editNoExpiry ? "text-violet-400" : "text-zinc-600"}`}
+            />
           </label>
         </div>
         {!editNoExpiry && (
@@ -108,8 +132,46 @@ export function RewardTimeline({
       </div>
 
       <div>
+        <FieldLabel>
+          Schedule Task Start <span className="text-zinc-650 font-normal">(optional — future start time)</span>
+        </FieldLabel>
+        <input
+          type="datetime-local"
+          value={editScheduledAt}
+          onChange={(e) => setEditScheduledAt(e.target.value)}
+          min={getLocalMinDateTime()}
+          className={inputCls}
+        />
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <FieldLabel>Pin Task to Top</FieldLabel>
+        <div
+          className="flex items-center gap-2 cursor-pointer select-none"
+          onClick={() => setEditIsPinned(!editIsPinned)}
+        >
+          <span
+            className={`text-xs font-semibold transition-colors ${editIsPinned ? "text-amber-400" : "text-zinc-500"}`}
+          >
+            {editIsPinned ? "Pinned" : "Not Pinned"}
+          </span>
+          <div
+            className={`relative w-9 h-5 rounded-full transition-all ${editIsPinned ? "bg-amber-500" : "bg-zinc-700"}`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-all shadow ${editIsPinned ? "translate-x-4" : "translate-x-0"}`}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div>
         <FieldLabel>Auditor (Assigned Officer)</FieldLabel>
-        <select value={editAssignedOfficer} onChange={(e) => setEditAssignedOfficer(e.target.value)} className={inputCls}>
+        <select
+          value={editAssignedOfficer}
+          onChange={(e) => setEditAssignedOfficer(e.target.value)}
+          className={inputCls}
+        >
           <option value="">Auto-distribute to available officers</option>
           {officers.map((off: any) => (
             <option key={off.username} value={off.username}>

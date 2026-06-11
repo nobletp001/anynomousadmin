@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
 import { useUsersQueries } from "./hooks/useUsersQueries";
@@ -16,6 +17,7 @@ import { ShieldOff, CreditCard, ClipboardX } from "lucide-react";
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const state = useUsersState();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"all" | "tracking" | "gw">("all");
 
   const { usersQuery, gwQuery, detailQuery, topUsersQuery } = useUsersQueries(
@@ -151,13 +153,16 @@ export default function UsersPage() {
       ) : (
         <>
           {activeTab === "all" && (
-            <TopPerformers topPerformers={topUsersQuery.data?.data || []} onSelectUser={state.setSelectedUser} />
+            <TopPerformers
+              topPerformers={topUsersQuery.data?.data || []}
+              onSelectUser={(username) => router.push(`/dashboard/users/${username}`)}
+            />
           )}
 
           {activeTab === "all" ? (
             <UsersTable
               users={usersQuery.data?.data || []}
-              onSelectUser={state.setSelectedUser}
+              onSelectUser={(username) => router.push(`/dashboard/users/${username}`)}
               onUpdateFlags={(id, flags) => updateFlags.mutate({ id, flags })}
               page={state.page}
               setPage={state.setPage}
@@ -167,7 +172,7 @@ export default function UsersPage() {
           ) : (
             <GWVerifiedTable
               users={gwQuery.data?.data || []}
-              onSelectUser={state.setSelectedUser}
+              onSelectUser={(username) => router.push(`/dashboard/users/${username}`)}
               onUpdateFlags={(id, flags) => updateFlags.mutate({ id, flags })}
               page={state.page}
               setPage={state.setPage}

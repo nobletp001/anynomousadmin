@@ -25,8 +25,17 @@ export function useTasksMutations(callbacks: TasksMutationCallbacks) {
     },
   });
 
+  const togglePinTask = useMutation({
+    mutationFn: ({ id, isPinned }: { id: number; isPinned: boolean }) =>
+      apiClient.patch(`/admin/tasks/${id}`, { isPinned }) as any,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-tasks"] });
+    },
+  });
+
   return {
     deleteTask,
     deleteAllTasks,
+    togglePinTask,
   };
 }

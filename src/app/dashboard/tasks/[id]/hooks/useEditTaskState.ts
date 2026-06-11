@@ -42,8 +42,14 @@ export function useEditTaskState() {
   const [editPrompts, setEditPrompts] = useState("");
   const [editRequirePromptSelection, setEditRequirePromptSelection] = useState(false);
   const [editMarketingText, setEditMarketingText] = useState("");
+  const [editScheduledAt, setEditScheduledAt] = useState("");
+  const [editIsPinned, setEditIsPinned] = useState(false);
 
   return {
+    editScheduledAt,
+    setEditScheduledAt,
+    editIsPinned,
+    setEditIsPinned,
     isEditingTask,
     setIsEditingTask,
     editTimeline,

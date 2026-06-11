@@ -134,6 +134,10 @@ export default function CreateTaskPage() {
           setIsPayFluenceTask={state.setIsPayFluenceTask}
           volutterPayFluenceTaskPerformNumber={state.volutterPayFluenceTaskPerformNumber}
           setVolutterPayFluenceTaskPerformNumber={state.setVolutterPayFluenceTaskPerformNumber}
+          scheduledAt={state.scheduledAt}
+          setScheduledAt={state.setScheduledAt}
+          isPinned={state.isPinned}
+          setIsPinned={state.setIsPinned}
         />
 
         {mutations.createTask.error && (

@@ -123,6 +123,8 @@ export interface Task {
   requirePromptSelection?: boolean;
   marketingText?: string | null;
   isTobeIncludereferralCount?: boolean | null;
+  scheduledAt?: string | null;
+  isPinned?: boolean;
 }
 
 export interface UserInfo {

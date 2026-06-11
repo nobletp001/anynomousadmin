@@ -71,6 +71,7 @@ export function EditTaskModal({
     const filteredInstructions = editState.editInstructions.map((s) => s.trim()).filter(Boolean);
 
     updateTaskMutation.mutate({
+      scheduledAt: editState.editScheduledAt ? new Date(editState.editScheduledAt).toISOString() : null,
       timeline: editState.editNoExpiry
         ? null
         : editState.editTimeline
@@ -141,6 +142,7 @@ export function EditTaskModal({
         : null,
       requirePromptSelection: editState.editRequirePromptSelection,
       marketingText: editState.editMarketingText.trim() || null,
+      isPinned: editState.editIsPinned,
     });
   };
 
@@ -256,6 +258,10 @@ export function EditTaskModal({
             editAssignedOfficer={editState.editAssignedOfficer}
             setEditAssignedOfficer={editState.setEditAssignedOfficer}
             officers={officers}
+            editScheduledAt={editState.editScheduledAt}
+            setEditScheduledAt={editState.setEditScheduledAt}
+            editIsPinned={editState.editIsPinned}
+            setEditIsPinned={editState.setEditIsPinned}
           />
           <AllowedSubmissions editState={editState} />
         </div>
