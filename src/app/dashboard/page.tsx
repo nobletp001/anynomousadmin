@@ -9,7 +9,7 @@ import { StatsCard } from "./components/StatsCard";
 
 interface StatsResponse {
   success: boolean;
-  stats: {
+  data: {
     totalUsers: number;
     totalMessages: number;
     totalReferrals: number;
@@ -65,7 +65,7 @@ export default function DashboardPage() {
           <StatsCard
             index={0}
             label="Total Users"
-            value={data?.stats.totalUsers}
+            value={data?.data.totalUsers}
             icon={Users}
             color="purple"
             subtext="Active platform members"
@@ -75,7 +75,7 @@ export default function DashboardPage() {
           <StatsCard
             index={1}
             label="Messages Sent"
-            value={data?.stats.totalMessages}
+            value={data?.data.totalMessages}
             icon={MessageSquare}
             color="blue"
             subtext="Anonymous logs recorded"
@@ -84,7 +84,7 @@ export default function DashboardPage() {
           <StatsCard
             index={2}
             label="Referrals"
-            value={data?.stats.totalReferrals}
+            value={data?.data.totalReferrals}
             icon={GitMerge}
             color="emerald"
             subtext="User invites completed"
