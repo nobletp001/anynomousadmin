@@ -28,7 +28,7 @@ export default function LeadershipPage() {
         `/admin/leadership?month=${selectedMonth}&year=${selectedYear}`
       );
       if (res && res.success) {
-        setData(res);
+        setData(res.data);
       } else {
         setError("Failed to parse leaderboard statistics.");
       }
@@ -73,7 +73,9 @@ export default function LeadershipPage() {
             className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs font-bold text-zinc-200 outline-none focus:border-purple-500 cursor-pointer"
           >
             {MONTHS.map((m) => (
-              <option key={m.value} value={m.value}>{m.label}</option>
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
             ))}
           </select>
 
@@ -83,7 +85,9 @@ export default function LeadershipPage() {
             className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs font-bold text-zinc-200 outline-none focus:border-purple-500 cursor-pointer"
           >
             {YEARS.map((y) => (
-              <option key={y} value={y}>{y}</option>
+              <option key={y} value={y}>
+                {y}
+              </option>
             ))}
           </select>
         </div>
@@ -108,7 +112,12 @@ export default function LeadershipPage() {
                 Placement Winners ({data?.monthLabel})
               </h2>
             </div>
-            <WinnerCards winners={winners} formatTime={formatTime} onAwardBonus={setBonusUser} onSelectUser={setBreakdownUser} />
+            <WinnerCards
+              winners={winners}
+              formatTime={formatTime}
+              onAwardBonus={setBonusUser}
+              onSelectUser={setBreakdownUser}
+            />
           </div>
 
           <LeaderboardTable
