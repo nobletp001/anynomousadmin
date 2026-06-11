@@ -34,7 +34,6 @@ interface TaskConfigFormProps {
   marketingText: string;
   setMarketingText: (v: string) => void;
   isAppTesting: boolean;
-  setIsAppTesting: (v: boolean) => void;
 }
 
 export function TaskConfigForm({
@@ -67,7 +66,6 @@ export function TaskConfigForm({
   marketingText,
   setMarketingText,
   isAppTesting,
-  setIsAppTesting,
 }: TaskConfigFormProps) {
   const isJetpot = taskType === "jetpot";
   const isViews = taskType === "views";
@@ -76,36 +74,7 @@ export function TaskConfigForm({
 
   return (
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 space-y-4">
-      <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-        <div>
-          <p className="text-sm font-semibold text-zinc-200">App Testing Campaign</p>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            Optimize config for app testing (requires text proof only, preset task details).
-          </p>
-        </div>
-        <div
-          onClick={() => {
-            const nextVal = !isAppTesting;
-            setIsAppTesting(nextVal);
-            if (nextVal) {
-              setTaskType("use-app");
-              setTargetPlatform("Testing App");
-              setProofType("text");
-              setAcceptText(true);
-              setTextLabel("Registered email, username, or test feedback");
-            }
-          }}
-          className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${
-            isAppTesting ? "bg-purple-500" : "bg-zinc-700"
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
-              isAppTesting ? "translate-x-4" : "translate-x-0"
-            }`}
-          />
-        </div>
-      </div>
+      <h2 className="text-sm font-semibold text-zinc-300 pb-2 border-b border-zinc-800">Task Configuration</h2>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
