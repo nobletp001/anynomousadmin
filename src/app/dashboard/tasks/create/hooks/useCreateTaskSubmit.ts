@@ -9,7 +9,7 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
     state.title.trim() &&
     state.description.trim() &&
     state.targetPlatform.trim() &&
-    (state.isPayFluenceTask || Number(state.amount) > 0) &&
+    (state.isPayFluenceTask ? state.amount === "" || Number(state.amount) >= 0 : Number(state.amount) > 0) &&
     Number(state.numberOfUsersNeeded) > 0 &&
     (state.taskType !== "views" || Number(state.targetCount) > 0);
 
