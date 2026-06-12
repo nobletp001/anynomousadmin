@@ -9,6 +9,8 @@ interface SubmissionCollisionModalProps {
   type: string; // "bank" | "ip" | "device" | "image"
   value: string;
   onClose: () => void;
+  onCompareUser?: (username: string) => void;
+  currentUsername?: string;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -19,7 +21,13 @@ const TYPE_LABELS: Record<string, string> = {
   user_images: "User Submitted Proofs",
 };
 
-export function SubmissionCollisionModal({ type, value, onClose }: SubmissionCollisionModalProps) {
+export function SubmissionCollisionModal({
+  type,
+  value,
+  onClose,
+  onCompareUser,
+  currentUsername,
+}: SubmissionCollisionModalProps) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [error, setError] = useState("");
@@ -97,9 +105,13 @@ export function SubmissionCollisionModal({ type, value, onClose }: SubmissionCol
           ) : data.length === 0 ? (
             <div className="py-16 text-center text-zinc-500 text-sm">No other accounts share this value.</div>
           ) : type === "image" ? (
-            <ImageCollisionList matches={data as ImageCollisionMatch[]} />
+            <ImageCollisionList
+              matches={data as ImageCollisionMatch[]}
+              onCompareUser={onCompareUser}
+              currentUsername={currentUsername}
+            />
           ) : (
-            <AccountCollisionList items={data} />
+            <AccountCollisionList items={data} onCompareUser={onCompareUser} currentUsername={currentUsername} />
           )}
         </div>
       </div>
@@ -107,7 +119,15 @@ export function SubmissionCollisionModal({ type, value, onClose }: SubmissionCol
   );
 }
 
-function ImageCollisionList({ matches }: { matches: ImageCollisionMatch[] }) {
+function ImageCollisionList({
+  matches,
+  onCompareUser,
+  currentUsername,
+}: {
+  matches: ImageCollisionMatch[];
+  onCompareUser?: (username: string) => void;
+  currentUsername?: string;
+}) {
   return (
     <div className="space-y-3">
       <p className="text-xs text-zinc-500 font-semibold">{matches.length} submission(s) with the same image</p>
@@ -125,7 +145,7 @@ function ImageCollisionList({ matches }: { matches: ImageCollisionMatch[] }) {
             </div>
           )}
           <div className="flex-1 min-w-0 space-y-1.5">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap w-full">
               <span className="font-bold text-sm text-zinc-200">@{m.username}</span>
               {(m as any).similarity !== undefined && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
@@ -143,6 +163,14 @@ function ImageCollisionList({ matches }: { matches: ImageCollisionMatch[] }) {
               >
                 {m.status}
               </span>
+              {onCompareUser && m.username !== currentUsername && (
+                <button
+                  onClick={() => onCompareUser(m.username)}
+                  className="ml-auto px-2 py-1 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/20 rounded text-[10px] font-bold transition cursor-pointer"
+                >
+                  Compare Side-by-Side
+                </button>
+              )}
             </div>
             <p className="text-xs text-zinc-500 font-medium">Task: {m.taskTitle}</p>
             <p className="text-[10px] text-zinc-600">{new Date(m.createdAt).toLocaleString()}</p>
@@ -154,7 +182,15 @@ function ImageCollisionList({ matches }: { matches: ImageCollisionMatch[] }) {
   );
 }
 
-function AccountCollisionList({ items }: { items: any[] }) {
+function AccountCollisionList({
+  items,
+  onCompareUser,
+  currentUsername,
+}: {
+  items: any[];
+  onCompareUser?: (username: string) => void;
+  currentUsername?: string;
+}) {
   return (
     <div className="space-y-4">
       <p className="text-xs text-zinc-500 font-semibold">{items.length} account(s) share this value</p>
@@ -163,14 +199,24 @@ function AccountCollisionList({ items }: { items: any[] }) {
           key={item.user?.id ?? item.username}
           className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 space-y-2"
         >
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-purple-400 text-xs shrink-0">
-              {(item.user?.name ?? item.username ?? "?").charAt(0).toUpperCase()}
+          <div className="flex items-center justify-between gap-2 w-full">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-purple-400 text-xs shrink-0">
+                {(item.user?.name ?? item.username ?? "?").charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="font-bold text-sm text-zinc-200">{item.user?.name ?? item.username}</p>
+                <p className="text-[10px] text-zinc-500">@{item.user?.username ?? item.username}</p>
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-sm text-zinc-200">{item.user?.name ?? item.username}</p>
-              <p className="text-[10px] text-zinc-500">@{item.user?.username ?? item.username}</p>
-            </div>
+            {onCompareUser && (item.user?.username ?? item.username) !== currentUsername && (
+              <button
+                onClick={() => onCompareUser(item.user?.username ?? item.username)}
+                className="px-2 py-1 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/20 rounded text-[10px] font-bold transition cursor-pointer"
+              >
+                Compare Side-by-Side
+              </button>
+            )}
           </div>
           {item.bankDetails && (
             <div className="text-[10px] text-zinc-400 font-mono space-y-0.5">

@@ -13,6 +13,7 @@ interface FraudAlertsListProps {
   deviceFingerprint?: string | null;
   bankAccountNumber?: string | null;
   onInvestigate: (type: string, value: string) => void;
+  onCompareUser?: (username: string) => void;
 }
 
 const SEVERITY_STYLES: Record<string, string> = {
@@ -67,6 +68,42 @@ function getInvestigateAction(
   return null;
 }
 
+function renderDescriptionWithLinks(description: string, onCompareUser?: (username: string) => void) {
+  if (!onCompareUser) return <span>{description}</span>;
+
+  const regex = /@(\w+)/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(description)) !== null) {
+    const index = match.index;
+    const username = match[1];
+
+    if (index > lastIndex) {
+      parts.push(description.substring(lastIndex, index));
+    }
+
+    parts.push(
+      <button
+        key={index}
+        onClick={() => onCompareUser(username)}
+        className="font-bold underline text-purple-400 hover:text-purple-300 transition-colors cursor-pointer inline-block"
+      >
+        @{username}
+      </button>
+    );
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < description.length) {
+    parts.push(description.substring(lastIndex));
+  }
+
+  return <span>{parts.length > 0 ? parts : description}</span>;
+}
+
 export function FraudAlertsList({
   alerts,
   imageHash,
@@ -75,6 +112,7 @@ export function FraudAlertsList({
   deviceFingerprint,
   bankAccountNumber,
   onInvestigate,
+  onCompareUser,
 }: FraudAlertsListProps) {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [resolving, setResolving] = useState<number | null>(null);
@@ -128,7 +166,9 @@ export function FraudAlertsList({
                       {ALERT_TYPE_LABELS[alert.alertType] ?? alert.alertType}
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-300 leading-relaxed">{alert.description}</p>
+                  <p className="text-[11px] text-zinc-300 leading-relaxed">
+                    {renderDescriptionWithLinks(alert.description, onCompareUser)}
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">

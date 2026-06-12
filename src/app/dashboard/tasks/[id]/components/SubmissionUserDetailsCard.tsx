@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui";
-import { AlertCircle, Users } from "lucide-react";
+import { AlertCircle, Users, ScanSearch } from "lucide-react";
 import { Submission } from "../types";
 import { formatAmount, statusVariant } from "../utils";
 import { FraudAlertsList } from "./FraudAlertsList";
@@ -97,7 +97,6 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
           </button>
         )}
       </div>
-
       <div className="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-900/60">
         <div>
           <p className="text-[10px] text-zinc-500 uppercase font-semibold">Wallet Balance</p>
@@ -112,7 +111,6 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
           </div>
         </div>
       </div>
-
       {accountNumber && (
         <div className="pt-2 border-t border-zinc-900/60 text-xs">
           <p className="text-[10px] text-zinc-500 uppercase font-semibold mb-1">Bank Details</p>
@@ -128,105 +126,157 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
             </p>
           </div>
         </div>
-      )}
-
+      )}{" "}
       {hasAlerts && (
         <div className="space-y-1.5 pt-2 border-t border-zinc-900/60">
           <p className="text-[10px] text-zinc-500 uppercase font-semibold">Security Alerts</p>
           <div className="flex flex-col gap-1.5">
             {dupSub && (
-              <div className="flex items-start gap-2 text-xs text-red-400 bg-red-950/20 border border-red-900/30 rounded-lg px-3 py-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <div className="leading-relaxed">
-                  Duplicate proof matching{" "}
-                  <button
-                    onClick={() => onCompareUser?.(dupSub.username)}
-                    className="font-bold underline text-red-300 hover:text-red-200 cursor-pointer"
-                  >
-                    @{dupSub.username}
-                  </button>
+              <div className="flex items-center justify-between gap-2 text-xs text-red-400 bg-red-955/20 border border-red-900/30 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                  <div className="leading-relaxed truncate">
+                    Duplicate proof matching{" "}
+                    <button
+                      onClick={() => onCompareUser?.(dupSub.username)}
+                      className="font-bold underline text-red-300 hover:text-red-200 cursor-pointer"
+                    >
+                      @{dupSub.username}
+                    </button>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setCollision({ type: "image", value: String(sub.id) })}
+                  title="Investigate duplicate proof collisions"
+                  className="p-1 rounded text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
+                >
+                  <ScanSearch className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
             {similarMatches.map((match) => (
               <div
                 key={match.submissionId}
-                className="flex items-start gap-2 text-xs text-red-400 bg-red-950/20 border border-red-900/30 rounded-lg px-3 py-2"
+                className="flex items-center justify-between gap-2 text-xs text-red-400 bg-red-955/20 border border-red-900/30 rounded-lg px-3 py-2"
               >
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <div className="leading-relaxed flex-1">
-                  Similar proof ({match.similarity}% similarity) matching{" "}
-                  <button
-                    onClick={() => setCollision({ type: "user_images", value: match.username })}
-                    className="font-bold underline text-red-300 hover:text-red-200 cursor-pointer"
-                  >
-                    @{match.username}
-                  </button>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                  <div className="leading-relaxed truncate">
+                    Similar proof ({match.similarity}% similarity) matching{" "}
+                    <button
+                      onClick={() => onCompareUser?.(match.username)}
+                      className="font-bold underline text-red-300 hover:text-red-200 cursor-pointer"
+                    >
+                      @{match.username}
+                    </button>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setCollision({ type: "image", value: String(sub.id) })}
+                  title="Investigate similar proof collisions"
+                  className="p-1 rounded text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
+                >
+                  <ScanSearch className="w-3.5 h-3.5" />
+                </button>
               </div>
             ))}
             {ipSub && (
-              <div className="flex items-start gap-2 text-xs text-amber-400 bg-amber-955/20 border border-amber-900/30 rounded-lg px-3 py-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <div className="leading-relaxed">
-                  Same IP as{" "}
-                  <button
-                    onClick={() => onCompareUser?.(ipSub.username)}
-                    className="font-bold underline text-amber-300 hover:text-amber-200 cursor-pointer"
-                  >
-                    @{ipSub.username}
-                  </button>{" "}
-                  (IP: {sub.ipAddress})
+              <div className="flex items-center justify-between gap-2 text-xs text-amber-400 bg-amber-955/20 border border-amber-900/30 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+                  <div className="leading-relaxed truncate">
+                    Same IP as{" "}
+                    <button
+                      onClick={() => onCompareUser?.(ipSub.username)}
+                      className="font-bold underline text-amber-300 hover:text-amber-200 cursor-pointer"
+                    >
+                      @{ipSub.username}
+                    </button>{" "}
+                    (IP: {sub.ipAddress})
+                  </div>
                 </div>
+                <button
+                  onClick={() => setCollision({ type: "ip", value: sub.ipAddress! })}
+                  title="Investigate IP collisions"
+                  className="p-1 rounded text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer shrink-0"
+                >
+                  <ScanSearch className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
             {devSub && (
-              <div className="flex items-start gap-2 text-xs text-yellow-500 bg-yellow-955/20 border border-yellow-900/30 rounded-lg px-3 py-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <div className="leading-relaxed">
-                  Same Device as{" "}
-                  <button
-                    onClick={() => onCompareUser?.(devSub.username)}
-                    className="font-bold underline text-yellow-400 hover:text-yellow-350 cursor-pointer"
-                  >
-                    @{devSub.username}
-                  </button>{" "}
-                  (Device: {sub.deviceId?.substring(0, 8)}...)
+              <div className="flex items-center justify-between gap-2 text-xs text-yellow-500 bg-yellow-955/20 border border-yellow-900/30 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-yellow-500" />
+                  <div className="leading-relaxed truncate">
+                    Same Device as{" "}
+                    <button
+                      onClick={() => onCompareUser?.(devSub.username)}
+                      className="font-bold underline text-yellow-400 hover:text-yellow-350 cursor-pointer"
+                    >
+                      @{devSub.username}
+                    </button>{" "}
+                    (Device: {sub.deviceId?.substring(0, 8)}...)
+                  </div>
                 </div>
+                <button
+                  onClick={() => setCollision({ type: "device", value: sub.deviceId! })}
+                  title="Investigate Device ID collisions"
+                  className="p-1 rounded text-yellow-500 hover:bg-yellow-500/10 transition-colors cursor-pointer shrink-0"
+                >
+                  <ScanSearch className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
             {dfSub && (
-              <div className="flex items-start gap-2 text-xs text-yellow-500 bg-yellow-955/20 border border-yellow-900/30 rounded-lg px-3 py-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <div className="leading-relaxed">
-                  Same Device Fingerprint as{" "}
-                  <button
-                    onClick={() => onCompareUser?.(dfSub.username)}
-                    className="font-bold underline text-yellow-400 hover:text-yellow-350 cursor-pointer"
-                  >
-                    @{dfSub.username}
-                  </button>
+              <div className="flex items-center justify-between gap-2 text-xs text-yellow-500 bg-yellow-955/20 border border-yellow-900/30 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-yellow-500" />
+                  <div className="leading-relaxed truncate">
+                    Same Device Fingerprint as{" "}
+                    <button
+                      onClick={() => onCompareUser?.(dfSub.username)}
+                      className="font-bold underline text-yellow-400 hover:text-yellow-350 cursor-pointer"
+                    >
+                      @{dfSub.username}
+                    </button>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setCollision({ type: "device", value: sub.deviceFingerprint! })}
+                  title="Investigate Device Fingerprint collisions"
+                  className="p-1 rounded text-yellow-500 hover:bg-yellow-500/10 transition-colors cursor-pointer shrink-0"
+                >
+                  <ScanSearch className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
             {bankSub && (
-              <div className="flex items-start gap-2 text-xs text-red-400 bg-red-950/20 border border-red-900/30 rounded-lg px-3 py-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <div className="leading-relaxed">
-                  Same Bank Account as{" "}
-                  <button
-                    onClick={() => onCompareUser?.(bankSub.username)}
-                    className="font-bold underline text-red-300 hover:text-red-200 cursor-pointer"
-                  >
-                    @{bankSub.username}
-                  </button>
+              <div className="flex items-center justify-between gap-2 text-xs text-red-400 bg-red-955/20 border border-red-900/30 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                  <div className="leading-relaxed truncate">
+                    Same Bank Account as{" "}
+                    <button
+                      onClick={() => onCompareUser?.(bankSub.username)}
+                      className="font-bold underline text-red-300 hover:text-red-200 cursor-pointer"
+                    >
+                      @{bankSub.username}
+                    </button>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setCollision({ type: "bank", value: accountNumber! })}
+                  title="Investigate Bank Account collisions"
+                  className="p-1 rounded text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
+                >
+                  <ScanSearch className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
           </div>
         </div>
       )}
-
       {/* DB fraud alerts — all types logged by the platform */}
       {sub.fraudAlerts && sub.fraudAlerts.length > 0 && (
         <FraudAlertsList
@@ -237,9 +287,9 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
           deviceFingerprint={sub.deviceFingerprint}
           bankAccountNumber={(sub.user as any)?.accountNumber}
           onInvestigate={(type, value) => setCollision({ type, value })}
+          onCompareUser={onCompareUser}
         />
       )}
-
       {whatsappNum && (
         <div className="pt-2 border-t border-zinc-900/60 flex flex-col gap-0.5">
           <p className="text-[10px] text-zinc-500 uppercase font-semibold">WhatsApp Contact</p>
@@ -253,9 +303,17 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
           </a>
         </div>
       )}
-
       {collision && (
-        <SubmissionCollisionModal type={collision.type} value={collision.value} onClose={() => setCollision(null)} />
+        <SubmissionCollisionModal
+          type={collision.type}
+          value={collision.value}
+          onClose={() => setCollision(null)}
+          onCompareUser={(username) => {
+            onCompareUser?.(username);
+            setCollision(null);
+          }}
+          currentUsername={sub.username}
+        />
       )}
     </div>
   );
