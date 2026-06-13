@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui";
-import { AlertCircle, Users, ScanSearch } from "lucide-react";
+import { AlertCircle, Users, ScanSearch, Star } from "lucide-react";
 import { Submission } from "../types";
 import { formatAmount, statusVariant } from "../utils";
 import { FraudAlertsList } from "./FraudAlertsList";
@@ -138,25 +138,33 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
             </div>
             <div>
               <p className="text-[9px] text-zinc-550 font-semibold">Total Stars (Rating)</p>
-              <p className="font-bold text-zinc-200">⭐ {sub.userTaskStats.totalStars}</p>
+              <p className="font-bold text-zinc-200 flex items-center gap-1 mt-0.5">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                {sub.userTaskStats.totalStars}
+              </p>
             </div>
             <div className="col-span-2 mt-0.5">
-              <p className="text-[9px] text-zinc-550 font-semibold mb-1">Ratings Distribution</p>
-              <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
+              <p className="text-[10px] text-zinc-500 font-semibold mb-1.5">Ratings Distribution</p>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
                 <span className="flex items-center gap-0.5 text-zinc-400">
-                  5⭐: <strong className="text-zinc-250">{sub.userTaskStats.star5}</strong>
+                  5<Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />:{" "}
+                  <strong className="text-zinc-200">{sub.userTaskStats.star5}</strong>
                 </span>
                 <span className="flex items-center gap-0.5 text-zinc-400">
-                  4⭐: <strong className="text-zinc-250">{sub.userTaskStats.star4}</strong>
+                  4<Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />:{" "}
+                  <strong className="text-zinc-200">{sub.userTaskStats.star4}</strong>
                 </span>
                 <span className="flex items-center gap-0.5 text-zinc-400">
-                  3⭐: <strong className="text-zinc-250">{sub.userTaskStats.star3}</strong>
+                  3<Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />:{" "}
+                  <strong className="text-zinc-200">{sub.userTaskStats.star3}</strong>
                 </span>
                 <span className="flex items-center gap-0.5 text-zinc-400">
-                  2⭐: <strong className="text-zinc-250">{sub.userTaskStats.star2}</strong>
+                  2<Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />:{" "}
+                  <strong className="text-zinc-200">{sub.userTaskStats.star2}</strong>
                 </span>
                 <span className="flex items-center gap-0.5 text-zinc-400">
-                  1⭐: <strong className="text-zinc-250">{sub.userTaskStats.star1}</strong>
+                  1<Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />:{" "}
+                  <strong className="text-zinc-200">{sub.userTaskStats.star1}</strong>
                 </span>
               </div>
             </div>

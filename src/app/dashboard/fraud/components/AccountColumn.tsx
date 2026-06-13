@@ -1,5 +1,4 @@
-import React from "react";
-import { CreditCard, Eye, ShieldOff, X, ExternalLink } from "lucide-react";
+import { CreditCard, Eye, ShieldOff, X, ExternalLink, Star } from "lucide-react";
 import { formatDate } from "../utils";
 import { SubmissionItem } from "./SubmissionItem";
 
@@ -41,12 +40,23 @@ export function AccountColumn({
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-500 truncate">@{user.username} · {user.email}</p>
-            <p className="text-[10px] text-zinc-650 mt-0.5">Joined: {formatDate(user.createdAt)} · Rating: ⭐ {user.rating}</p>
+            <p className="text-xs text-zinc-500 truncate">
+              @{user.username} · {user.email}
+            </p>
+            <div className="text-[10px] text-zinc-650 mt-0.5 flex items-center gap-1 flex-wrap">
+              <span>Joined: {formatDate(user.createdAt)}</span>
+              <span>·</span>
+              <span className="flex items-center gap-0.5">
+                Rating: <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400 shrink-0" />
+                {user.rating}
+              </span>
+            </div>
           </div>
         </div>
         <div className="shrink-0">
-          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${user.disabled ? "bg-red-500/15 text-red-400 border-red-500/30" : "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"}`}>
+          <span
+            className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${user.disabled ? "bg-red-500/15 text-red-400 border-red-500/30" : "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"}`}
+          >
             {user.disabled ? "Disabled" : "Active"}
           </span>
         </div>
@@ -60,7 +70,9 @@ export function AccountColumn({
         </div>
         <div className="min-w-0">
           <p className="text-zinc-600 font-bold text-[9px] uppercase tracking-wider">Reg Device</p>
-          <p className="text-zinc-300 truncate mt-0.5" title={user.deviceId}>{user.deviceId ? `${user.deviceId.substring(0, 12)}...` : "N/A"}</p>
+          <p className="text-zinc-300 truncate mt-0.5" title={user.deviceId}>
+            {user.deviceId ? `${user.deviceId.substring(0, 12)}...` : "N/A"}
+          </p>
         </div>
       </div>
 
