@@ -179,8 +179,20 @@ export interface Submission {
   deviceId?: string | null;
   selectedPrompt?: string | null;
   deviceFingerprint?: string | null;
-  imageHash?: string | null;
   fraudAlerts?: FraudAlert[];
+  userTaskStats?: {
+    total: number;
+    approved: number;
+    rejected: number;
+    currentCorrections: number;
+    star5: number;
+    star4: number;
+    star3: number;
+    star2: number;
+    star1: number;
+    totalStars: number;
+    revisions: number;
+  };
 }
 
 export interface SubmissionsResponse {

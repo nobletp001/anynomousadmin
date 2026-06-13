@@ -127,6 +127,52 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
           </div>
         </div>
       )}{" "}
+      {/* Task History Stats */}
+      {sub.userTaskStats && (
+        <div className="pt-2 border-t border-zinc-900/60 text-xs">
+          <p className="text-[10px] text-zinc-500 uppercase font-semibold mb-1.5">Task History Stats</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-zinc-350 bg-zinc-900/20 p-2.5 rounded-lg border border-zinc-900">
+            <div>
+              <p className="text-[9px] text-zinc-500 font-semibold">Total Tasks</p>
+              <p className="font-bold text-zinc-200">{sub.userTaskStats.total}</p>
+            </div>
+            <div>
+              <p className="text-[9px] text-zinc-550 font-semibold">Total Stars (Rating)</p>
+              <p className="font-bold text-zinc-200">⭐ {sub.userTaskStats.totalStars}</p>
+            </div>
+            <div className="col-span-2 mt-0.5">
+              <p className="text-[9px] text-zinc-550 font-semibold mb-1">Ratings Distribution</p>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
+                <span className="flex items-center gap-0.5 text-zinc-400">
+                  5⭐: <strong className="text-zinc-250">{sub.userTaskStats.star5}</strong>
+                </span>
+                <span className="flex items-center gap-0.5 text-zinc-400">
+                  4⭐: <strong className="text-zinc-250">{sub.userTaskStats.star4}</strong>
+                </span>
+                <span className="flex items-center gap-0.5 text-zinc-400">
+                  3⭐: <strong className="text-zinc-250">{sub.userTaskStats.star3}</strong>
+                </span>
+                <span className="flex items-center gap-0.5 text-zinc-400">
+                  2⭐: <strong className="text-zinc-250">{sub.userTaskStats.star2}</strong>
+                </span>
+                <span className="flex items-center gap-0.5 text-zinc-400">
+                  1⭐: <strong className="text-zinc-250">{sub.userTaskStats.star1}</strong>
+                </span>
+              </div>
+            </div>
+            <div className="col-span-2 pt-1 border-t border-zinc-900/40 grid grid-cols-2 gap-x-4">
+              <div>
+                <p className="text-[9px] text-zinc-500 font-semibold">Correction Requests</p>
+                <p className="font-bold text-zinc-200">{sub.userTaskStats.revisions}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-zinc-500 font-semibold">Current Corrections</p>
+                <p className="font-bold text-zinc-200">{sub.userTaskStats.currentCorrections}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {hasAlerts && (
         <div className="space-y-1.5 pt-2 border-t border-zinc-900/60">
           <p className="text-[10px] text-zinc-500 uppercase font-semibold">Security Alerts</p>
