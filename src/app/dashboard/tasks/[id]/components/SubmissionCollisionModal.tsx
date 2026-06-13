@@ -19,6 +19,7 @@ const TYPE_LABELS: Record<string, string> = {
   device: "Device ID / Fingerprint",
   image: "Image Hash / Similar Proof",
   user_images: "User Submitted Proofs",
+  text: "Collected Text Details",
 };
 
 export function SubmissionCollisionModal({

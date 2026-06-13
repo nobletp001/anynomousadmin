@@ -152,6 +152,14 @@ export function SubmissionDetailsModal({
         sub.deviceFingerprint &&
         sub.deviceFingerprint !== "server-side"
     );
+    const textSub = submissions.find(
+      (s) =>
+        s.id !== sub.id &&
+        s.username !== sub.username &&
+        s.textResponse &&
+        sub.textResponse &&
+        s.textResponse.trim().toLowerCase() === sub.textResponse.trim().toLowerCase()
+    );
 
     let similarMatchesCount = 0;
     if (sub.proofType !== "text" && sub.id) {
@@ -169,6 +177,7 @@ export function SubmissionDetailsModal({
       devSub ||
       bankSub ||
       dfSub ||
+      textSub ||
       similarMatchesCount > 0 ||
       (sub.fraudAlerts && sub.fraudAlerts.length > 0);
 
@@ -182,6 +191,7 @@ export function SubmissionDetailsModal({
       if (devSub) warningMessage += `- Shared Device ID with @${devSub.username}\n`;
       if (dfSub) warningMessage += `- Shared Device Fingerprint with @${dfSub.username}\n`;
       if (bankSub) warningMessage += `- Shared Bank Account with @${bankSub.username}\n`;
+      if (textSub) warningMessage += `- Shared Collected Text with @${textSub.username}\n`;
       if (sub.fraudAlerts && sub.fraudAlerts.length > 0) {
         warningMessage += `- User has ${sub.fraudAlerts.length} existing fraud alert(s)\n`;
       }

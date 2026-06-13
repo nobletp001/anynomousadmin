@@ -179,6 +179,7 @@ export interface Submission {
   deviceId?: string | null;
   selectedPrompt?: string | null;
   deviceFingerprint?: string | null;
+  imageHash?: string | null;
   fraudAlerts?: FraudAlert[];
   userTaskStats?: {
     total: number;

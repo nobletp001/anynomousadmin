@@ -53,6 +53,15 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
       sub.deviceFingerprint !== "server-side"
   );
 
+  const textSub = submissions.find(
+    (s) =>
+      s.id !== sub.id &&
+      s.username !== sub.username &&
+      s.textResponse &&
+      sub.textResponse &&
+      s.textResponse.trim().toLowerCase() === sub.textResponse.trim().toLowerCase()
+  );
+
   const [similarMatches, setSimilarMatches] = useState<any[]>([]);
 
   useEffect(() => {
@@ -68,7 +77,7 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
     }
   }, [sub.id, sub.proofType]);
 
-  const hasAlerts = dupSub || ipSub || devSub || bankSub || dfSub || similarMatches.length > 0;
+  const hasAlerts = dupSub || ipSub || devSub || bankSub || dfSub || textSub || similarMatches.length > 0;
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 space-y-4">
@@ -299,6 +308,29 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
                 <button
                   onClick={() => setCollision({ type: "device", value: sub.deviceFingerprint! })}
                   title="Investigate Device Fingerprint collisions"
+                  className="p-1 rounded text-yellow-500 hover:bg-yellow-500/10 transition-colors cursor-pointer shrink-0"
+                >
+                  <ScanSearch className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+            {textSub && (
+              <div className="flex items-center justify-between gap-2 text-xs text-yellow-500 bg-yellow-955/20 border border-yellow-900/30 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-yellow-500" />
+                  <div className="leading-relaxed truncate">
+                    Same Collected Text as{" "}
+                    <button
+                      onClick={() => onCompareUser?.(textSub.username)}
+                      className="font-bold underline text-yellow-400 hover:text-yellow-350 cursor-pointer"
+                    >
+                      @{textSub.username}
+                    </button>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCollision({ type: "text", value: sub.textResponse! })}
+                  title="Investigate Collected Text collisions"
                   className="p-1 rounded text-yellow-500 hover:bg-yellow-500/10 transition-colors cursor-pointer shrink-0"
                 >
                   <ScanSearch className="w-3.5 h-3.5" />
