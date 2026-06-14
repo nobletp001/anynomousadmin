@@ -48,7 +48,11 @@ export function SubmissionProofPanel({ sub, onZoomImage }: SubmissionProofPanelP
                     onClick={() => onZoomImage(images, idx)}
                     className="relative aspect-video w-full overflow-hidden rounded-lg border border-zinc-955 cursor-zoom-in hover:opacity-90 transition-opacity"
                   >
-                    <img src={imgUrl} alt={`Screenshot Proof ${idx + 1}`} className="w-full h-full object-contain bg-black" />
+                    <img
+                      src={imgUrl}
+                      alt={`Screenshot Proof ${idx + 1}`}
+                      className="w-full h-full object-contain bg-black pointer-events-none"
+                    />
                   </div>
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-[10px] font-bold text-zinc-550 uppercase tracking-wider">

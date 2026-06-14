@@ -5,6 +5,7 @@ export interface TaskBreakdownItem {
   amount: number;
   tokenStatus: "valid" | "legacy" | "invalid";
   approvedAt: string;
+  category?: "withdrawing" | "remaining";
 }
 
 export interface ReferralBreakdownItem {
@@ -14,6 +15,7 @@ export interface ReferralBreakdownItem {
   earned: number;
   pending: number;
   recentTasks: { taskTitle: string; amount: number; date: string }[];
+  category?: "withdrawing" | "remaining";
 }
 
 export interface AdminAdjustment {

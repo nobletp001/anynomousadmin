@@ -4,25 +4,33 @@ import { Users } from "lucide-react";
 
 interface ReferralEarningsListProps {
   referralBreakdown: any[];
+  referralAmount: number;
 }
 
 function fmt2(n: number) {
   return `₦${n.toLocaleString()}`;
 }
 
-export function ReferralEarningsList({ referralBreakdown }: ReferralEarningsListProps) {
-  if (referralBreakdown.length === 0) return null;
+export function ReferralEarningsList({ referralBreakdown, referralAmount }: ReferralEarningsListProps) {
+  const withdrawing = referralBreakdown;
+
+  if (withdrawing.length === 0) return null;
 
   return (
     <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/30 p-4 space-y-3">
-      <div className="flex items-center gap-2 text-zinc-400">
-        <Users className="w-3.5 h-3.5 text-purple-400" />
-        <span className="text-xs font-bold uppercase tracking-wider text-zinc-355">
-          Referral Earnings ({referralBreakdown.length} referrals)
+      <div className="flex items-center justify-between border-b border-zinc-800/60 pb-2 mb-2">
+        <div className="flex items-center gap-2 text-zinc-400">
+          <Users className="w-3.5 h-3.5 text-purple-400" />
+          <span className="text-xs font-bold uppercase tracking-wider text-zinc-350">
+            Referral Earnings ({withdrawing.length})
+          </span>
+        </div>
+        <span className="text-[10px] font-bold text-purple-400 uppercase">
+          Cleared: ₦{referralAmount.toLocaleString()}
         </span>
       </div>
-      <div className="space-y-2 max-h-56 overflow-y-auto">
-        {referralBreakdown.map((r) => (
+      <div className="space-y-2 max-h-56 overflow-y-auto pr-0.5 scrollbar-thin">
+        {withdrawing.map((r) => (
           <div key={r.referredUsername} className="px-3 py-2.5 rounded-lg bg-zinc-900/50 space-y-1.5">
             <div className="flex items-center justify-between">
               <div>

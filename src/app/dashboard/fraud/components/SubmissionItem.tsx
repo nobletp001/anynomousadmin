@@ -14,7 +14,7 @@ export function SubmissionItem({ sub, onZoom }: SubmissionItemProps) {
     pending: "bg-amber-500/15 text-amber-400 border-amber-500/30",
     needs_correction: "bg-orange-500/15 text-orange-400 border-orange-500/30",
   };
-  
+
   const imgs = sub.proofType !== "link" ? getImagesList(sub.proof) : [];
 
   return (
@@ -27,7 +27,9 @@ export function SubmissionItem({ sub, onZoom }: SubmissionItemProps) {
             {formatAmount(sub.taskAmount)} · {formatDate(sub.createdAt)}
           </p>
         </div>
-        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${statusColors[sub.status] ?? "bg-zinc-800 text-zinc-400 border-zinc-700"}`}>
+        <span
+          className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${statusColors[sub.status] ?? "bg-zinc-800 text-zinc-400 border-zinc-700"}`}
+        >
           {sub.status}
         </span>
       </div>
@@ -72,7 +74,7 @@ export function SubmissionItem({ sub, onZoom }: SubmissionItemProps) {
                 onClick={() => onZoom(img, i, imgs)}
                 className="relative aspect-video w-full overflow-hidden rounded-lg border border-zinc-800 cursor-zoom-in hover:opacity-90 transition-opacity bg-black"
               >
-                <img src={img} alt="Proof" className="w-full h-full object-cover" />
+                <img src={img} alt="Proof" className="w-full h-full object-cover pointer-events-none" />
               </div>
             ))}
           </div>

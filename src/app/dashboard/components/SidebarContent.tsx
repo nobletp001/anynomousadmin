@@ -15,6 +15,7 @@ import {
   Coins,
   Target,
   Crown,
+  BookOpen,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -72,7 +73,12 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     icon: UserCheck,
     roles: ["account-manager", "super-admin", "admin"],
   },
-
+  {
+    name: "Blog",
+    href: "/dashboard/blog",
+    icon: BookOpen,
+    roles: ["super-admin", "admin"],
+  },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 

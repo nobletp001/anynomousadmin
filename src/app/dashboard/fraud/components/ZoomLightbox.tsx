@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { getDownloadUrl } from "../utils";
 
@@ -9,6 +9,16 @@ interface ZoomLightboxProps {
 }
 
 export function ZoomLightbox({ selectedImage, onClose, onChangeImage }: ZoomLightboxProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
     const newIdx = (selectedImage.index - 1 + selectedImage.allImages.length) % selectedImage.allImages.length;
@@ -22,9 +32,15 @@ export function ZoomLightbox({ selectedImage, onClose, onChangeImage }: ZoomLigh
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] flex flex-col items-center justify-center p-4">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex flex-col items-center justify-center p-4 cursor-zoom-out"
+    >
       {/* Top Bar */}
-      <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 cursor-default"
+      >
         <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest bg-zinc-900/80 border border-zinc-800 px-3 py-1.5 rounded-full">
           Screenshot {selectedImage.index + 1} of {selectedImage.allImages.length}
         </span>
@@ -41,7 +57,7 @@ export function ZoomLightbox({ selectedImage, onClose, onChangeImage }: ZoomLigh
           </a>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -49,11 +65,14 @@ export function ZoomLightbox({ selectedImage, onClose, onChangeImage }: ZoomLigh
       </div>
 
       {/* Content Body */}
-      <div className="w-full flex-1 flex items-center justify-center relative select-none">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full flex-1 flex items-center justify-center relative select-none cursor-default"
+      >
         {selectedImage.allImages.length > 1 && (
           <button
             onClick={handlePrev}
-            className="absolute left-4 p-3 rounded-full bg-zinc-900/60 hover:bg-zinc-900 text-zinc-300 hover:text-white transition-all border border-zinc-800"
+            className="absolute left-4 p-3 rounded-full bg-zinc-900/60 hover:bg-zinc-900 text-zinc-300 hover:text-white transition-all border border-zinc-800 cursor-pointer z-10"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -70,7 +89,7 @@ export function ZoomLightbox({ selectedImage, onClose, onChangeImage }: ZoomLigh
         {selectedImage.allImages.length > 1 && (
           <button
             onClick={handleNext}
-            className="absolute right-4 p-3 rounded-full bg-zinc-900/60 hover:bg-zinc-900 text-zinc-300 hover:text-white transition-all border border-zinc-800"
+            className="absolute right-4 p-3 rounded-full bg-zinc-900/60 hover:bg-zinc-900 text-zinc-300 hover:text-white transition-all border border-zinc-800 cursor-pointer z-10"
           >
             <ChevronRight className="w-6 h-6" />
           </button>

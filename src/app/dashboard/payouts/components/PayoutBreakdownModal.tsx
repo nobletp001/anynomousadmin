@@ -127,13 +127,17 @@ export function PayoutBreakdownModal({ claim, onClose, onPay, onReject, actionDi
               {/* Task Completions */}
               <TaskCompletionsList
                 taskBreakdown={data.taskBreakdown}
+                microAmount={data.claim.microAmount}
                 reversingId={reversingId}
                 actionDisabled={actionDisabled}
                 handleReverseSubmission={handleReverseSubmission}
               />
 
               {/* Referral Earnings */}
-              <ReferralEarningsList referralBreakdown={data.referralBreakdown} />
+              <ReferralEarningsList
+                referralBreakdown={data.referralBreakdown}
+                referralAmount={data.claim.referralAmount}
+              />
 
               {/* User & bank */}
               <UserBankGrid user={data.user} bankDetails={data.bankDetails} username={claim.username} />

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { AlertCircle, Eye, CheckCircle, XCircle, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { AlertCircle, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { Submission, Task } from "../types";
-import { formatAmount, formatDate, getImagesList } from "../utils";
+import { formatAmount, getImagesList } from "../utils";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface SideBySideCompareBodyProps {
@@ -21,7 +21,7 @@ export function SideBySideCompareBody({
   comparisonSub,
   task,
   onZoomImage,
-  onWatchUser,
+  onWatchUser: _onWatchUser,
   onCloseCompare,
 }: SideBySideCompareBodyProps) {
   const queryClient = useQueryClient();
@@ -69,18 +69,31 @@ export function SideBySideCompareBody({
     return (
       <div className="border border-zinc-800 bg-zinc-950/20 rounded-xl p-5 space-y-4 flex flex-col h-full">
         <h4 className="text-xs font-bold text-violet-400 border-b border-zinc-850 pb-2 flex items-center justify-between">
-          <span>{title} (@{s.username})</span>
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase select-none ${status === "approved" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : status === "rejected" ? "bg-red-500/15 text-red-400 border border-red-500/30" : "bg-amber-500/15 text-amber-400 border border-amber-500/30"}`}>
+          <span>
+            {title} (@{s.username})
+          </span>
+          <span
+            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase select-none ${status === "approved" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : status === "rejected" ? "bg-red-500/15 text-red-400 border border-red-500/30" : "bg-amber-500/15 text-amber-400 border border-amber-500/30"}`}
+          >
             {status}
           </span>
         </h4>
 
         {/* User Card info */}
         <div className="text-xs space-y-1.5 bg-zinc-900/40 p-3 rounded-lg border border-zinc-800">
-          <p><span className="text-zinc-500 font-medium">Name:</span> <span className="font-semibold text-zinc-200">{s.user?.name || "—"}</span></p>
-          <p><span className="text-zinc-500 font-medium">Balance:</span> <span className="font-semibold text-emerald-400">{formatAmount(s.userBalance)}</span></p>
+          <p>
+            <span className="text-zinc-500 font-medium">Name:</span>{" "}
+            <span className="font-semibold text-zinc-200">{s.user?.name || "—"}</span>
+          </p>
+          <p>
+            <span className="text-zinc-500 font-medium">Balance:</span>{" "}
+            <span className="font-semibold text-emerald-400">{formatAmount(s.userBalance)}</span>
+          </p>
           {s.user && (s.user as any).accountNumber && (
-            <p className="font-mono mt-1 border-t border-zinc-850 pt-1.5"><span className="text-zinc-500">Bank Acc:</span> {(s.user as any).accountNumber} ({(s.user as any).bankName})</p>
+            <p className="font-mono mt-1 border-t border-zinc-850 pt-1.5">
+              <span className="text-zinc-500">Bank Acc:</span> {(s.user as any).accountNumber} (
+              {(s.user as any).bankName})
+            </p>
           )}
         </div>
 
@@ -117,8 +130,18 @@ export function SideBySideCompareBody({
         {/* Answers details */}
         {(s.textResponse || s.numberResponse) && (
           <div className="text-[11px] bg-zinc-950/40 p-3 rounded-lg border border-zinc-850 space-y-2">
-            {s.textResponse && <p><span className="text-zinc-600 font-bold block text-[9px] uppercase">Text Answer:</span> {s.textResponse}</p>}
-            {s.numberResponse && <p><span className="text-zinc-600 font-bold block text-[9px] uppercase">Number Answer:</span> {s.numberResponse}</p>}
+            {s.textResponse && (
+              <p>
+                <span className="text-zinc-600 font-bold block text-[9px] uppercase">Text Answer:</span>{" "}
+                {s.textResponse}
+              </p>
+            )}
+            {s.numberResponse && (
+              <p>
+                <span className="text-zinc-600 font-bold block text-[9px] uppercase">Number Answer:</span>{" "}
+                {s.numberResponse}
+              </p>
+            )}
           </div>
         )}
 
@@ -138,8 +161,12 @@ export function SideBySideCompareBody({
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {imgs.map((imgUrl, idx) => (
-                <div key={idx} onClick={() => onZoomImage(imgs, idx)} className="relative aspect-video w-full overflow-hidden rounded-lg border border-zinc-850 cursor-zoom-in hover:opacity-90 bg-black">
-                  <img src={imgUrl} alt="Proof" className="w-full h-full object-cover" />
+                <div
+                  key={idx}
+                  onClick={() => onZoomImage(imgs, idx)}
+                  className="relative aspect-video w-full overflow-hidden rounded-lg border border-zinc-850 cursor-zoom-in hover:opacity-90 bg-black"
+                >
+                  <img src={imgUrl} alt="Proof" className="w-full h-full object-cover pointer-events-none" />
                 </div>
               ))}
             </div>
@@ -153,7 +180,10 @@ export function SideBySideCompareBody({
     <div className="space-y-4">
       <div className="flex items-center justify-between bg-zinc-950/30 p-3 rounded-xl border border-zinc-850 text-xs">
         <span className="text-zinc-400">Comparing submissions side-by-side</span>
-        <button onClick={onCloseCompare} className="px-3 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition cursor-pointer font-bold">
+        <button
+          onClick={onCloseCompare}
+          className="px-3 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition cursor-pointer font-bold"
+        >
           Exit Side-by-Side
         </button>
       </div>
