@@ -78,11 +78,11 @@ export function ZoomLightbox({ selectedImage, onClose, onChangeImage }: ZoomLigh
           </button>
         )}
 
-        <div className="max-w-[85vw] max-h-[80vh] flex items-center justify-center overflow-hidden">
+        <div className="relative max-w-[95vw] max-h-[85vh] flex items-center justify-center">
           <img
             src={selectedImage.imageUrl}
             alt="Proof Zoomed"
-            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl border border-zinc-850"
+            className="max-w-[90vw] max-h-[85vh] w-auto h-auto object-contain rounded-lg shadow-2xl border border-zinc-800"
           />
         </div>
 
