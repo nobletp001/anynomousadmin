@@ -63,15 +63,29 @@ export default function BlogManagementPage() {
 
       setUploadingImage(true);
       try {
-        const res = await apiClient.post<any, { success: boolean; data: string }>("/admin/upload", {
+        const res = await apiClient.post<any, any>("/admin/upload", {
           base64,
           mimeType,
         });
+
         if (res && res.success) {
-          if (isEdit) {
-            setEditBanner(res.data);
+          let imageUrl = "";
+          if (typeof res.data === "string") {
+            imageUrl = res.data;
+          } else if (res.data && typeof res.data === "object" && typeof res.data.url === "string") {
+            imageUrl = res.data.url;
+          } else if (typeof res.url === "string") {
+            imageUrl = res.url;
+          }
+
+          if (imageUrl) {
+            if (isEdit) {
+              setEditBanner(imageUrl);
+            } else {
+              setBanner(imageUrl);
+            }
           } else {
-            setBanner(res.data);
+            alert("Upload succeeded but no image URL was returned in the response.");
           }
         } else {
           alert("Image upload failed");
