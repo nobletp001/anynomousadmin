@@ -46,6 +46,48 @@ export default function BlogManagementPage() {
   const [publishing, setPublishing] = useState(false);
   const [singleMessage, setSingleMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Image Uploading state & helper
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64String = reader.result as string;
+      const parts = base64String.split(",");
+      if (parts.length < 2) return;
+      const mimeType = file.type;
+      const base64 = parts[1];
+
+      setUploadingImage(true);
+      try {
+        const res = await apiClient.post<any, { success: boolean; data: string }>("/admin/upload", {
+          base64,
+          mimeType,
+        });
+        if (res && res.success) {
+          if (isEdit) {
+            setEditBanner(res.data);
+          } else {
+            setBanner(res.data);
+          }
+        } else {
+          alert("Image upload failed");
+        }
+      } catch (err: any) {
+        alert(err.message || "Failed to upload image");
+      } finally {
+        setUploadingImage(false);
+      }
+    };
+    reader.onerror = () => {
+      alert("Failed to read file");
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Bulk Generation State
   const [bulkTitles, setBulkTitles] = useState("");
   const [generatingBulk, setGeneratingBulk] = useState(false);
@@ -532,16 +574,30 @@ export default function BlogManagementPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                  Banner Image URL (Dynamic AI/Stock URL)
-                </label>
-                <input
-                  type="text"
-                  placeholder="https://..."
-                  value={banner}
-                  onChange={(e) => setBanner(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-purple-500 transition"
-                />
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Banner Image</label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    placeholder="https://... or upload image"
+                    value={banner}
+                    onChange={(e) => setBanner(e.target.value)}
+                    className="flex-1 px-4 py-2.5 bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-200 placeholder-zinc-650 focus:outline-none focus:border-purple-500 transition"
+                  />
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 text-xs font-semibold cursor-pointer transition disabled:opacity-50 shrink-0">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Upload Banner</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, false)}
+                        disabled={uploadingImage}
+                        className="hidden"
+                      />
+                    </label>
+                    {uploadingImage && <Loader2 className="w-4 h-4 animate-spin text-purple-500" />}
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -778,13 +834,29 @@ export default function BlogManagementPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Banner Image URL</label>
-                <input
-                  type="text"
-                  value={editBanner}
-                  onChange={(e) => setEditBanner(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-zinc-90/50 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-purple-500 transition"
-                />
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Banner Image</label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={editBanner}
+                    onChange={(e) => setEditBanner(e.target.value)}
+                    className="flex-1 px-4 py-2.5 bg-zinc-90/50 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-purple-500 transition"
+                  />
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800 text-zinc-350 hover:text-zinc-200 text-xs font-semibold cursor-pointer transition disabled:opacity-50 shrink-0">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Upload Banner</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, true)}
+                        disabled={uploadingImage}
+                        className="hidden"
+                      />
+                    </label>
+                    {uploadingImage && <Loader2 className="w-4 h-4 animate-spin text-purple-500" />}
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-1.5">
