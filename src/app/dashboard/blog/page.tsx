@@ -17,6 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { apiClient } from "@/services/api-client";
+import RichTextEditor from "../components/RichTextEditor";
 
 interface BlogArticle {
   id: number;
@@ -628,12 +629,10 @@ export default function BlogManagementPage() {
                   </label>
                   <span className="text-[9px] text-zinc-550">HTML supported</span>
                 </div>
-                <textarea
-                  placeholder="<p>Write your article here...</p>"
+                <RichTextEditor
+                  placeholder="Write your article here..."
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={12}
-                  className="w-full px-4 py-3 bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-purple-500 transition font-mono"
+                  onChange={(val) => setContent(val)}
                 />
               </div>
 
@@ -882,12 +881,10 @@ export default function BlogManagementPage() {
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Content (HTML)</label>
-                <textarea
+                <RichTextEditor
+                  placeholder="Write your article here..."
                   value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  rows={10}
-                  className="w-full px-4 py-3 bg-zinc-90/50 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-purple-500 transition font-mono"
-                  required
+                  onChange={(val) => setEditContent(val)}
                 />
               </div>
 
