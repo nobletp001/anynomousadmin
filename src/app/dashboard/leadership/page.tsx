@@ -24,11 +24,11 @@ export default function LeadershipPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get<any, LeadershipResponse>(
+      const res = await apiClient.get<any, { success: boolean; data: LeadershipResponse }>(
         `/admin/leadership?month=${selectedMonth}&year=${selectedYear}`
       );
       if (res && res.success) {
-        setData(res);
+        setData(res.data);
       } else {
         setError("Failed to parse leaderboard statistics.");
       }
