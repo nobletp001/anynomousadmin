@@ -50,6 +50,22 @@ export function isExpired(task: Task) {
   return new Date(task.timeline) < new Date();
 }
 
+export function isScheduled(task: Task) {
+  if (!task.scheduledAt) return false;
+  return new Date(task.scheduledAt) > new Date();
+}
+
+export function formatScheduledAt(d: string) {
+  return new Date(d).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 export function getDateLabel(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();

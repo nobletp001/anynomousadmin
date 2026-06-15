@@ -12,7 +12,16 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui";
 import { Task } from "../types";
-import { PLATFORM_COLORS, platformLabel, taskTypeLabel, formatAmount, formatDate, isExpired } from "../utils";
+import {
+  PLATFORM_COLORS,
+  platformLabel,
+  taskTypeLabel,
+  formatAmount,
+  formatDate,
+  isExpired,
+  isScheduled,
+  formatScheduledAt,
+} from "../utils";
 
 interface TaskCardProps {
   task: Task;
@@ -32,6 +41,7 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick, onPinClick }
   const progress =
     task.numberOfUsersNeeded > 0 ? Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100)) : 0;
   const expired = isExpired(task);
+  const scheduled = isScheduled(task);
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -114,11 +124,23 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick, onPinClick }
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
               {taskTypeLabel(task.taskType)}
             </span>
-            <Badge variant={task.status === "active" ? (expired ? "warning" : "success") : "default"} dot>
-              {expired ? "Expired" : task.status}
-            </Badge>
+            {scheduled ? (
+              <Badge variant="warning" dot>
+                Scheduled
+              </Badge>
+            ) : (
+              <Badge variant={task.status === "active" ? (expired ? "warning" : "success") : "default"} dot>
+                {expired ? "Expired" : task.status}
+              </Badge>
+            )}
           </div>
           <h3 className="font-semibold text-zinc-100 text-sm leading-snug line-clamp-2">{task.title}</h3>
+          {scheduled && task.scheduledAt && (
+            <p className="text-[10px] text-amber-400 mt-1 flex items-center gap-1">
+              <Calendar className="w-3 h-3 shrink-0" />
+              Releases {formatScheduledAt(task.scheduledAt)}
+            </p>
+          )}
         </div>
       </div>
 
