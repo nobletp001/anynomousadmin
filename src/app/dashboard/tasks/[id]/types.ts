@@ -127,6 +127,10 @@ export interface Task {
   isPinned?: boolean;
   collectUserName?: boolean | null;
   targetUsername?: string | null;
+  isSecureSpotTask?: boolean;
+  secureSpotIntervalType?: string | null;
+  secureSpotInterval?: number | null;
+  secureSpotConstantDelay?: number | null;
 }
 
 export interface UserInfo {

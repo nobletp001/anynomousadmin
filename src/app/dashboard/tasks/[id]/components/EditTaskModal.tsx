@@ -145,6 +145,18 @@ export function EditTaskModal({
       requirePromptSelection: editState.editRequirePromptSelection,
       marketingText: editState.editMarketingText.trim() || null,
       isPinned: editState.editIsPinned,
+      isSecureSpotTask: editState.editIsSecureSpotTask,
+      secureSpotIntervalType: editState.editIsSecureSpotTask ? editState.editSecureSpotIntervalType : undefined,
+      secureSpotInterval:
+        editState.editIsSecureSpotTask &&
+        editState.editSecureSpotIntervalType !== "constant" &&
+        editState.editSecureSpotInterval.trim()
+          ? parseInt(editState.editSecureSpotInterval)
+          : undefined,
+      secureSpotConstantDelay:
+        editState.editIsSecureSpotTask && editState.editSecureSpotConstantDelay.trim()
+          ? parseInt(editState.editSecureSpotConstantDelay)
+          : undefined,
     });
   };
 
@@ -242,6 +254,14 @@ export function EditTaskModal({
             setEditCollectUserName={editState.setEditCollectUserName}
             editTargetUsername={editState.editTargetUsername}
             setEditTargetUsername={editState.setEditTargetUsername}
+            editIsSecureSpotTask={editState.editIsSecureSpotTask}
+            setEditIsSecureSpotTask={editState.setEditIsSecureSpotTask}
+            editSecureSpotIntervalType={editState.editSecureSpotIntervalType}
+            setEditSecureSpotIntervalType={editState.setEditSecureSpotIntervalType}
+            editSecureSpotInterval={editState.editSecureSpotInterval}
+            setEditSecureSpotInterval={editState.setEditSecureSpotInterval}
+            editSecureSpotConstantDelay={editState.editSecureSpotConstantDelay}
+            setEditSecureSpotConstantDelay={editState.setEditSecureSpotConstantDelay}
           />
           <Targeting
             editEnableTargeting={editState.editEnableTargeting}

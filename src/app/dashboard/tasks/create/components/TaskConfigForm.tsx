@@ -37,6 +37,14 @@ interface TaskConfigFormProps {
   setCollectUserName: (v: boolean) => void;
   targetUsername: string;
   setTargetUsername: (v: string) => void;
+  isSecureSpotTask: boolean;
+  setIsSecureSpotTask: (v: boolean) => void;
+  secureSpotIntervalType: "constant" | "minutes" | "days";
+  setSecureSpotIntervalType: (v: "constant" | "minutes" | "days") => void;
+  secureSpotInterval: string;
+  setSecureSpotInterval: (v: string) => void;
+  secureSpotConstantDelay: string;
+  setSecureSpotConstantDelay: (v: string) => void;
 }
 
 export function TaskConfigForm({
@@ -72,6 +80,14 @@ export function TaskConfigForm({
   setCollectUserName,
   targetUsername,
   setTargetUsername,
+  isSecureSpotTask,
+  setIsSecureSpotTask,
+  secureSpotIntervalType,
+  setSecureSpotIntervalType,
+  secureSpotInterval,
+  setSecureSpotInterval,
+  secureSpotConstantDelay,
+  setSecureSpotConstantDelay,
 }: TaskConfigFormProps) {
   const isJetpot = taskType === "jetpot";
   const isViews = taskType === "views";
@@ -135,7 +151,7 @@ export function TaskConfigForm({
             onClick={() => setProofType("banner")}
             className={`flex items-center gap-2 px-3 py-3 rounded-xl border text-sm font-semibold transition-all ${
               proofType === "banner"
-                ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
+                ? "bg-purple-500/10 border-purple-500/40 text-purple-300"
                 : "bg-zinc-800/40 border-zinc-700/60 text-zinc-550 hover:border-zinc-655"
             }`}
           >
@@ -364,6 +380,122 @@ export function TaskConfigForm({
       <div>
         <FieldLabel>Copywriting / Marketing Text (Modal)</FieldLabel>
         <RichTextEditor value={marketingText} onChange={setMarketingText} placeholder="Write here..." />
+      </div>
+
+      {/* ── Secure-a-Spot Section ── */}
+      <div className="pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-300 font-semibold tracking-wide">🎯 Secure-a-Spot</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Users reserve a spot first, then get a unique random submission window for organic timing.
+            </p>
+          </div>
+          <div
+            onClick={() => setIsSecureSpotTask(!isSecureSpotTask)}
+            className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${isSecureSpotTask ? "bg-purple-500" : "bg-zinc-700"}`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${isSecureSpotTask ? "translate-x-4" : "translate-x-0"}`}
+            />
+          </div>
+        </div>
+
+        {isSecureSpotTask && (
+          <div className="mt-3 space-y-3 rounded-2xl border border-zinc-700 bg-zinc-900/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            {/* Mode selector */}
+            <div>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Delay Mode</p>
+              <div className="grid grid-cols-3 gap-2">
+                {(["constant", "minutes", "days"] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setSecureSpotIntervalType(type)}
+                    className={`py-2.5 rounded-xl text-xs font-bold transition-all ${
+                      secureSpotIntervalType === type
+                        ? "bg-purple-500 text-black shadow-[0_0_12px_rgba(168,85,247,0.4)]"
+                        : "bg-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-750 border border-zinc-700"
+                    }`}
+                  >
+                    {type === "constant" ? "⏸ Fixed" : type === "minutes" ? "⏱ Minutes" : "📅 Days"}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">
+                {secureSpotIntervalType === "constant"
+                  ? "Everyone waits the exact same fixed time — no randomness, fully predictable."
+                  : secureSpotIntervalType === "minutes"
+                    ? "Each user gets a private random window within the minute range you set."
+                    : "Each user's window is scattered across the day span — great for longer campaigns."}
+              </p>
+            </div>
+
+            {/* Inputs */}
+            {secureSpotIntervalType !== "constant" && (
+              <div>
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
+                  {secureSpotIntervalType === "days" ? "Max Window" : "Max Window"}
+                </p>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={1}
+                    max={secureSpotIntervalType === "days" ? 100 : 1440}
+                    value={secureSpotInterval}
+                    onChange={(e) => setSecureSpotInterval(e.target.value)}
+                    placeholder={secureSpotIntervalType === "days" ? "e.g. 7" : "e.g. 60"}
+                    className={`${inputCls} pr-14`}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-zinc-500">
+                    {secureSpotIntervalType === "days" ? "days" : "min"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
+                {secureSpotIntervalType === "constant"
+                  ? "Fixed Wait"
+                  : secureSpotIntervalType === "days"
+                    ? "Min Wait"
+                    : "Min Wait"}
+              </p>
+              <div className="relative">
+                <input
+                  type="number"
+                  min={0}
+                  value={secureSpotConstantDelay}
+                  onChange={(e) => setSecureSpotConstantDelay(e.target.value)}
+                  placeholder={
+                    secureSpotIntervalType === "constant"
+                      ? "e.g. 60"
+                      : secureSpotIntervalType === "days"
+                        ? "e.g. 2"
+                        : "e.g. 10"
+                  }
+                  className={`${inputCls} pr-14`}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-zinc-500">
+                  {secureSpotIntervalType === "days" ? "hrs" : "min"}
+                </span>
+              </div>
+            </div>
+
+            {/* Example callout */}
+            <div className="flex items-start gap-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5">
+              <span className="text-purple-400 text-xs mt-px">→</span>
+              <p className="text-[10px] text-zinc-400 leading-relaxed">
+                {secureSpotIntervalType === "constant"
+                  ? `All users wait exactly ${secureSpotConstantDelay || "X"} min before they can submit.`
+                  : secureSpotIntervalType === "days"
+                    ? `Random between ${secureSpotConstantDelay || "0"} hrs and ${secureSpotInterval || "N"} days. e.g. min 2 h, max 7 days → window opens somewhere in those 168 hrs.`
+                    : `Random between ${secureSpotConstantDelay || "0"} min and ${secureSpotInterval || "N"} min. Each user gets a different slot.`}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

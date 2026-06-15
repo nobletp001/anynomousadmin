@@ -45,6 +45,10 @@ export function useCreateTaskState() {
   const [isPinned, setIsPinned] = useState(false);
   const [collectUserName, setCollectUserName] = useState(false);
   const [targetUsername, setTargetUsername] = useState("");
+  const [isSecureSpotTask, setIsSecureSpotTask] = useState(false);
+  const [secureSpotIntervalType, setSecureSpotIntervalType] = useState<"constant" | "minutes" | "days">("minutes");
+  const [secureSpotInterval, setSecureSpotInterval] = useState("");
+  const [secureSpotConstantDelay, setSecureSpotConstantDelay] = useState("");
   const [audience, setAudience] = useState<AudienceFilter>({
     gender: [],
     employmentStatus: [],
@@ -143,6 +147,14 @@ export function useCreateTaskState() {
     setCollectUserName,
     targetUsername,
     setTargetUsername,
+    isSecureSpotTask,
+    setIsSecureSpotTask,
+    secureSpotIntervalType,
+    setSecureSpotIntervalType,
+    secureSpotInterval,
+    setSecureSpotInterval,
+    secureSpotConstantDelay,
+    setSecureSpotConstantDelay,
   };
 }
 

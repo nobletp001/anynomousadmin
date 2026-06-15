@@ -40,6 +40,14 @@ interface ConfigProps {
   setEditCollectUserName: (v: boolean) => void;
   editTargetUsername: string;
   setEditTargetUsername: (v: string) => void;
+  editIsSecureSpotTask: boolean;
+  setEditIsSecureSpotTask: (v: boolean) => void;
+  editSecureSpotIntervalType: "constant" | "minutes" | "days";
+  setEditSecureSpotIntervalType: (v: "constant" | "minutes" | "days") => void;
+  editSecureSpotInterval: string;
+  setEditSecureSpotInterval: (v: string) => void;
+  editSecureSpotConstantDelay: string;
+  setEditSecureSpotConstantDelay: (v: string) => void;
 }
 
 export function Config({
@@ -75,6 +83,14 @@ export function Config({
   setEditCollectUserName,
   editTargetUsername,
   setEditTargetUsername,
+  editIsSecureSpotTask,
+  setEditIsSecureSpotTask,
+  editSecureSpotIntervalType,
+  setEditSecureSpotIntervalType,
+  editSecureSpotInterval,
+  setEditSecureSpotInterval,
+  editSecureSpotConstantDelay,
+  setEditSecureSpotConstantDelay,
 }: ConfigProps) {
   const isUseApp = editTaskType === "use-app";
 
@@ -138,7 +154,7 @@ export function Config({
             onClick={() => setEditProofType("banner")}
             className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all ${
               editProofType === "banner"
-                ? "bg-amber-500/10 border-amber-500/40 text-amber-300"
+                ? "bg-purple-500/10 border-purple-500/40 text-purple-300"
                 : "bg-zinc-800/40 border-zinc-700/60 text-zinc-500 hover:border-zinc-600"
             }`}
           >
@@ -391,6 +407,113 @@ export function Config({
       <div>
         <FieldLabel>Copywriting / Marketing Text (Modal)</FieldLabel>
         <RichTextEditor value={editMarketingText} onChange={setEditMarketingText} placeholder="Write here..." />
+      </div>
+
+      {/* ── Secure-a-Spot ── */}
+      <div className="pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-300 font-semibold tracking-wide">🎯 Secure-a-Spot</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Users reserve a spot first, then get a unique random submission window for organic timing.
+            </p>
+          </div>
+          <div
+            onClick={() => setEditIsSecureSpotTask(!editIsSecureSpotTask)}
+            className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${editIsSecureSpotTask ? "bg-purple-500" : "bg-zinc-700"}`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editIsSecureSpotTask ? "translate-x-4" : "translate-x-0"}`}
+            />
+          </div>
+        </div>
+
+        {editIsSecureSpotTask && (
+          <div className="mt-3 space-y-3 rounded-2xl border border-zinc-700 bg-zinc-900/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <div>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Delay Mode</p>
+              <div className="grid grid-cols-3 gap-2">
+                {(["constant", "minutes", "days"] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setEditSecureSpotIntervalType(type)}
+                    className={`py-2.5 rounded-xl text-xs font-bold transition-all ${
+                      editSecureSpotIntervalType === type
+                        ? "bg-purple-500 text-black shadow-[0_0_12px_rgba(168,85,247,0.4)]"
+                        : "bg-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-750 border border-zinc-700"
+                    }`}
+                  >
+                    {type === "constant" ? "⏸ Fixed" : type === "minutes" ? "⏱ Minutes" : "📅 Days"}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">
+                {editSecureSpotIntervalType === "constant"
+                  ? "Everyone waits the exact same fixed time — no randomness, fully predictable."
+                  : editSecureSpotIntervalType === "minutes"
+                    ? "Each user gets a private random window within the minute range you set."
+                    : "Each user's window is scattered across the day span — great for longer campaigns."}
+              </p>
+            </div>
+
+            {editSecureSpotIntervalType !== "constant" && (
+              <div>
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Max Window</p>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={1}
+                    max={editSecureSpotIntervalType === "days" ? 100 : 1440}
+                    value={editSecureSpotInterval}
+                    onChange={(e) => setEditSecureSpotInterval(e.target.value)}
+                    placeholder={editSecureSpotIntervalType === "days" ? "e.g. 7" : "e.g. 60"}
+                    className={`${inputCls} pr-14`}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-zinc-500">
+                    {editSecureSpotIntervalType === "days" ? "days" : "min"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
+                {editSecureSpotIntervalType === "constant" ? "Fixed Wait" : "Min Wait"}
+              </p>
+              <div className="relative">
+                <input
+                  type="number"
+                  min={0}
+                  value={editSecureSpotConstantDelay}
+                  onChange={(e) => setEditSecureSpotConstantDelay(e.target.value)}
+                  placeholder={
+                    editSecureSpotIntervalType === "constant"
+                      ? "e.g. 60"
+                      : editSecureSpotIntervalType === "days"
+                        ? "e.g. 2"
+                        : "e.g. 10"
+                  }
+                  className={`${inputCls} pr-14`}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-zinc-500">
+                  {editSecureSpotIntervalType === "days" ? "hrs" : "min"}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5">
+              <span className="text-purple-400 text-xs mt-px">→</span>
+              <p className="text-[10px] text-zinc-400 leading-relaxed">
+                {editSecureSpotIntervalType === "constant"
+                  ? `All users wait exactly ${editSecureSpotConstantDelay || "X"} min before they can submit.`
+                  : editSecureSpotIntervalType === "days"
+                    ? `Random between ${editSecureSpotConstantDelay || "0"} hrs and ${editSecureSpotInterval || "N"} days. e.g. min 2 h, max 7 days → window opens somewhere in those 168 hrs.`
+                    : `Random between ${editSecureSpotConstantDelay || "0"} min and ${editSecureSpotInterval || "N"} min. Each user gets a different slot.`}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

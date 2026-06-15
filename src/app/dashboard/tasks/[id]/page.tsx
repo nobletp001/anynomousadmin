@@ -196,6 +196,12 @@ export default function TaskSubmissionsPage() {
     editState.setEditMarketingText(task.marketingText || "");
     editState.setEditCollectUserName(!!task.collectUserName);
     editState.setEditTargetUsername(task.targetUsername || "");
+    editState.setEditIsSecureSpotTask(!!task.isSecureSpotTask);
+    editState.setEditSecureSpotIntervalType(
+      (task.secureSpotIntervalType as "constant" | "minutes" | "days") || "minutes"
+    );
+    editState.setEditSecureSpotInterval(String(task.secureSpotInterval ?? ""));
+    editState.setEditSecureSpotConstantDelay(String(task.secureSpotConstantDelay ?? ""));
     editState.setEditScheduledAt(
       task.scheduledAt
         ? new Date(new Date(task.scheduledAt).getTime() - new Date(task.scheduledAt).getTimezoneOffset() * 60000)

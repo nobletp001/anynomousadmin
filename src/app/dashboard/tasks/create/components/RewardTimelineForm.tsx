@@ -126,7 +126,7 @@ export function RewardTimelineForm({
           <span
             className={`text-xs font-semibold transition-colors ${isPayFluenceTask ? "text-purple-400" : "text-zinc-500"}`}
           >
-            PayFluence Task (Free/Volunteer)
+            Exclude from Referral ₦50 Bonus
           </span>
           <div
             className={`relative w-9 h-5 rounded-full transition-all ${isPayFluenceTask ? "bg-purple-500" : "bg-zinc-700"}`}

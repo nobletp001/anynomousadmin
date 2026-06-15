@@ -100,6 +100,16 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       volutterPayFluenceTaskPerformNumber: state.volutterPayFluenceTaskPerformNumber.trim()
         ? parseInt(state.volutterPayFluenceTaskPerformNumber)
         : undefined,
+      isSecureSpotTask: state.isSecureSpotTask,
+      secureSpotIntervalType: state.isSecureSpotTask ? state.secureSpotIntervalType : undefined,
+      secureSpotInterval:
+        state.isSecureSpotTask && state.secureSpotIntervalType !== "constant" && state.secureSpotInterval.trim()
+          ? parseInt(state.secureSpotInterval)
+          : undefined,
+      secureSpotConstantDelay:
+        state.isSecureSpotTask && state.secureSpotConstantDelay.trim()
+          ? parseInt(state.secureSpotConstantDelay)
+          : undefined,
       targetAudience: state.enableTargeting
         ? {
             ...(state.audience.gender.length ? { gender: state.audience.gender } : {}),

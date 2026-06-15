@@ -46,6 +46,12 @@ export function useEditTaskState() {
   const [editIsPinned, setEditIsPinned] = useState(false);
   const [editCollectUserName, setEditCollectUserName] = useState(false);
   const [editTargetUsername, setEditTargetUsername] = useState("");
+  const [editIsSecureSpotTask, setEditIsSecureSpotTask] = useState(false);
+  const [editSecureSpotIntervalType, setEditSecureSpotIntervalType] = useState<"constant" | "minutes" | "days">(
+    "minutes"
+  );
+  const [editSecureSpotInterval, setEditSecureSpotInterval] = useState("");
+  const [editSecureSpotConstantDelay, setEditSecureSpotConstantDelay] = useState("");
 
   return {
     editScheduledAt,
@@ -118,6 +124,14 @@ export function useEditTaskState() {
     setEditCollectUserName,
     editTargetUsername,
     setEditTargetUsername,
+    editIsSecureSpotTask,
+    setEditIsSecureSpotTask,
+    editSecureSpotIntervalType,
+    setEditSecureSpotIntervalType,
+    editSecureSpotInterval,
+    setEditSecureSpotInterval,
+    editSecureSpotConstantDelay,
+    setEditSecureSpotConstantDelay,
   };
 }
 export type EditTaskState = ReturnType<typeof useEditTaskState>;

@@ -114,6 +114,14 @@ export default function CreateTaskPage() {
           setCollectUserName={state.setCollectUserName}
           targetUsername={state.targetUsername}
           setTargetUsername={state.setTargetUsername}
+          isSecureSpotTask={state.isSecureSpotTask}
+          setIsSecureSpotTask={state.setIsSecureSpotTask}
+          secureSpotIntervalType={state.secureSpotIntervalType}
+          setSecureSpotIntervalType={state.setSecureSpotIntervalType}
+          secureSpotInterval={state.secureSpotInterval}
+          setSecureSpotInterval={state.setSecureSpotInterval}
+          secureSpotConstantDelay={state.secureSpotConstantDelay}
+          setSecureSpotConstantDelay={state.setSecureSpotConstantDelay}
         />
 
         <TargetAudienceForm
