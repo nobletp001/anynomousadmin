@@ -15,7 +15,7 @@ import { fmt } from "./utils";
 
 interface PendingConfirm {
   id: number;
-  confirmToken: string;
+  idempotencyKey: string;
   expiresAt: number;
   claim: PayoutClaim;
 }
@@ -24,6 +24,7 @@ export default function PayoutsPage() {
   const state = usePayoutState();
   const { data, isLoading, error, refetch } = usePayoutQueries();
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
+  const [confirmCode, setConfirmCode] = useState("");
   const [secsLeft, setSecsLeft] = useState(60);
   const [breakdownClaim, setBreakdownClaim] = useState<PayoutClaim | null>(null);
 
@@ -33,15 +34,16 @@ export default function PayoutsPage() {
   const mutations = usePayoutMutations({
     onSuccess: () => state.setActionError(null),
     onError: (err) => state.setActionError(err?.message || "Failed to update status"),
-    onConfirmRequired: (confirmToken, expiresInSeconds, claimId) => {
+    onConfirmRequired: (expiresInSeconds, claimId, idempotencyKey) => {
       const claim = requests.find((c) => c.id === claimId);
       if (!claim) return;
       setPendingConfirm({
         id: claimId,
-        confirmToken,
+        idempotencyKey,
         expiresAt: Date.now() + expiresInSeconds * 1000,
         claim,
       });
+      setConfirmCode("");
       setSecsLeft(expiresInSeconds);
       state.setActionError(null);
     },
@@ -61,8 +63,18 @@ export default function PayoutsPage() {
 
   const handleConfirm = () => {
     if (!pendingConfirm) return;
-    mutations.mutate({ id: pendingConfirm.id, status: "paid", confirmToken: pendingConfirm.confirmToken });
+    if (!confirmCode.trim()) {
+      state.setActionError("Enter the confirmation code sent to your admin email.");
+      return;
+    }
+    mutations.mutate({
+      id: pendingConfirm.id,
+      status: "paid",
+      confirmToken: confirmCode.trim(),
+      idempotencyKey: pendingConfirm.idempotencyKey,
+    });
     setPendingConfirm(null);
+    setConfirmCode("");
   };
 
   if (isLoading) {
@@ -123,8 +135,14 @@ export default function PayoutsPage() {
                 <span className="font-bold text-zinc-100">@{pendingConfirm.claim.username}</span>.
               </p>
               <p className="text-xs text-zinc-500">
-                This amount exceeds the ₦3,000 threshold and requires a second confirmation.
+                This amount exceeds the ₦3,000 threshold. Enter the confirmation code sent to your admin email.
               </p>
+              <input
+                value={confirmCode}
+                onChange={(e) => setConfirmCode(e.target.value.trim())}
+                placeholder="Confirmation code"
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm font-semibold text-zinc-100 outline-none transition focus:border-amber-500/50"
+              />
               <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800/60">
                 <span className="text-xs text-zinc-500">Confirmation window</span>
                 <span
@@ -138,7 +156,10 @@ export default function PayoutsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPendingConfirm(null)}
+                onClick={() => {
+                  setPendingConfirm(null);
+                  setConfirmCode("");
+                }}
                 className="flex-1 border-zinc-700 text-zinc-400 hover:bg-zinc-800"
                 disabled={mutations.isPending}
               >
@@ -147,7 +168,7 @@ export default function PayoutsPage() {
               <Button
                 size="sm"
                 onClick={handleConfirm}
-                disabled={mutations.isPending || secsLeft <= 0}
+                disabled={mutations.isPending || secsLeft <= 0 || !confirmCode.trim()}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
               >
                 {mutations.isPending ? "Processing…" : "Confirm Payment"}
