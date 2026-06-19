@@ -52,6 +52,7 @@ export function useEditTaskState() {
   );
   const [editSecureSpotInterval, setEditSecureSpotInterval] = useState("");
   const [editSecureSpotConstantDelay, setEditSecureSpotConstantDelay] = useState("");
+  const [editAdditionalSlots, setEditAdditionalSlots] = useState("5");
 
   return {
     editScheduledAt,
@@ -132,6 +133,8 @@ export function useEditTaskState() {
     setEditSecureSpotInterval,
     editSecureSpotConstantDelay,
     setEditSecureSpotConstantDelay,
+    editAdditionalSlots,
+    setEditAdditionalSlots,
   };
 }
 export type EditTaskState = ReturnType<typeof useEditTaskState>;

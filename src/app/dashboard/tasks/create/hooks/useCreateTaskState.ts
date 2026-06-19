@@ -49,6 +49,7 @@ export function useCreateTaskState() {
   const [secureSpotIntervalType, setSecureSpotIntervalType] = useState<"constant" | "minutes" | "days">("minutes");
   const [secureSpotInterval, setSecureSpotInterval] = useState("");
   const [secureSpotConstantDelay, setSecureSpotConstantDelay] = useState("");
+  const [additionalSlots, setAdditionalSlots] = useState("5");
   const [audience, setAudience] = useState<AudienceFilter>({
     gender: [],
     employmentStatus: [],
@@ -155,6 +156,8 @@ export function useCreateTaskState() {
     setSecureSpotInterval,
     secureSpotConstantDelay,
     setSecureSpotConstantDelay,
+    additionalSlots,
+    setAdditionalSlots,
   };
 }
 

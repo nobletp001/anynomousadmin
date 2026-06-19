@@ -157,6 +157,10 @@ export function EditTaskModal({
         editState.editIsSecureSpotTask && editState.editSecureSpotConstantDelay.trim()
           ? parseInt(editState.editSecureSpotConstantDelay)
           : undefined,
+      additionalSlots:
+        editState.editIsSecureSpotTask && editState.editAdditionalSlots.trim()
+          ? parseInt(editState.editAdditionalSlots)
+          : undefined,
     });
   };
 
@@ -262,6 +266,8 @@ export function EditTaskModal({
             setEditSecureSpotInterval={editState.setEditSecureSpotInterval}
             editSecureSpotConstantDelay={editState.editSecureSpotConstantDelay}
             setEditSecureSpotConstantDelay={editState.setEditSecureSpotConstantDelay}
+            editAdditionalSlots={editState.editAdditionalSlots}
+            setEditAdditionalSlots={editState.setEditAdditionalSlots}
           />
           <Targeting
             editEnableTargeting={editState.editEnableTargeting}

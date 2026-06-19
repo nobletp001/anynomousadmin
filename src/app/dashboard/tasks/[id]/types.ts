@@ -131,6 +131,7 @@ export interface Task {
   secureSpotIntervalType?: string | null;
   secureSpotInterval?: number | null;
   secureSpotConstantDelay?: number | null;
+  additionalSlots?: number | null;
 }
 
 export interface UserInfo {

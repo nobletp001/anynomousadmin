@@ -122,6 +122,8 @@ export default function CreateTaskPage() {
           setSecureSpotInterval={state.setSecureSpotInterval}
           secureSpotConstantDelay={state.secureSpotConstantDelay}
           setSecureSpotConstantDelay={state.setSecureSpotConstantDelay}
+          additionalSlots={state.additionalSlots}
+          setAdditionalSlots={state.setAdditionalSlots}
         />
 
         <TargetAudienceForm

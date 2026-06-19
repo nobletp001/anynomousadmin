@@ -48,6 +48,8 @@ interface ConfigProps {
   setEditSecureSpotInterval: (v: string) => void;
   editSecureSpotConstantDelay: string;
   setEditSecureSpotConstantDelay: (v: string) => void;
+  editAdditionalSlots: string;
+  setEditAdditionalSlots: (v: string) => void;
 }
 
 export function Config({
@@ -91,6 +93,8 @@ export function Config({
   setEditSecureSpotInterval,
   editSecureSpotConstantDelay,
   setEditSecureSpotConstantDelay,
+  editAdditionalSlots,
+  setEditAdditionalSlots,
 }: ConfigProps) {
   const isUseApp = editTaskType === "use-app";
 
@@ -508,8 +512,31 @@ export function Config({
                 {editSecureSpotIntervalType === "constant"
                   ? `All users wait exactly ${editSecureSpotConstantDelay || "X"} min before they can submit.`
                   : editSecureSpotIntervalType === "days"
-                    ? `Random between ${editSecureSpotConstantDelay || "0"} hrs and ${editSecureSpotInterval || "N"} days. e.g. min 2 h, max 7 days → window opens somewhere in those 168 hrs.`
+                    ? `Random between ${editSecureSpotConstantDelay || "0"} hrs and ${editSecureSpotInterval ? Math.round((Number(editSecureSpotInterval) / 3) * 24) : "N"} hrs (${editSecureSpotInterval || "N"} days ÷ 3). e.g. 3 days, 5 hr min → window is 5–24 hrs.`
                     : `Random between ${editSecureSpotConstantDelay || "0"} min and ${editSecureSpotInterval || "N"} min. Each user gets a different slot.`}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
+                Additional Buffer Slots
+              </p>
+              <div className="relative">
+                <input
+                  type="number"
+                  min={0}
+                  max={10000}
+                  value={editAdditionalSlots}
+                  onChange={(e) => setEditAdditionalSlots(e.target.value)}
+                  placeholder="e.g. 5"
+                  className={`${inputCls} pr-16`}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-zinc-500">
+                  slots
+                </span>
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-1.5 leading-relaxed">
+                Extra spots shown beyond the task capacity so users can still secure a slot. Default 5.
               </p>
             </div>
           </div>

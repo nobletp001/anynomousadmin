@@ -110,6 +110,8 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
         state.isSecureSpotTask && state.secureSpotConstantDelay.trim()
           ? parseInt(state.secureSpotConstantDelay)
           : undefined,
+      additionalSlots:
+        state.isSecureSpotTask && state.additionalSlots.trim() ? parseInt(state.additionalSlots) : undefined,
       targetAudience: state.enableTargeting
         ? {
             ...(state.audience.gender.length ? { gender: state.audience.gender } : {}),

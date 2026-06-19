@@ -202,6 +202,7 @@ export default function TaskSubmissionsPage() {
     );
     editState.setEditSecureSpotInterval(String(task.secureSpotInterval ?? ""));
     editState.setEditSecureSpotConstantDelay(String(task.secureSpotConstantDelay ?? ""));
+    editState.setEditAdditionalSlots(String(task.additionalSlots ?? 5));
     editState.setEditScheduledAt(
       task.scheduledAt
         ? new Date(new Date(task.scheduledAt).getTime() - new Date(task.scheduledAt).getTimezoneOffset() * 60000)
