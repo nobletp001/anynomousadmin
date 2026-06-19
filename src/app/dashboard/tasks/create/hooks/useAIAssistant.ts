@@ -52,27 +52,50 @@ export function useAIAssistant(state: CreateTaskState) {
       const res = (await apiClient.post("/admin/tasks/parse-ai", { text: state.aiPrompt.trim() })) as any;
       if (res.success && res.data) {
         const d = res.data;
-        if (d.title) state.setTitle(d.title);
-        if (d.description) state.setDescription(d.description);
-        if (d.caption) state.setCaption(d.caption);
-        if (d.link) state.setLink(d.link);
-        if (d.instructions && d.instructions.length) state.setInstructions(d.instructions);
-        if (d.taskType) state.setTaskType(d.taskType);
-        if (d.targetPlatform) state.setTargetPlatform(d.targetPlatform);
-        if (d.proofType) state.setProofType(d.proofType);
+        if (d.title) state.setTitle(String(d.title));
+        if (d.description) state.setDescription(String(d.description));
+        if (d.caption) {
+          if (Array.isArray(d.caption)) {
+            state.setCaption(d.caption.join("\n\n"));
+            state.setCaptionMode("array");
+          } else {
+            state.setCaption(String(d.caption));
+            state.setCaptionMode("text");
+          }
+        }
+        if (d.link) state.setLink(String(d.link));
+        if (d.instructions) {
+          if (Array.isArray(d.instructions)) {
+            const parsed = d.instructions.map((i: any) => (i ? String(i).trim() : "")).filter(Boolean);
+            if (parsed.length > 0) state.setInstructions(parsed);
+          } else if (typeof d.instructions === "string") {
+            const parsed = d.instructions
+              .split(/\n+/)
+              .map((s: string) => s.replace(/^\d+\.\s*/, "").trim())
+              .filter(Boolean);
+            if (parsed.length > 0) {
+              state.setInstructions(parsed);
+            }
+          }
+        }
+        if (d.taskType) state.setTaskType(String(d.taskType));
+        if (d.targetPlatform) state.setTargetPlatform(String(d.targetPlatform));
+        if (d.proofType) state.setProofType(d.proofType === "url" || d.proofType === "banner" ? d.proofType : "banner");
         if (d.acceptText !== undefined) {
-          state.setAcceptText(d.acceptText);
-          state.setTextLabel(d.acceptText && d.textLabel ? d.textLabel : "");
+          const accepted = Boolean(d.acceptText);
+          state.setAcceptText(accepted);
+          state.setTextLabel(accepted && d.textLabel ? String(d.textLabel) : "");
         }
         if (d.acceptNumber !== undefined) {
-          state.setAcceptNumber(d.acceptNumber);
-          state.setNumberLabel(d.acceptNumber && d.numberLabel ? d.numberLabel : "");
+          const accepted = Boolean(d.acceptNumber);
+          state.setAcceptNumber(accepted);
+          state.setNumberLabel(accepted && d.numberLabel ? String(d.numberLabel) : "");
         }
-        if (d.acceptMultipleImages !== undefined) state.setAcceptMultipleImages(d.acceptMultipleImages);
+        if (d.acceptMultipleImages !== undefined) state.setAcceptMultipleImages(Boolean(d.acceptMultipleImages));
         if (d.amount !== undefined) state.setAmount(String(d.amount));
         if (d.numberOfUsersNeeded !== undefined) state.setNumberOfUsersNeeded(String(d.numberOfUsersNeeded));
         if (d.maxPerHour !== undefined) state.setMaxPerHour(d.maxPerHour ? String(d.maxPerHour) : "");
-        if (d.noExpiry !== undefined) state.setNoExpiry(d.noExpiry);
+        if (d.noExpiry !== undefined) state.setNoExpiry(Boolean(d.noExpiry));
         state.setAiPrompt("");
       } else {
         state.setAiError(res.error ?? "Failed to parse task input.");
