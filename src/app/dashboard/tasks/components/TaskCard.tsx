@@ -171,7 +171,9 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick, onPinClick }
           </span>
           <span className="flex items-center gap-1">
             <Users className="w-3 h-3" />
-            {bookedSlotCount} slot{bookedSlotCount === 1 ? "" : "s"} booked
+            {bookedSlotCount === null
+              ? "— slots booked"
+              : `${bookedSlotCount} slot${bookedSlotCount === 1 ? "" : "s"} booked`}
           </span>
         </div>
         <div className={`flex items-center gap-1 ${expired ? "text-red-400" : "text-zinc-500"}`}>

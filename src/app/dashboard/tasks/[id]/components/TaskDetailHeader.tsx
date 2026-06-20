@@ -27,7 +27,7 @@ export function TaskDetailHeader({
   toggleStatusPending,
 }: TaskDetailHeaderProps) {
   const progress = Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100));
-  const bookedSlotCount = getBookedSlotCount(task, submissionsCount);
+  const bookedSlotCount = getBookedSlotCount(task);
 
   return (
     <div className="space-y-6">
@@ -128,7 +128,7 @@ export function TaskDetailHeader({
           </div>
           <div>
             <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Slots Booked</p>
-            <p className="text-sm font-bold text-zinc-200">{bookedSlotCount}</p>
+            <p className="text-sm font-bold text-zinc-200">{bookedSlotCount ?? "—"}</p>
           </div>
           <div>
             <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Officer</p>

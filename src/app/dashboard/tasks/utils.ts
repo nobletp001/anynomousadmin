@@ -3,9 +3,10 @@ import { Task } from "./types";
 interface BookedSlotTask {
   bookedSlotCount?: number;
   bookedSlotsCount?: number;
+  slotBookedCount?: number;
+  slotBookingsCount?: number;
   reservedSlotCount?: number;
   secureSpotBookedCount?: number;
-  submissionCount?: number;
 }
 
 export const PLATFORM_COLORS: Record<string, string> = {
@@ -63,14 +64,15 @@ export function isScheduled(task: Task) {
   return new Date(task.scheduledAt) > new Date();
 }
 
-export function getBookedSlotCount(task: BookedSlotTask, fallbackCount = 0) {
+export function getBookedSlotCount(task: BookedSlotTask) {
   return (
     task.bookedSlotCount ??
     task.bookedSlotsCount ??
+    task.slotBookedCount ??
+    task.slotBookingsCount ??
     task.reservedSlotCount ??
     task.secureSpotBookedCount ??
-    task.submissionCount ??
-    fallbackCount
+    null
   );
 }
 

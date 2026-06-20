@@ -15,6 +15,8 @@ export interface Task {
   approvedCount: number;
   bookedSlotCount?: number;
   bookedSlotsCount?: number;
+  slotBookedCount?: number;
+  slotBookingsCount?: number;
   reservedSlotCount?: number;
   secureSpotBookedCount?: number;
   createdBy: string;
