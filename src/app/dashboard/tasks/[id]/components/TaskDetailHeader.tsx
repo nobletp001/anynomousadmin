@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui";
 import { ArrowLeft, Download, ExternalLink, FileSpreadsheet } from "lucide-react";
 import { Task } from "../types";
 import { formatAmount } from "../utils";
+import { getBookedSlotCount } from "../../utils";
 
 interface TaskDetailHeaderProps {
   task: Task;
@@ -26,6 +27,7 @@ export function TaskDetailHeader({
   toggleStatusPending,
 }: TaskDetailHeaderProps) {
   const progress = Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100));
+  const bookedSlotCount = getBookedSlotCount(task, submissionsCount);
 
   return (
     <div className="space-y-6">
@@ -103,7 +105,7 @@ export function TaskDetailHeader({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-4 pt-4 border-t border-zinc-800/60">
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-6 gap-4 pt-4 border-t border-zinc-800/60">
           <div>
             <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Reward</p>
             <p className="text-sm font-bold text-emerald-400">{formatAmount(task.amount)}</p>
@@ -123,6 +125,10 @@ export function TaskDetailHeader({
           <div>
             <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Submissions</p>
             <p className="text-sm font-bold text-zinc-200">{submissionsCount}</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Slots Booked</p>
+            <p className="text-sm font-bold text-zinc-200">{bookedSlotCount}</p>
           </div>
           <div>
             <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Officer</p>

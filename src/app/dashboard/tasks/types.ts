@@ -13,6 +13,10 @@ export interface Task {
   adminContact: string | null;
   status: string;
   approvedCount: number;
+  bookedSlotCount?: number;
+  bookedSlotsCount?: number;
+  reservedSlotCount?: number;
+  secureSpotBookedCount?: number;
   createdBy: string;
   createdAt: string;
   submissionCount: number;

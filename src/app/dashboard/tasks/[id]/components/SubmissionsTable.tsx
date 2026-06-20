@@ -2,6 +2,7 @@ import React from "react";
 import { Users } from "lucide-react";
 import { Submission } from "../types";
 import { SubmissionRow } from "./SubmissionRow";
+import { isActionableSubmissionStatus } from "../utils";
 
 interface SubmissionsTableProps {
   submissions: Submission[];
@@ -32,7 +33,7 @@ export function SubmissionsTable({
   openRejectModal,
   openReverseModal,
 }: SubmissionsTableProps) {
-  const selectableSubmissions = submissions.filter((s) => s.status === "pending" || s.status === "needs_correction");
+  const selectableSubmissions = submissions.filter((s) => isActionableSubmissionStatus(s.status));
 
   const allSelected = selectableSubmissions.length > 0 && selectableSubmissions.every((s) => selectedIds.has(s.id));
 
@@ -76,8 +77,10 @@ export function SubmissionsTable({
             >
               <option value="">All Submissions</option>
               <option value="pending">Pending</option>
+              <option value="fraud">Fraud Alert</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
+              <option value="needs_correction">Correction Requested</option>
             </select>
           </div>
         </div>

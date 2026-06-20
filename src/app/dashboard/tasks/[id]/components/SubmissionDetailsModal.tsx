@@ -7,6 +7,7 @@ import { SubmissionUserInfoPanel } from "./SubmissionUserInfoPanel";
 import { SubmissionProofPanel } from "./SubmissionProofPanel";
 import { SideBySideCompareBody } from "./SideBySideCompareBody";
 import { apiClient } from "@/services/api-client";
+import { isActionableSubmissionStatus } from "../utils";
 
 interface SubmissionDetailsModalProps {
   sub: Submission;
@@ -124,7 +125,7 @@ export function SubmissionDetailsModal({
     onApprove();
   };
 
-  const isPending = sub.status === "pending" || sub.status === "needs_correction";
+  const canAction = isActionableSubmissionStatus(sub.status);
 
   return (
     <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -210,7 +211,7 @@ export function SubmissionDetailsModal({
                 </button>
               )}
             </div>
-            {isPending && (
+            {canAction && (
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={onCorrectionClick}

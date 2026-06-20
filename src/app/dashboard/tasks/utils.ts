@@ -1,5 +1,13 @@
 import { Task } from "./types";
 
+interface BookedSlotTask {
+  bookedSlotCount?: number;
+  bookedSlotsCount?: number;
+  reservedSlotCount?: number;
+  secureSpotBookedCount?: number;
+  submissionCount?: number;
+}
+
 export const PLATFORM_COLORS: Record<string, string> = {
   whatsapp: "bg-green-500/10 text-green-400 border-green-500/20",
   tiktok: "bg-pink-500/10 text-pink-400 border-pink-500/20",
@@ -53,6 +61,17 @@ export function isExpired(task: Task) {
 export function isScheduled(task: Task) {
   if (!task.scheduledAt) return false;
   return new Date(task.scheduledAt) > new Date();
+}
+
+export function getBookedSlotCount(task: BookedSlotTask, fallbackCount = 0) {
+  return (
+    task.bookedSlotCount ??
+    task.bookedSlotsCount ??
+    task.reservedSlotCount ??
+    task.secureSpotBookedCount ??
+    task.submissionCount ??
+    fallbackCount
+  );
 }
 
 export function formatScheduledAt(d: string) {

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { AlertCircle, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { Submission, Task } from "../types";
-import { formatAmount, getImagesList } from "../utils";
+import { formatAmount, formatSubmissionStatus, getImagesList, isActionableSubmissionStatus } from "../utils";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface SideBySideCompareBodyProps {
@@ -63,7 +63,7 @@ export function SideBySideCompareBody({
 
   const renderColumn = (s: Submission, title: string) => {
     const status = localStatuses[s.id] || s.status;
-    const isPending = status === "pending" || status === "needs_correction";
+    const canAction = isActionableSubmissionStatus(status);
     const imgs = s.proofType !== "link" ? getImagesList(s.proof) : [];
 
     return (
@@ -75,7 +75,7 @@ export function SideBySideCompareBody({
           <span
             className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase select-none ${status === "approved" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : status === "rejected" ? "bg-red-500/15 text-red-400 border border-red-500/30" : "bg-amber-500/15 text-amber-400 border border-amber-500/30"}`}
           >
-            {status}
+            {formatSubmissionStatus(status)}
           </span>
         </h4>
 
@@ -98,7 +98,7 @@ export function SideBySideCompareBody({
         </div>
 
         {/* Earning verdict action buttons */}
-        {isPending && (
+        {canAction && (
           <div className="space-y-2 bg-zinc-900/20 p-3.5 rounded-lg border border-zinc-850/60">
             <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2">Verdict Action</p>
             <div className="grid grid-cols-3 gap-2">

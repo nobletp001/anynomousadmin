@@ -21,6 +21,7 @@ import {
   isExpired,
   isScheduled,
   formatScheduledAt,
+  getBookedSlotCount,
 } from "../utils";
 
 interface TaskCardProps {
@@ -42,6 +43,7 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick, onPinClick }
     task.numberOfUsersNeeded > 0 ? Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100)) : 0;
   const expired = isExpired(task);
   const scheduled = isScheduled(task);
+  const bookedSlotCount = getBookedSlotCount(task);
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -169,7 +171,7 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick, onPinClick }
           </span>
           <span className="flex items-center gap-1">
             <Users className="w-3 h-3" />
-            {task.submissionCount} submitted
+            {bookedSlotCount} slot{bookedSlotCount === 1 ? "" : "s"} booked
           </span>
         </div>
         <div className={`flex items-center gap-1 ${expired ? "text-red-400" : "text-zinc-500"}`}>

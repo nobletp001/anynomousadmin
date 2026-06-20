@@ -2,7 +2,7 @@ import React from "react";
 import { Submission } from "../types";
 import { SubmissionUserDetailsCard } from "./SubmissionUserDetailsCard";
 import { ViolationReportForm } from "./ViolationReportForm";
-import { formatAmount } from "../utils";
+import { formatAmount, isActionableSubmissionStatus } from "../utils";
 
 interface SubmissionUserInfoPanelProps {
   sub: Submission;
@@ -41,7 +41,7 @@ export function SubmissionUserInfoPanel({
   isReportPending,
   onCompareUser,
 }: SubmissionUserInfoPanelProps) {
-  const isPending = sub.status === "pending" || sub.status === "needs_correction";
+  const canAction = isActionableSubmissionStatus(sub.status);
 
   return (
     <div className="md:col-span-5 space-y-5">
@@ -57,14 +57,28 @@ export function SubmissionUserInfoPanel({
             <div className="flex items-start gap-2 bg-zinc-900 p-2.5 rounded-lg border border-zinc-800">
               {/^(https?:\/\/)?([a-z0-9\-]+\.)+[a-z]{2,}/i.test(sub.textResponse.trim()) ? (
                 <a
-                  href={sub.textResponse.trim().startsWith("http") ? sub.textResponse.trim() : `https://${sub.textResponse.trim()}`}
+                  href={
+                    sub.textResponse.trim().startsWith("http")
+                      ? sub.textResponse.trim()
+                      : `https://${sub.textResponse.trim()}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-purple-400 hover:text-purple-300 hover:underline flex-1 break-all font-medium select-all flex items-center justify-between gap-1.5"
                 >
                   <span>{sub.textResponse}</span>
-                  <svg className="w-3.5 h-3.5 shrink-0 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  <svg
+                    className="w-3.5 h-3.5 shrink-0 text-purple-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
                   </svg>
                 </a>
               ) : (
@@ -95,7 +109,7 @@ export function SubmissionUserInfoPanel({
         )}
       </div>
 
-      {isPending && (
+      {canAction && (
         <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 space-y-4">
           <h4 className="text-[10px] font-bold text-zinc-550 uppercase tracking-widest border-b border-zinc-800 pb-1.5">
             Action Verdict (Required)
@@ -138,7 +152,8 @@ export function SubmissionUserInfoPanel({
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] text-zinc-500 uppercase font-semibold">Rating:</span>
             <div className="flex text-amber-400 text-xs">
-              {"★".repeat(sub.rating)}{"☆".repeat(5 - sub.rating)}
+              {"★".repeat(sub.rating)}
+              {"☆".repeat(5 - sub.rating)}
             </div>
           </div>
           {sub.feedback && (

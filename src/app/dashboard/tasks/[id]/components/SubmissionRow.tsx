@@ -6,6 +6,8 @@ import {
   formatAmount,
   formatDate,
   statusVariant,
+  isActionableSubmissionStatus,
+  formatSubmissionStatus,
   getDuplicateWarning,
   getIpWarning,
   getDeviceWarning,
@@ -35,7 +37,7 @@ export function SubmissionRow({
   onReject,
   onReverseReject,
 }: SubmissionRowProps) {
-  const isSelectable = sub.status === "pending" || sub.status === "needs_correction";
+  const isSelectable = isActionableSubmissionStatus(sub.status);
   const whatsappNum = (sub.user as any)?.whatsappNumber;
 
   return (
@@ -162,7 +164,7 @@ export function SubmissionRow({
       <td className="px-6 py-4">
         <div>
           <Badge variant={statusVariant(sub.status)} dot>
-            {sub.status === "needs_correction" ? "correction requested" : sub.status}
+            {formatSubmissionStatus(sub.status)}
           </Badge>
           {(sub.status === "rejected" || sub.status === "needs_correction") && sub.rejectionReason && (
             <p className="text-[10px] text-zinc-550 mt-0.5 max-w-44 truncate font-medium" title={sub.rejectionReason}>

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Submission, RejectModal } from "../types";
+import { isActionableSubmissionStatus } from "../utils";
 
 interface ShortcutProps {
   viewingSub: Submission | null;
@@ -117,7 +118,7 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      const pendings = submissions.filter((s) => s.status === "pending" || s.status === "needs_correction");
+      const pendings = submissions.filter((s) => isActionableSubmissionStatus(s.status));
       const currentIdx = pendings.findIndex((s) => s.id === viewingSub.id);
 
       if (e.key === "ArrowDown") {

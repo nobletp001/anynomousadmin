@@ -15,6 +15,7 @@ import { TaskDetailModals } from "./components/TaskDetailModals";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
 import { Submission } from "./types";
+import { isActionableSubmissionStatus } from "./utils";
 
 const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const API_BASE = rawApiUrl.endsWith("/api") ? rawApiUrl.slice(0, -4) : rawApiUrl;
@@ -36,7 +37,7 @@ export default function TaskSubmissionsPage() {
   const officers = officersQuery.data?.data ?? [];
 
   const advanceToNextPending = (currentSubId: number) => {
-    const pendings = submissions.filter((s) => s.status === "pending" || s.status === "needs_correction");
+    const pendings = submissions.filter((s) => isActionableSubmissionStatus(s.status));
     const currentIdx = pendings.findIndex((s) => s.id === currentSubId);
     state.setViewingSub(currentIdx !== -1 && currentIdx < pendings.length - 1 ? pendings[currentIdx + 1] : null);
   };

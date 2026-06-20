@@ -107,6 +107,11 @@ export interface Task {
   adminContact: string | null;
   status: string;
   approvedCount: number;
+  bookedSlotCount?: number;
+  bookedSlotsCount?: number;
+  reservedSlotCount?: number;
+  secureSpotBookedCount?: number;
+  submissionCount?: number;
   createdBy: string;
   assignedOfficer: string | null;
   proofType?: string | null;
