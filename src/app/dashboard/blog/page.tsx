@@ -29,6 +29,8 @@ interface BlogArticle {
   updatedAt: string;
 }
 
+const SAVED_BANNER_STORAGE_KEY = "payfluence_blog_saved_banner";
+
 export default function BlogManagementPage() {
   const [activeTab, setActiveTab] = useState<"history" | "create" | "bulk_auto">("history");
   const [blogs, setBlogs] = useState<BlogArticle[]>([]);
@@ -43,12 +45,35 @@ export default function BlogManagementPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [banner, setBanner] = useState("");
+  const [saveBannerImage, setSaveBannerImage] = useState(false);
   const [generatingSingle, setGeneratingSingle] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [singleMessage, setSingleMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Image Uploading state & helper
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  const updateCreateBanner = (nextBanner: string) => {
+    setBanner(nextBanner);
+    if (saveBannerImage) {
+      const normalizedBanner = nextBanner.trim();
+      if (normalizedBanner) {
+        localStorage.setItem(SAVED_BANNER_STORAGE_KEY, normalizedBanner);
+      } else {
+        localStorage.removeItem(SAVED_BANNER_STORAGE_KEY);
+      }
+    }
+  };
+
+  const handleSaveBannerToggle = (checked: boolean) => {
+    setSaveBannerImage(checked);
+    const normalizedBanner = banner.trim();
+    if (checked && normalizedBanner) {
+      localStorage.setItem(SAVED_BANNER_STORAGE_KEY, normalizedBanner);
+    } else if (!checked) {
+      localStorage.removeItem(SAVED_BANNER_STORAGE_KEY);
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
     const file = e.target.files?.[0];
@@ -83,7 +108,7 @@ export default function BlogManagementPage() {
             if (isEdit) {
               setEditBanner(imageUrl);
             } else {
-              setBanner(imageUrl);
+              updateCreateBanner(imageUrl);
             }
           } else {
             alert("Upload succeeded but no image URL was returned in the response.");
@@ -149,6 +174,16 @@ export default function BlogManagementPage() {
     }
   }, [page, search, activeTab]);
 
+  useEffect(() => {
+    const savedBanner = localStorage.getItem(SAVED_BANNER_STORAGE_KEY);
+    if (savedBanner) {
+      queueMicrotask(() => {
+        setBanner(savedBanner);
+        setSaveBannerImage(true);
+      });
+    }
+  }, []);
+
   // Handle manual publish
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,7 +205,9 @@ export default function BlogManagementPage() {
         setSingleMessage({ type: "success", text: "Article published successfully!" });
         setTitle("");
         setContent("");
-        setBanner("");
+        if (!saveBannerImage) {
+          setBanner("");
+        }
       } else {
         setSingleMessage({ type: "error", text: "Failed to publish article." });
       }
@@ -201,7 +238,7 @@ export default function BlogManagementPage() {
 
       if (res && res.success) {
         setContent(res.data.content);
-        setBanner(res.data.banner);
+        updateCreateBanner(res.data.banner);
         if (banner.trim()) {
           setSingleMessage({ type: "success", text: "Article written by DeepSeek (kept existing banner URL)!" });
         } else {
@@ -602,7 +639,7 @@ export default function BlogManagementPage() {
                     type="text"
                     placeholder="https://... or upload image"
                     value={banner}
-                    onChange={(e) => setBanner(e.target.value)}
+                    onChange={(e) => updateCreateBanner(e.target.value)}
                     className="flex-1 px-4 py-2.5 bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-200 placeholder-zinc-650 focus:outline-none focus:border-purple-500 transition"
                   />
                   <div className="flex items-center gap-2">
@@ -620,6 +657,15 @@ export default function BlogManagementPage() {
                     {uploadingImage && <Loader2 className="w-4 h-4 animate-spin text-purple-500" />}
                   </div>
                 </div>
+                <label className="inline-flex w-fit items-center gap-2 text-[11px] font-semibold text-zinc-400 hover:text-zinc-200 cursor-pointer transition">
+                  <input
+                    type="checkbox"
+                    checked={saveBannerImage}
+                    onChange={(e) => handleSaveBannerToggle(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-zinc-700 bg-zinc-950 text-purple-500 focus:ring-purple-500 focus:ring-offset-0"
+                  />
+                  <span>Save banner image for future posts</span>
+                </label>
               </div>
 
               <div className="space-y-1.5">
