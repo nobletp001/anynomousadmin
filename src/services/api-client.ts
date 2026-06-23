@@ -1,12 +1,12 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-const API_URL = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
+// NEXT_PUBLIC_API_URL already includes /api (e.g. http://localhost:4000/api)
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/$/, "");
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
 export const apiClient = axios.create({
-  baseURL: `${API_URL}/api`,
+  baseURL: BASE_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -14,7 +14,7 @@ export const apiClient = axios.create({
 });
 
 const refreshClient = axios.create({
-  baseURL: `${API_URL}/api`,
+  baseURL: BASE_URL,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
@@ -33,7 +33,7 @@ async function getCsrfToken(): Promise<string | null> {
   if (csrfToken) return csrfToken;
   if (!csrfTokenPromise) {
     csrfTokenPromise = axios
-      .get<{ csrfToken: string }>(`${API_URL}/api/csrf-token`, {
+      .get<{ csrfToken: string }>(`${BASE_URL}/csrf-token`, {
         withCredentials: true,
       })
       .then((res) => {
