@@ -1,24 +1,13 @@
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-const API_BASE = rawApiUrl.endsWith("/api") ? rawApiUrl.slice(0, -4) : rawApiUrl;
-
-export function getToken() {
-  if (typeof window !== "undefined") {
-    return sessionStorage.getItem("admin_token") || localStorage.getItem("admin_token");
-  }
-  return null;
-}
+import { apiClient } from "@/services/api-client";
 
 export async function apiFetch(path: string, options?: RequestInit) {
-  const token = getToken();
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...(options?.headers || {}),
-    },
+  const method = (options?.method || "GET").toUpperCase();
+  const response = await apiClient.request({
+    url: path,
+    method,
+    data: options?.body ? JSON.parse(options.body as string) : undefined,
   });
-  return res.json();
+  return response;
 }
 
 export function getImagesList(proof: string): string[] {

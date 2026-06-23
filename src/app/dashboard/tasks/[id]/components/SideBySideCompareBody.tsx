@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { Submission, Task } from "../types";
 import { formatAmount, formatSubmissionStatus, getImagesList, isActionableSubmissionStatus } from "../utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/services/api-client";
 
 interface SideBySideCompareBodyProps {
   sub: Submission;
@@ -12,9 +13,6 @@ interface SideBySideCompareBodyProps {
   onWatchUser?: (username: string) => void;
   onCloseCompare: () => void;
 }
-
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-const API_BASE = rawApiUrl.endsWith("/api") ? rawApiUrl.slice(0, -4) : rawApiUrl;
 
 export function SideBySideCompareBody({
   sub,
@@ -31,7 +29,6 @@ export function SideBySideCompareBody({
   const handleAction = async (subId: number, action: "approve" | "reject" | "needs_correction") => {
     setActionsPending((prev) => ({ ...prev, [subId]: true }));
     try {
-      const token = sessionStorage.getItem("admin_token") || localStorage.getItem("admin_token");
       const body: any = { action };
       if (action === "approve") {
         body.rating = 5;
@@ -41,13 +38,8 @@ export function SideBySideCompareBody({
         body.deductedAmount = 0;
       }
 
-      const res = await fetch(`${API_BASE}/api/admin/tasks/${task.id}/submissions/${subId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (data.success) {
+      const data = await apiClient.patch(`/admin/tasks/${task.id}/submissions/${subId}`, body);
+      if ((data as any).success) {
         setLocalStatuses((prev) => ({ ...prev, [subId]: action }));
         queryClient.invalidateQueries({ queryKey: ["task-submissions", String(task.id)] });
       } else {

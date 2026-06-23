@@ -16,9 +16,7 @@ import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
 import { Submission } from "./types";
 import { isActionableSubmissionStatus } from "./utils";
-
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-const API_BASE = rawApiUrl.endsWith("/api") ? rawApiUrl.slice(0, -4) : rawApiUrl;
+import { apiClient } from "@/services/api-client";
 
 export default function TaskSubmissionsPage() {
   const router = useRouter();
@@ -86,19 +84,16 @@ export default function TaskSubmissionsPage() {
 
   const handleWatchUser = async (username: string) => {
     try {
-      const token = sessionStorage.getItem("admin_token") || localStorage.getItem("admin_token");
-      const res = await fetch(`${API_BASE}/api/admin/fraud/users/${username}/monitor`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ monitored: true, runAnalysis: true }),
+      const data = await apiClient.patch(`/admin/fraud/users/${username}/monitor`, {
+        monitored: true,
+        runAnalysis: true,
       });
-      const data = await res.json();
-      if (data.success) {
+      if ((data as any).success) {
         alert(
-          `✅ @${username} is now under watch.\n${data.newAlerts?.length > 0 ? `${data.newAlerts.length} fraud signal(s) detected.` : "No immediate flags found — monitoring is active."}`
+          `✅ @${username} is now under watch.\n${(data as any).newAlerts?.length > 0 ? `${(data as any).newAlerts.length} fraud signal(s) detected.` : "No immediate flags found — monitoring is active."}`
         );
       } else {
-        alert(`Failed to track user: ${data.error}`);
+        alert(`Failed to track user: ${(data as any).error}`);
       }
     } catch {
       alert("Network error — could not place user under watch.");
