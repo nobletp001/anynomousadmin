@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Move, X, Eye } from "lucide-react";
+import { FileText, Move, X, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui";
 import { Submission, Task } from "../types";
 import { formatDate } from "../utils";
@@ -32,6 +32,10 @@ interface SubmissionDetailsModalProps {
   onRejectClick: () => void;
   isApprovePending: boolean;
   onWatchUser?: (username: string) => void;
+  onPrev?: () => void;
+  onNext?: () => void;
+  currentIndex?: number;
+  totalCount?: number;
 }
 
 export function SubmissionDetailsModal({
@@ -57,6 +61,10 @@ export function SubmissionDetailsModal({
   onRejectClick,
   isApprovePending,
   onWatchUser,
+  onPrev,
+  onNext,
+  currentIndex,
+  totalCount,
 }: SubmissionDetailsModalProps) {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -150,12 +158,39 @@ export function SubmissionDetailsModal({
               Submitted by <span className="font-bold text-white">@{sub.username}</span> · {formatDate(sub.createdAt)}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {(onPrev || onNext) && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={onPrev}
+                  disabled={!onPrev}
+                  title="Previous submission (←)"
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                {totalCount !== undefined && currentIndex !== undefined && (
+                  <span className="text-xs text-zinc-500 tabular-nums min-w-12 text-center">
+                    {currentIndex + 1} / {totalCount}
+                  </span>
+                )}
+                <button
+                  onClick={onNext}
+                  disabled={!onNext}
+                  title="Next submission (→)"
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Modal Body */}

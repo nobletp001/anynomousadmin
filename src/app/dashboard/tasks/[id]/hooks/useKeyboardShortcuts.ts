@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { Submission, RejectModal } from "../types";
-import { isActionableSubmissionStatus } from "../utils";
 
 interface ShortcutProps {
   viewingSub: Submission | null;
@@ -118,20 +117,19 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      const pendings = submissions.filter((s) => isActionableSubmissionStatus(s.status));
-      const currentIdx = pendings.findIndex((s) => s.id === viewingSub.id);
+      const currentIdx = submissions.findIndex((s) => s.id === viewingSub.id);
 
-      if (e.key === "ArrowDown") {
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
         e.preventDefault();
-        if (currentIdx !== -1 && currentIdx < pendings.length - 1) {
-          setViewingSub(pendings[currentIdx + 1]);
+        if (currentIdx !== -1 && currentIdx < submissions.length - 1) {
+          setViewingSub(submissions[currentIdx + 1]);
         }
       }
 
-      if (e.key === "ArrowUp") {
+      if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
         e.preventDefault();
         if (currentIdx > 0) {
-          setViewingSub(pendings[currentIdx - 1]);
+          setViewingSub(submissions[currentIdx - 1]);
         }
       }
     }

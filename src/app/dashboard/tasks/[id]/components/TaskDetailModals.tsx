@@ -38,47 +38,57 @@ export function TaskDetailModals({
 }: TaskDetailModalsProps) {
   return (
     <>
-      {state.viewingSub && (
-        <SubmissionDetailsModal
-          sub={state.viewingSub}
-          submissions={submissions}
-          task={task}
-          rating={state.rating}
-          setRating={state.setRating}
-          feedback={state.feedback}
-          setFeedback={state.setFeedback}
-          showReportForm={state.showReportForm}
-          setShowReportForm={state.setShowReportForm}
-          reportDeductAmount={state.reportDeductAmount}
-          setReportDeductAmount={state.setReportDeductAmount}
-          reportReason={state.reportReason}
-          setReportReason={state.setReportReason}
-          isReportPending={mutations.reportSubmission.isPending}
-          onSubmitReport={() =>
-            mutations.reportSubmission.mutate({
-              subId: state.viewingSub!.id,
-              deductedAmount: Number(state.reportDeductAmount) || 0,
-              rejectionReason: state.reportReason,
-            })
-          }
-          onZoomImage={(imgs, idx) => {
-            state.setActiveImagesList(imgs);
-            state.setActiveImageIndex(idx);
-          }}
-          onClose={() => state.setViewingSub(null)}
-          onApprove={() =>
-            mutations.approveSubmission.mutate({
-              subId: state.viewingSub!.id,
-              rating: state.rating || 5,
-              feedback: state.feedback,
-            })
-          }
-          onCorrectionClick={() => openCorrectionModal(state.viewingSub!)}
-          onRejectClick={() => openRejectModal(state.viewingSub!)}
-          isApprovePending={mutations.approveSubmission.isPending}
-          onWatchUser={handleWatchUser}
-        />
-      )}
+      {state.viewingSub &&
+        (() => {
+          const currentIdx = submissions.findIndex((s) => s.id === state.viewingSub!.id);
+          const hasPrev = currentIdx > 0;
+          const hasNext = currentIdx !== -1 && currentIdx < submissions.length - 1;
+          return (
+            <SubmissionDetailsModal
+              sub={state.viewingSub}
+              submissions={submissions}
+              task={task}
+              rating={state.rating}
+              setRating={state.setRating}
+              feedback={state.feedback}
+              setFeedback={state.setFeedback}
+              showReportForm={state.showReportForm}
+              setShowReportForm={state.setShowReportForm}
+              reportDeductAmount={state.reportDeductAmount}
+              setReportDeductAmount={state.setReportDeductAmount}
+              reportReason={state.reportReason}
+              setReportReason={state.setReportReason}
+              isReportPending={mutations.reportSubmission.isPending}
+              onSubmitReport={() =>
+                mutations.reportSubmission.mutate({
+                  subId: state.viewingSub!.id,
+                  deductedAmount: Number(state.reportDeductAmount) || 0,
+                  rejectionReason: state.reportReason,
+                })
+              }
+              onZoomImage={(imgs, idx) => {
+                state.setActiveImagesList(imgs);
+                state.setActiveImageIndex(idx);
+              }}
+              onClose={() => state.setViewingSub(null)}
+              onApprove={() =>
+                mutations.approveSubmission.mutate({
+                  subId: state.viewingSub!.id,
+                  rating: state.rating || 5,
+                  feedback: state.feedback,
+                })
+              }
+              onCorrectionClick={() => openCorrectionModal(state.viewingSub!)}
+              onRejectClick={() => openRejectModal(state.viewingSub!)}
+              isApprovePending={mutations.approveSubmission.isPending}
+              onWatchUser={handleWatchUser}
+              currentIndex={currentIdx}
+              totalCount={submissions.length}
+              onPrev={hasPrev ? () => state.setViewingSub(submissions[currentIdx - 1]) : undefined}
+              onNext={hasNext ? () => state.setViewingSub(submissions[currentIdx + 1]) : undefined}
+            />
+          );
+        })()}
 
       {state.rejectModal && (
         <RejectModal
