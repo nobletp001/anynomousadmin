@@ -50,6 +50,8 @@ interface ConfigProps {
   setEditSecureSpotConstantDelay: (v: string) => void;
   editAdditionalSlots: string;
   setEditAdditionalSlots: (v: string) => void;
+  editBlockSameDevice: boolean;
+  setEditBlockSameDevice: (v: boolean) => void;
 }
 
 export function Config({
@@ -95,6 +97,8 @@ export function Config({
   setEditSecureSpotConstantDelay,
   editAdditionalSlots,
   setEditAdditionalSlots,
+  editBlockSameDevice,
+  setEditBlockSameDevice,
 }: ConfigProps) {
   const isUseApp = editTaskType === "use-app";
 
@@ -411,6 +415,33 @@ export function Config({
       <div>
         <FieldLabel>Copywriting / Marketing Text (Modal)</FieldLabel>
         <RichTextEditor value={editMarketingText} onChange={setEditMarketingText} placeholder="Write here..." />
+      </div>
+
+      <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-400 font-medium">Block Same-Device Submissions</p>
+            <p className="text-[11px] text-zinc-555 mt-0.5">
+              Prevent a device that has already submitted proof for this task from submitting again under a different
+              account.
+            </p>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+            <span
+              className={`text-xs font-semibold transition-colors ${editBlockSameDevice ? "text-emerald-400" : "text-zinc-555"}`}
+            >
+              {editBlockSameDevice ? "On" : "Off"}
+            </span>
+            <div
+              onClick={() => setEditBlockSameDevice(!editBlockSameDevice)}
+              className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${editBlockSameDevice ? "bg-emerald-500" : "bg-zinc-700"}`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editBlockSameDevice ? "translate-x-4" : "translate-x-0"}`}
+              />
+            </div>
+          </label>
+        </div>
       </div>
 
       {/* ── Secure-a-Spot ── */}

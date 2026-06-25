@@ -161,6 +161,7 @@ export function EditTaskModal({
         editState.editIsSecureSpotTask && editState.editAdditionalSlots.trim()
           ? parseInt(editState.editAdditionalSlots)
           : undefined,
+      blockSameDevice: editState.editBlockSameDevice,
     });
   };
 
@@ -268,6 +269,8 @@ export function EditTaskModal({
             setEditSecureSpotConstantDelay={editState.setEditSecureSpotConstantDelay}
             editAdditionalSlots={editState.editAdditionalSlots}
             setEditAdditionalSlots={editState.setEditAdditionalSlots}
+            editBlockSameDevice={editState.editBlockSameDevice}
+            setEditBlockSameDevice={editState.setEditBlockSameDevice}
           />
           <Targeting
             editEnableTargeting={editState.editEnableTargeting}

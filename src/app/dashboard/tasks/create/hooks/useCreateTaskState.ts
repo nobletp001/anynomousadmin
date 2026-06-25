@@ -50,6 +50,7 @@ export function useCreateTaskState() {
   const [secureSpotInterval, setSecureSpotInterval] = useState("");
   const [secureSpotConstantDelay, setSecureSpotConstantDelay] = useState("");
   const [additionalSlots, setAdditionalSlots] = useState("5");
+  const [blockSameDevice, setBlockSameDevice] = useState(true);
   const [audience, setAudience] = useState<AudienceFilter>({
     gender: [],
     employmentStatus: [],
@@ -158,6 +159,8 @@ export function useCreateTaskState() {
     setSecureSpotConstantDelay,
     additionalSlots,
     setAdditionalSlots,
+    blockSameDevice,
+    setBlockSameDevice,
   };
 }
 

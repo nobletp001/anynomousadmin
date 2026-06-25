@@ -124,6 +124,8 @@ export default function CreateTaskPage() {
           setSecureSpotConstantDelay={state.setSecureSpotConstantDelay}
           additionalSlots={state.additionalSlots}
           setAdditionalSlots={state.setAdditionalSlots}
+          blockSameDevice={state.blockSameDevice}
+          setBlockSameDevice={state.setBlockSameDevice}
         />
 
         <TargetAudienceForm

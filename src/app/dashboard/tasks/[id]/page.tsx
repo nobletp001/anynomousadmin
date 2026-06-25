@@ -207,6 +207,7 @@ export default function TaskSubmissionsPage() {
         : ""
     );
     editState.setEditIsPinned(!!task.isPinned);
+    editState.setEditBlockSameDevice(task.blockSameDevice !== false);
     editState.setUploadError("");
   };
 

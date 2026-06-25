@@ -47,6 +47,8 @@ interface TaskConfigFormProps {
   setSecureSpotConstantDelay: (v: string) => void;
   additionalSlots: string;
   setAdditionalSlots: (v: string) => void;
+  blockSameDevice: boolean;
+  setBlockSameDevice: (v: boolean) => void;
 }
 
 export function TaskConfigForm({
@@ -92,6 +94,8 @@ export function TaskConfigForm({
   setSecureSpotConstantDelay,
   additionalSlots,
   setAdditionalSlots,
+  blockSameDevice,
+  setBlockSameDevice,
 }: TaskConfigFormProps) {
   const isJetpot = taskType === "jetpot";
   const isViews = taskType === "views";
@@ -384,6 +388,26 @@ export function TaskConfigForm({
       <div>
         <FieldLabel>Copywriting / Marketing Text (Modal)</FieldLabel>
         <RichTextEditor value={marketingText} onChange={setMarketingText} placeholder="Write here..." />
+      </div>
+
+      <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-400 font-medium">Block Same-Device Submissions</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Prevent a device that has already submitted proof for this task from submitting again under a different
+              account.
+            </p>
+          </div>
+          <div
+            onClick={() => setBlockSameDevice(!blockSameDevice)}
+            className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${blockSameDevice ? "bg-emerald-500" : "bg-zinc-700"}`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${blockSameDevice ? "translate-x-4" : "translate-x-0"}`}
+            />
+          </div>
+        </div>
       </div>
 
       {/* ── Secure-a-Spot Section ── */}

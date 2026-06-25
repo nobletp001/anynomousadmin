@@ -139,6 +139,7 @@ export interface Task {
   secureSpotInterval?: number | null;
   secureSpotConstantDelay?: number | null;
   additionalSlots?: number | null;
+  blockSameDevice?: boolean;
 }
 
 export interface UserInfo {
