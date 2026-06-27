@@ -17,6 +17,7 @@ import { InstructionsForm } from "./components/InstructionsForm";
 import { TaskConfigForm } from "./components/TaskConfigForm";
 import { TargetAudienceForm } from "./components/TargetAudienceForm";
 import { RewardTimelineForm } from "./components/RewardTimelineForm";
+import { SlotUserPicker } from "../components/SlotUserPicker";
 import { applyPresetToState } from "./utils";
 
 export default function CreateTaskPage() {
@@ -127,6 +128,15 @@ export default function CreateTaskPage() {
           blockSameDevice={state.blockSameDevice}
           setBlockSameDevice={state.setBlockSameDevice}
         />
+
+        {state.isSecureSpotTask && (
+          <SlotUserPicker
+            selectedUsers={state.initialSlotSelectedUsers}
+            onChange={state.setInitialSlotSelectedUsers}
+            bulkUsers={state.initialSlotBulkUsers}
+            onBulkChange={state.setInitialSlotBulkUsers}
+          />
+        )}
 
         <TargetAudienceForm
           enableTargeting={state.enableTargeting}

@@ -51,6 +51,8 @@ export function useCreateTaskState() {
   const [secureSpotConstantDelay, setSecureSpotConstantDelay] = useState("");
   const [additionalSlots, setAdditionalSlots] = useState("5");
   const [blockSameDevice, setBlockSameDevice] = useState(true);
+  const [initialSlotSelectedUsers, setInitialSlotSelectedUsers] = useState<string[]>([]);
+  const [initialSlotBulkUsers, setInitialSlotBulkUsers] = useState("");
   const [audience, setAudience] = useState<AudienceFilter>({
     gender: [],
     employmentStatus: [],
@@ -161,6 +163,10 @@ export function useCreateTaskState() {
     setAdditionalSlots,
     blockSameDevice,
     setBlockSameDevice,
+    initialSlotSelectedUsers,
+    setInitialSlotSelectedUsers,
+    initialSlotBulkUsers,
+    setInitialSlotBulkUsers,
   };
 }
 

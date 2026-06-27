@@ -1,6 +1,14 @@
 import React from "react";
 import { Badge } from "@/components/ui";
-import { CheckCircle, AlertCircle, XCircle, RotateCcw, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
+import {
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+  RotateCcw,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Trash2,
+} from "lucide-react";
 import { Submission } from "../types";
 import {
   formatAmount,
@@ -24,6 +32,7 @@ interface SubmissionRowProps {
   onCorrection: () => void;
   onReject: () => void;
   onReverseReject?: () => void;
+  onRemove: () => void;
 }
 
 export function SubmissionRow({
@@ -36,6 +45,7 @@ export function SubmissionRow({
   onCorrection,
   onReject,
   onReverseReject,
+  onRemove,
 }: SubmissionRowProps) {
   const isSelectable = isActionableSubmissionStatus(sub.status);
   const whatsappNum = (sub.user as any)?.whatsappNumber;
@@ -210,6 +220,15 @@ export function SubmissionRow({
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Reverse
+          </button>
+        )}
+        {sub.status !== "removed" && (
+          <button
+            onClick={onRemove}
+            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Remove
           </button>
         )}
       </td>

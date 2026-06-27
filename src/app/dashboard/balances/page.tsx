@@ -3,18 +3,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
-import {
-  Wallet,
-  Clock,
-  ClipboardList,
-  CheckCircle,
-  AlertCircle,
-  Search,
-  Building2,
-  Phone,
-  ArrowUpDown,
-  Coins,
-} from "lucide-react";
+import { Wallet, Clock, ClipboardList, CheckCircle, AlertCircle, Search, Coins } from "lucide-react";
 import { BankCard } from "../payouts/components/BankCard";
 import { fmt } from "../payouts/utils";
 import { Button } from "@/components/ui";
@@ -179,9 +168,7 @@ export default function BalancesPage() {
           >
             <div className="flex justify-between items-start">
               <p className="text-[10px] text-zinc-550 uppercase font-black tracking-wider">{c.label}</p>
-              <div className={`h-7 w-7 rounded-lg flex items-center justify-center border ${c.color}`}>
-                {c.icon}
-              </div>
+              <div className={`h-7 w-7 rounded-lg flex items-center justify-center border ${c.color}`}>{c.icon}</div>
             </div>
             <p className={`text-2xl font-black mt-2 ${c.valColor}`}>{c.val}</p>
             <p className="text-[9px] text-zinc-550 mt-1 font-semibold">{c.sub}</p>
@@ -198,7 +185,9 @@ export default function BalancesPage() {
             </div>
             <div>
               <p className="text-sm font-extrabold text-zinc-300">No balance records found</p>
-              <p className="text-xs text-zinc-500 mt-1">No user balances or financial activity matched your criteria.</p>
+              <p className="text-xs text-zinc-500 mt-1">
+                No user balances or financial activity matched your criteria.
+              </p>
             </div>
           </div>
         ) : (
@@ -207,15 +196,25 @@ export default function BalancesPage() {
               <thead>
                 <tr className="border-b border-zinc-850 bg-zinc-950/20">
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">User</th>
-                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Total Earnings</th>
-                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Ready Payout</th>
-                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Pending Clear</th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">
+                    Total Earnings
+                  </th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">
+                    Ready Payout
+                  </th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">
+                    Pending Clear
+                  </th>
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">In Payout</th>
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Paid Out</th>
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Deductions</th>
-                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Task Earnings</th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">
+                    Task Earnings
+                  </th>
                   <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Referrals</th>
-                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">Bank Details</th>
+                  <th className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-6 py-4">
+                    Bank Details
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/40">
@@ -235,7 +234,9 @@ export default function BalancesPage() {
 
                     {/* Total Earnings */}
                     <td className="px-6 py-4.5 whitespace-nowrap">
-                      <p className="text-sm font-black text-zinc-100">{fmt(u.taskEarnings + u.referralEarnings + u.adminAdditions)}</p>
+                      <p className="text-sm font-black text-zinc-100">
+                        {fmt(u.taskEarnings + u.referralEarnings + u.adminAdditions)}
+                      </p>
                       <p className="text-[9px] text-zinc-550 font-semibold mt-0.5">
                         Tasks: {fmt(u.taskEarnings)} | Refs: {fmt(u.referralEarnings)} | Admin: +{fmt(u.adminAdditions)}
                       </p>
@@ -322,10 +323,8 @@ export default function BalancesPage() {
           <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800/40 bg-zinc-900/10">
             <p className="text-xs text-zinc-500 font-semibold">
               Showing <span className="text-zinc-300">{(page - 1) * itemsPerPage + 1}</span> to{" "}
-              <span className="text-zinc-300">
-                {Math.min(page * itemsPerPage, filteredUsers.length)}
-              </span>{" "}
-              of <span className="text-zinc-300">{filteredUsers.length}</span> users
+              <span className="text-zinc-300">{Math.min(page * itemsPerPage, filteredUsers.length)}</span> of{" "}
+              <span className="text-zinc-300">{filteredUsers.length}</span> users
             </p>
             <div className="flex items-center gap-2">
               <Button

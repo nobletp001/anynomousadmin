@@ -103,6 +103,37 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
   });
 
+  const removeSubmission = useMutation({
+    mutationFn: (subId: number) => apiClient.delete(`/admin/tasks/${taskId}/submissions/${subId}`) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
+  const removeSecuredSpot = useMutation({
+    mutationFn: (username: string) =>
+      apiClient.delete(`/admin/tasks/${taskId}/secured-spots/${encodeURIComponent(username)}`) as any,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-secured-spots", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] });
+    },
+  });
+
+  const addSecuredSpots = useMutation({
+    mutationFn: (users: string[]) => apiClient.post(`/admin/tasks/${taskId}/secured-spots`, { users }) as any,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-secured-spots", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] });
+    },
+  });
+
+  const assistSubmission = useMutation({
+    mutationFn: (payload: Record<string, unknown>) =>
+      apiClient.post(`/admin/tasks/${taskId}/submissions/assist`, payload) as any,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-secured-spots", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] });
+    },
+  });
+
   return {
     approveSubmission,
     rejectSubmission,
@@ -113,5 +144,9 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     updateTask,
     uploadImage,
     reverseSubmission,
+    removeSubmission,
+    removeSecuredSpot,
+    addSecuredSpots,
+    assistSubmission,
   };
 }

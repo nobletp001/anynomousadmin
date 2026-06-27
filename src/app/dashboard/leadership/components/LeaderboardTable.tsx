@@ -1,20 +1,26 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Star, Clock } from "lucide-react";
+import { Search, Star } from "lucide-react";
 
 import { LeaderboardItem } from "../types";
 
-
 interface LeaderboardTableProps {
-  leaderboard: LeaderboardItem[]; searchQuery: string;
-  onSearchChange: (val: string) => void; formatTime: (secs: number) => string;
+  leaderboard: LeaderboardItem[];
+  searchQuery: string;
+  onSearchChange: (val: string) => void;
+  formatTime: (secs: number) => string;
   onAwardBonus: (user: LeaderboardItem) => void;
   onSelectUser: (username: string) => void;
 }
 
 export function LeaderboardTable({
-  leaderboard, searchQuery, onSearchChange, formatTime, onAwardBonus, onSelectUser,
+  leaderboard,
+  searchQuery,
+  onSearchChange,
+  formatTime,
+  onAwardBonus,
+  onSelectUser,
 }: LeaderboardTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -83,24 +89,32 @@ export function LeaderboardTable({
                         {item.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <span className="font-extrabold text-zinc-200 group-hover:text-purple-400 transition block">{item.name}</span>
+                        <span className="font-extrabold text-zinc-200 group-hover:text-purple-400 transition block">
+                          {item.name}
+                        </span>
                         <span className="text-[10px] text-zinc-550 block">@{item.username}</span>
                       </div>
                     </button>
                   </td>
                   <td className="py-4 px-6 text-center text-zinc-300 font-bold">{item.tasksCompleted}</td>
                   <td className="py-4 px-6 text-center text-purple-300 font-bold">{item.volunteerTasksCompleted}</td>
-                  <td className="py-4 px-6 text-center text-emerald-400 font-bold">₦{item.amountEarned.toLocaleString()}</td>
+                  <td className="py-4 px-6 text-center text-emerald-400 font-bold">
+                    ₦{item.amountEarned.toLocaleString()}
+                  </td>
                   <td className="py-4 px-6 text-center">
                     <span className="text-amber-400 inline-flex items-center gap-1 font-bold">
                       <Star className="w-3 h-3 fill-amber-400" />
                       {item.averageRating}
                     </span>
                   </td>
-                  <td className="py-4 px-6 text-center text-indigo-400 font-bold">{formatTime(item.averageTimeTaken)}</td>
+                  <td className="py-4 px-6 text-center text-indigo-400 font-bold">
+                    {formatTime(item.averageTimeTaken)}
+                  </td>
                   <td className="py-4 px-6 text-center">
                     {item.bonusAwarded ? (
-                      <span className="text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">Awarded</span>
+                      <span className="text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                        Awarded
+                      </span>
                     ) : (
                       <button
                         onClick={() => onAwardBonus(item)}
@@ -120,7 +134,8 @@ export function LeaderboardTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-2 text-[10px] font-bold text-zinc-400">
           <span>
-            Showing {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredList.length)} of {filteredList.length} contenders
+            Showing {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredList.length)}{" "}
+            of {filteredList.length} contenders
           </span>
           <div className="flex gap-2">
             <button

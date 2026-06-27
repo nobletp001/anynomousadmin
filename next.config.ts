@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   turbopack: {},
-  webpack: (config, { dev, isServer }) => {
+  webpack: (config, { dev }) => {
     if (!dev) {
       config.optimization = config.optimization || {};
       config.optimization.minimize = false;

@@ -48,10 +48,9 @@ export default function MyUsersPage() {
     return () => clearTimeout(handler);
   }, [search]);
 
-  const { data, isLoading, error } = useQuery<UsersResponse>({
+  const { data, isLoading } = useQuery<UsersResponse>({
     queryKey: ["my-users", page, debouncedSearch],
-    queryFn: () =>
-      apiClient.get(`/admin/my-users?page=${page}&search=${encodeURIComponent(debouncedSearch)}`) as any,
+    queryFn: () => apiClient.get(`/admin/my-users?page=${page}&search=${encodeURIComponent(debouncedSearch)}`) as any,
     enabled: !!currentUser,
   });
 

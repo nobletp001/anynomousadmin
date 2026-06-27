@@ -11,7 +11,10 @@ import { useEditTaskState } from "./hooks/useEditTaskState";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { TaskDetailHeader } from "./components/TaskDetailHeader";
 import { SubmissionsTable } from "./components/SubmissionsTable";
+import { SecuredSpotsPanel } from "./components/SecuredSpotsPanel";
+import { AssistSubmissionPanel } from "./components/AssistSubmissionPanel";
 import { TaskDetailModals } from "./components/TaskDetailModals";
+import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
 import { Submission } from "./types";
@@ -28,11 +31,18 @@ export default function TaskSubmissionsPage() {
     username: string;
     deductedAmount: number;
   } | null>(null);
+  const [slotSelectedUsers, setSlotSelectedUsers] = React.useState<string[]>([]);
+  const [slotBulkUsers, setSlotBulkUsers] = React.useState("");
 
-  const { submissionsQuery, officersQuery } = useTaskQueries(taskId, state.statusFilter, state.debouncedSearch);
+  const { submissionsQuery, officersQuery, securedSpotsQuery } = useTaskQueries(
+    taskId,
+    state.statusFilter,
+    state.debouncedSearch
+  );
   const task = submissionsQuery.data?.data?.task;
   const submissions = submissionsQuery.data?.data?.submissions ?? [];
   const officers = officersQuery.data?.data ?? [];
+  const securedSpots = securedSpotsQuery.data?.data ?? [];
 
   const advanceToNextPending = (currentSubId: number) => {
     const pendings = submissions.filter((s) => isActionableSubmissionStatus(s.status));
@@ -224,6 +234,61 @@ export default function TaskSubmissionsPage() {
         toggleStatusPending={mutations.toggleTaskStatus.isPending}
       />
 
+      {task.isSecureSpotTask && (
+        <div className="space-y-4">
+          <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-4 shadow-xl">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-extrabold text-zinc-200 uppercase tracking-wider">Assign Slots</h2>
+                <p className="mt-1 text-xs text-zinc-500">
+                  Search and add users one by one, or paste many usernames/emails in bulk.
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={
+                  mutations.addSecuredSpots.isPending || (slotSelectedUsers.length === 0 && !slotBulkUsers.trim())
+                }
+                onClick={() => {
+                  mutations.addSecuredSpots.mutate([...slotSelectedUsers, slotBulkUsers].filter(Boolean), {
+                    onSuccess: () => {
+                      setSlotSelectedUsers([]);
+                      setSlotBulkUsers("");
+                    },
+                  });
+                }}
+                className="rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-emerald-400 disabled:opacity-50"
+              >
+                {mutations.addSecuredSpots.isPending ? "Adding..." : "Assign Slots"}
+              </button>
+            </div>
+            <SlotUserPicker
+              selectedUsers={slotSelectedUsers}
+              onChange={setSlotSelectedUsers}
+              bulkUsers={slotBulkUsers}
+              onBulkChange={setSlotBulkUsers}
+            />
+          </div>
+
+          <SecuredSpotsPanel
+            spots={securedSpots}
+            isLoading={securedSpotsQuery.isLoading}
+            removingUsername={(mutations.removeSecuredSpot.variables as string | undefined) ?? null}
+            onRemoveSpot={(spot) => {
+              if (window.confirm(`Remove @${spot.username}'s booked slot for this task?`)) {
+                mutations.removeSecuredSpot.mutate(spot.username);
+              }
+            }}
+          />
+        </div>
+      )}
+
+      <AssistSubmissionPanel
+        task={task}
+        isPending={mutations.assistSubmission.isPending}
+        onSubmit={(payload) => mutations.assistSubmission.mutate(payload)}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <SubmissionsTable
           submissions={submissions}
@@ -240,6 +305,15 @@ export default function TaskSubmissionsPage() {
           openReverseModal={(sub) =>
             setReverseModal({ subId: sub.id, username: sub.username, deductedAmount: sub.deductedAmount ?? 0 })
           }
+          onRemoveSubmission={(sub) => {
+            const message =
+              sub.status === "approved"
+                ? `Remove @${sub.username}'s approved submission? This will reverse the task earning from their wallet/ledger.`
+                : `Remove @${sub.username}'s submission from this task?`;
+            if (window.confirm(message)) {
+              mutations.removeSubmission.mutate(sub.id);
+            }
+          }}
         />
       </div>
 

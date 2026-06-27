@@ -209,6 +209,21 @@ export interface Submission {
   };
 }
 
+export interface SecuredSpot {
+  id: number;
+  taskId: number;
+  username: string;
+  name: string | null;
+  whatsappNumber: string | null;
+  whatsappVerified: boolean;
+  securedAt: string;
+  eligibleAt: string;
+  status: string;
+  timeLeftMs: number;
+  minutesLeft: number;
+  isEligible: boolean;
+}
+
 export interface SubmissionsResponse {
   success: boolean;
   data: {

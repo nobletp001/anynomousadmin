@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
-import { SubmissionsResponse } from "../types";
+import { SecuredSpot, SubmissionsResponse } from "../types";
 
 export function useTaskQueries(taskId: string, statusFilter: string, debouncedSearch: string) {
   const submissionsQuery = useQuery<SubmissionsResponse>({
@@ -16,8 +16,14 @@ export function useTaskQueries(taskId: string, statusFilter: string, debouncedSe
     queryFn: () => apiClient.get("/tasks/task-officers") as any,
   });
 
+  const securedSpotsQuery = useQuery<{ success: boolean; data: SecuredSpot[] }>({
+    queryKey: ["task-secured-spots", taskId],
+    queryFn: () => apiClient.get(`/admin/tasks/${taskId}/secured-spots`) as any,
+  });
+
   return {
     submissionsQuery,
     officersQuery,
+    securedSpotsQuery,
   };
 }

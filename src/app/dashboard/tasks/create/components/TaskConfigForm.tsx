@@ -99,6 +99,7 @@ export function TaskConfigForm({
 }: TaskConfigFormProps) {
   const isJetpot = taskType === "jetpot";
   const isViews = taskType === "views";
+  const isImmediateSecureSpot = isSecureSpotTask && !secureSpotInterval.trim() && !secureSpotConstantDelay.trim();
   const inputCls =
     "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
 
@@ -434,14 +435,34 @@ export function TaskConfigForm({
             {/* Mode selector */}
             <div>
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Delay Mode</p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSecureSpotInterval("");
+                    setSecureSpotConstantDelay("");
+                  }}
+                  className={`py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    isImmediateSecureSpot
+                      ? "bg-emerald-500 text-black shadow-[0_0_12px_rgba(16,185,129,0.35)]"
+                      : "bg-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-750 border border-zinc-700"
+                  }`}
+                >
+                  ✓ No Delay
+                </button>
                 {(["constant", "minutes", "days"] as const).map((type) => (
                   <button
                     key={type}
                     type="button"
-                    onClick={() => setSecureSpotIntervalType(type)}
+                    onClick={() => {
+                      setSecureSpotIntervalType(type);
+                      if (isImmediateSecureSpot) {
+                        setSecureSpotInterval(type === "constant" ? "" : "60");
+                        setSecureSpotConstantDelay(type === "constant" ? "60" : "0");
+                      }
+                    }}
                     className={`py-2.5 rounded-xl text-xs font-bold transition-all ${
-                      secureSpotIntervalType === type
+                      !isImmediateSecureSpot && secureSpotIntervalType === type
                         ? "bg-purple-500 text-black shadow-[0_0_12px_rgba(168,85,247,0.4)]"
                         : "bg-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-750 border border-zinc-700"
                     }`}
@@ -451,16 +472,18 @@ export function TaskConfigForm({
                 ))}
               </div>
               <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">
-                {secureSpotIntervalType === "constant"
-                  ? "Everyone waits the exact same fixed time — no randomness, fully predictable."
-                  : secureSpotIntervalType === "minutes"
-                    ? "Each user gets a private random window within the minute range you set."
-                    : "Each user's window is scattered across the day span — great for longer campaigns."}
+                {isImmediateSecureSpot
+                  ? "Users book a slot and can submit immediately after confirming the task instructions."
+                  : secureSpotIntervalType === "constant"
+                    ? "Everyone waits the exact same fixed time — no randomness, fully predictable."
+                    : secureSpotIntervalType === "minutes"
+                      ? "Each user gets a private random window within the minute range you set."
+                      : "Each user's window is scattered across the day span — great for longer campaigns."}
               </p>
             </div>
 
             {/* Inputs */}
-            {secureSpotIntervalType !== "constant" && (
+            {!isImmediateSecureSpot && secureSpotIntervalType !== "constant" && (
               <div>
                 <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
                   {secureSpotIntervalType === "days" ? "Max Window" : "Max Window"}
@@ -482,44 +505,48 @@ export function TaskConfigForm({
               </div>
             )}
 
-            <div>
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
-                {secureSpotIntervalType === "constant"
-                  ? "Fixed Wait"
-                  : secureSpotIntervalType === "days"
-                    ? "Min Wait"
-                    : "Min Wait"}
-              </p>
-              <div className="relative">
-                <input
-                  type="number"
-                  min={0}
-                  value={secureSpotConstantDelay}
-                  onChange={(e) => setSecureSpotConstantDelay(e.target.value)}
-                  placeholder={
-                    secureSpotIntervalType === "constant"
-                      ? "e.g. 60"
-                      : secureSpotIntervalType === "days"
-                        ? "e.g. 2"
-                        : "e.g. 10"
-                  }
-                  className={`${inputCls} pr-14`}
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-zinc-500">
-                  {secureSpotIntervalType === "days" ? "hrs" : "min"}
-                </span>
+            {!isImmediateSecureSpot && (
+              <div>
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
+                  {secureSpotIntervalType === "constant"
+                    ? "Fixed Wait"
+                    : secureSpotIntervalType === "days"
+                      ? "Min Wait"
+                      : "Min Wait"}
+                </p>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={0}
+                    value={secureSpotConstantDelay}
+                    onChange={(e) => setSecureSpotConstantDelay(e.target.value)}
+                    placeholder={
+                      secureSpotIntervalType === "constant"
+                        ? "e.g. 60"
+                        : secureSpotIntervalType === "days"
+                          ? "e.g. 2"
+                          : "e.g. 10"
+                    }
+                    className={`${inputCls} pr-14`}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-zinc-500">
+                    {secureSpotIntervalType === "days" ? "hrs" : "min"}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Example callout */}
             <div className="flex items-start gap-2.5 rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5">
               <span className="text-purple-400 text-xs mt-px">→</span>
               <p className="text-[10px] text-zinc-400 leading-relaxed">
-                {secureSpotIntervalType === "constant"
-                  ? `All users wait exactly ${secureSpotConstantDelay || "X"} min before they can submit.`
-                  : secureSpotIntervalType === "days"
-                    ? `Random between ${secureSpotConstantDelay || "0"} hrs and ${secureSpotInterval ? Math.round((Number(secureSpotInterval) / 3) * 24) : "N"} hrs (${secureSpotInterval || "N"} days ÷ 3). e.g. 3 days, 5 hr min → window is 5–24 hrs.`
-                    : `Random between ${secureSpotConstantDelay || "0"} min and ${secureSpotInterval || "N"} min. Each user gets a different slot.`}
+                {isImmediateSecureSpot
+                  ? "Slot only: no time distribution. Users reserve a slot, confirm they read the instructions, and can submit immediately."
+                  : secureSpotIntervalType === "constant"
+                    ? `All users wait exactly ${secureSpotConstantDelay || "X"} min before they can submit.`
+                    : secureSpotIntervalType === "days"
+                      ? `Random between ${secureSpotConstantDelay || "0"} hrs and ${secureSpotInterval ? Math.round((Number(secureSpotInterval) / 3) * 24) : "N"} hrs (${secureSpotInterval || "N"} days ÷ 3). e.g. 3 days, 5 hr min → window is 5–24 hrs.`
+                      : `Random between ${secureSpotConstantDelay || "0"} min and ${secureSpotInterval || "N"} min. Each user gets a different slot.`}
               </p>
             </div>
 

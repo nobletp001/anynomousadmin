@@ -17,6 +17,7 @@ interface SubmissionsTableProps {
   openCorrectionModal: (sub: Submission) => void;
   openRejectModal: (sub: Submission) => void;
   openReverseModal: (sub: Submission) => void;
+  onRemoveSubmission: (sub: Submission) => void;
 }
 
 export function SubmissionsTable({
@@ -32,6 +33,7 @@ export function SubmissionsTable({
   openCorrectionModal,
   openRejectModal,
   openReverseModal,
+  onRemoveSubmission,
 }: SubmissionsTableProps) {
   const selectableSubmissions = submissions.filter((s) => isActionableSubmissionStatus(s.status));
 
@@ -81,6 +83,7 @@ export function SubmissionsTable({
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
               <option value="needs_correction">Correction Requested</option>
+              <option value="removed">Removed</option>
             </select>
           </div>
         </div>
@@ -128,6 +131,7 @@ export function SubmissionsTable({
                     onCorrection={() => openCorrectionModal(sub)}
                     onReject={() => openRejectModal(sub)}
                     onReverseReject={() => openReverseModal(sub)}
+                    onRemove={() => onRemoveSubmission(sub)}
                   />
                 ))}
               </tbody>
