@@ -41,18 +41,7 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
     createTask.mutate({
       title: state.title.trim(),
       description: state.description.trim(),
-      caption: ((): string | undefined => {
-        const val = state.caption.trim();
-        if (!val) return undefined;
-        if (state.captionMode === "array") {
-          const arr = val
-            .split("\n\n")
-            .map((c) => c.trim())
-            .filter(Boolean);
-          return arr.length ? JSON.stringify(arr) : undefined;
-        }
-        return val;
-      })(),
+      caption: state.caption.trim() || undefined,
       link: state.link.trim() || undefined,
       instructions: filteredInstructions.length ? filteredInstructions : undefined,
       images: uploadedUrls.length ? uploadedUrls : undefined,
@@ -64,7 +53,6 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       acceptNumber: state.acceptNumber,
       numberLabel: state.acceptNumber ? state.numberLabel.trim() : undefined,
       acceptMultipleImages: state.acceptMultipleImages,
-      maxPerHour: state.maxPerHour.trim() ? parseInt(state.maxPerHour) : undefined,
       lifeline: state.noExpiry,
       amount: state.isPayFluenceTask && !state.amount ? "0" : state.amount,
       numberOfUsersNeeded: state.numberOfUsersNeeded,

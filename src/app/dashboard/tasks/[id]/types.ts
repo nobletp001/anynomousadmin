@@ -123,7 +123,6 @@ export interface Task {
   numberLabel?: string | null;
   acceptMultipleImages?: boolean | null;
   targetCount?: number | string | null;
-  maxPerHour?: number | string | null;
   targetAudience?: string | null;
   images?: string | null;
   prompts?: string | null;

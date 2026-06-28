@@ -12,8 +12,6 @@ interface TaskDetailsFormProps {
   setDescription: (v: string) => void;
   caption: string;
   setCaption: (v: string) => void;
-  captionMode: "text" | "array";
-  setCaptionMode: (v: "text" | "array") => void;
   link: string;
   setLink: (v: string) => void;
   images: ImageEntry[];
@@ -29,8 +27,6 @@ export function TaskDetailsForm({
   setDescription,
   caption,
   setCaption,
-  captionMode,
-  setCaptionMode,
   link,
   setLink,
   images,
@@ -93,43 +89,13 @@ export function TaskDetailsForm({
         />
       </div>
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <FieldLabel>
-            Caption <span className="text-zinc-650 font-normal">(optional — text users copy and post)</span>
-          </FieldLabel>
-          <div className="flex items-center gap-0.5 bg-zinc-950/60 p-0.5 rounded-lg border border-zinc-800/80">
-            <button
-              type="button"
-              onClick={() => setCaptionMode("text")}
-              className={`px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md transition-all duration-150 ${
-                captionMode === "text"
-                  ? "bg-purple-650/20 text-purple-400 border border-purple-500/30"
-                  : "text-zinc-500 hover:text-zinc-300 border border-transparent"
-              }`}
-            >
-              Text
-            </button>
-            <button
-              type="button"
-              onClick={() => setCaptionMode("array")}
-              className={`px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md transition-all duration-150 ${
-                captionMode === "array"
-                  ? "bg-purple-650/20 text-purple-400 border border-purple-500/30"
-                  : "text-zinc-500 hover:text-zinc-300 border border-transparent"
-              }`}
-            >
-              Array (Multi)
-            </button>
-          </div>
-        </div>
+        <FieldLabel>
+          Caption <span className="text-zinc-650 font-normal">(optional — text users copy and post)</span>
+        </FieldLabel>
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
-          placeholder={
-            captionMode === "array"
-              ? "Enter multiple caption options, separated by double newlines (two enters). One random option will be shown to users and locked when selected..."
-              : "Paste the exact caption users should copy to their post or status..."
-          }
+          placeholder="Paste the exact caption users should copy to their post or status..."
           rows={4}
           className={`${inputCls} resize-none`}
         />

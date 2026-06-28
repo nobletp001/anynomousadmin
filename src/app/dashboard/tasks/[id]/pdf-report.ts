@@ -17,7 +17,11 @@ export function downloadPDFReport(task: Task, submissions: Submission[]) {
   const rowsHtml = submissions
     .map((sub, index) => {
       const dateStr = new Date(sub.createdAt).toLocaleDateString("en-US", {
-        month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
 
       let proofLabel = "Screenshot";
@@ -44,9 +48,10 @@ export function downloadPDFReport(task: Task, submissions: Submission[]) {
               : "status-pending";
 
       const statusText = sub.status === "needs_correction" ? "Correction Requested" : sub.status.toUpperCase();
-      const stars = sub.status === "approved" && typeof sub.rating === "number"
-        ? "★".repeat(sub.rating) + "☆".repeat(5 - sub.rating)
-        : "—";
+      const stars =
+        sub.status === "approved" && typeof sub.rating === "number"
+          ? "★".repeat(sub.rating) + "☆".repeat(5 - sub.rating)
+          : "—";
 
       return `
       <tr>
@@ -55,7 +60,6 @@ export function downloadPDFReport(task: Task, submissions: Submission[]) {
           <div class="user-name">${sub.user?.name || "—"}</div>
           <div class="user-username">@${sub.username}</div>
         </td>
-        <td>${(sub.user as any)?.whatsappNumber || "—"}</td>
         <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
         <td>
           <div class="proof-type">${proofLabel}</div>
@@ -154,7 +158,6 @@ export function downloadPDFReport(task: Task, submissions: Submission[]) {
             <tr>
               <th style="width: 40px;">S/N</th>
               <th>Participant</th>
-              <th>WhatsApp Contact</th>
               <th>Status</th>
               <th>Collected Proof</th>
               <th>Submission Date</th>
@@ -162,7 +165,7 @@ export function downloadPDFReport(task: Task, submissions: Submission[]) {
             </tr>
           </thead>
           <tbody>
-            ${rowsHtml || '<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 30px;">No participants found matching the current filters.</td></tr>'}
+            ${rowsHtml || '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 30px;">No participants found matching the current filters.</td></tr>'}
           </tbody>
         </table>
       </div>

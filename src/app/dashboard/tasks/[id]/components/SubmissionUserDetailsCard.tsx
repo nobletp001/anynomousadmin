@@ -16,7 +16,6 @@ interface SubmissionUserDetailsCardProps {
 export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: SubmissionUserDetailsCardProps) {
   const [collision, setCollision] = useState<{ type: string; value: string } | null>(null);
 
-  const whatsappNum = (sub.user as any)?.whatsappNumber;
   const accountNumber = (sub.user as any)?.accountNumber;
   const bankName = (sub.user as any)?.bankName;
   const accountName = (sub.user as any)?.accountName;
@@ -375,19 +374,6 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
           onInvestigate={(type, value) => setCollision({ type, value })}
           onCompareUser={onCompareUser}
         />
-      )}
-      {whatsappNum && (
-        <div className="pt-2 border-t border-zinc-900/60 flex flex-col gap-0.5">
-          <p className="text-[10px] text-zinc-500 uppercase font-semibold">WhatsApp Contact</p>
-          <a
-            href={`https://wa.me/${whatsappNum.replace(/[^0-9]/g, "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 mt-0.5"
-          >
-            {whatsappNum}
-          </a>
-        </div>
       )}
       {collision && (
         <SubmissionCollisionModal

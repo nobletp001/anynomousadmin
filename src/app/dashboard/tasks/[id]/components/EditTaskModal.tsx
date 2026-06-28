@@ -83,18 +83,7 @@ export function EditTaskModal({
       amount: editState.editAmount ? Number(editState.editAmount) : undefined,
       link: editState.editLink.trim() || null,
       assignedOfficer: editState.editAssignedOfficer || null,
-      caption: ((): string | null => {
-        const val = editState.editCaption.trim();
-        if (!val) return null;
-        if (editState.editCaptionMode === "array") {
-          const arr = val
-            .split("\n\n")
-            .map((c) => c.trim())
-            .filter(Boolean);
-          return arr.length ? JSON.stringify(arr) : null;
-        }
-        return val;
-      })(),
+      caption: editState.editCaption.trim() || null,
       images: uploadedUrls.length ? uploadedUrls : null,
       taskType: editState.editTaskType,
       targetPlatform: editState.editTargetPlatform,
@@ -109,7 +98,6 @@ export function EditTaskModal({
       targetUsername: editState.editCollectUserName ? editState.editTargetUsername.trim() || null : null,
       targetCount: editState.editTargetCount.trim() ? editState.editTargetCount : null,
       adminContact: editState.editAdminContact.trim() || null,
-      maxPerHour: editState.editMaxPerHour.trim() ? parseInt(editState.editMaxPerHour) : null,
       targetAudience: editState.editEnableTargeting
         ? {
             ...(editState.editAudience.gender.length ? { gender: editState.editAudience.gender } : {}),
@@ -213,8 +201,6 @@ export function EditTaskModal({
           <BasicDetails
             editCaption={editState.editCaption}
             setEditCaption={editState.setEditCaption}
-            editCaptionMode={editState.editCaptionMode}
-            setEditCaptionMode={editState.setEditCaptionMode}
             editLink={editState.editLink}
             setEditLink={editState.setEditLink}
             editImages={editState.editImages}
@@ -284,8 +270,6 @@ export function EditTaskModal({
             setEditNumberOfUsers={editState.setEditNumberOfUsers}
             editAmount={editState.editAmount}
             setEditAmount={editState.setEditAmount}
-            editMaxPerHour={editState.editMaxPerHour}
-            setEditMaxPerHour={editState.setEditMaxPerHour}
             editNoExpiry={editState.editNoExpiry}
             setEditNoExpiry={editState.setEditNoExpiry}
             editTimeline={editState.editTimeline}

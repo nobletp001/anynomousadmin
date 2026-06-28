@@ -48,7 +48,6 @@ export function SubmissionRow({
   onRemove,
 }: SubmissionRowProps) {
   const isSelectable = isActionableSubmissionStatus(sub.status);
-  const whatsappNum = (sub.user as any)?.whatsappNumber;
 
   return (
     <tr
@@ -77,18 +76,6 @@ export function SubmissionRow({
           <div>
             <p className="font-medium text-zinc-100 text-xs">{sub.user?.name ?? "—"}</p>
             <p className="text-zinc-550 text-[11px]">@{sub.username}</p>
-
-            {whatsappNum && (
-              <a
-                href={`https://wa.me/${whatsappNum.replace(/[^0-9]/g, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 transition-colors mt-1 font-semibold"
-              >
-                Chat with User
-              </a>
-            )}
 
             <div className="flex flex-col gap-1 mt-1">
               {getDuplicateWarning(sub, submissions) && (

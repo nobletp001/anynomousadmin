@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Clock, MessageCircle, Trash2, Users } from "lucide-react";
+import { Clock, Trash2, Users } from "lucide-react";
 import { Badge } from "@/components/ui";
 import { SecuredSpot } from "../types";
 
@@ -12,10 +12,6 @@ function formatTimeLeft(ms: number) {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
   return `${hours}h ${mins}m left`;
-}
-
-function cleanWhatsapp(phone: string) {
-  return phone.replace(/[^0-9]/g, "");
 }
 
 interface SecuredSpotsPanelProps {
@@ -46,7 +42,6 @@ export function SecuredSpotsPanel({ spots, isLoading, onRemoveSpot, removingUser
             <thead>
               <tr className="border-b border-zinc-800 text-zinc-500 text-xs uppercase tracking-wider">
                 <th className="px-5 py-3 font-semibold">User</th>
-                <th className="px-5 py-3 font-semibold">WhatsApp</th>
                 <th className="px-5 py-3 font-semibold">Slot Time</th>
                 <th className="px-5 py-3 font-semibold">Status</th>
                 <th className="px-5 py-3 font-semibold">Actions</th>
@@ -58,21 +53,6 @@ export function SecuredSpotsPanel({ spots, isLoading, onRemoveSpot, removingUser
                   <td className="px-5 py-4">
                     <p className="text-xs font-bold text-zinc-100">{spot.name || "—"}</p>
                     <p className="text-[11px] text-zinc-550">@{spot.username}</p>
-                  </td>
-                  <td className="px-5 py-4">
-                    {spot.whatsappNumber ? (
-                      <a
-                        href={`https://wa.me/${cleanWhatsapp(spot.whatsappNumber)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300"
-                      >
-                        <MessageCircle className="h-3.5 w-3.5" />
-                        {spot.whatsappNumber}
-                      </a>
-                    ) : (
-                      <span className="text-xs text-zinc-600">No WhatsApp</span>
-                    )}
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-1.5 text-xs text-zinc-300">

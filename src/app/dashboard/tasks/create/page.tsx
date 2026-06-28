@@ -65,8 +65,6 @@ export default function CreateTaskPage() {
           setDescription={state.setDescription}
           caption={state.caption}
           setCaption={state.setCaption}
-          captionMode={state.captionMode}
-          setCaptionMode={state.setCaptionMode}
           link={state.link}
           setLink={state.setLink}
           images={state.images}
@@ -150,8 +148,6 @@ export default function CreateTaskPage() {
           setAmount={state.setAmount}
           numberOfUsersNeeded={state.numberOfUsersNeeded}
           setNumberOfUsersNeeded={state.setNumberOfUsersNeeded}
-          maxPerHour={state.maxPerHour}
-          setMaxPerHour={state.setMaxPerHour}
           noExpiry={state.noExpiry}
           setNoExpiry={state.setNoExpiry}
           timelineMs={state.timelineMs}

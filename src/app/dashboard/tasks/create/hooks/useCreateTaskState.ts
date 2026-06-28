@@ -5,7 +5,6 @@ export function useCreateTaskState() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [caption, setCaption] = useState("");
-  const [captionMode, setCaptionMode] = useState<"text" | "array">("text");
   const [link, setLink] = useState("");
   const [assignedOfficer, setAssignedOfficer] = useState("");
   const [instructions, setInstructions] = useState<string[]>([""]);
@@ -17,7 +16,6 @@ export function useCreateTaskState() {
   const [numberOfUsersNeeded, setNumberOfUsersNeeded] = useState("");
   const [adminContact, setAdminContact] = useState("");
   const [targetCount, setTargetCount] = useState("");
-  const [maxPerHour, setMaxPerHour] = useState("");
   const [aiPrompt, setAiPrompt] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
@@ -73,8 +71,6 @@ export function useCreateTaskState() {
     setDescription,
     caption,
     setCaption,
-    captionMode,
-    setCaptionMode,
     link,
     setLink,
     assignedOfficer,
@@ -97,8 +93,6 @@ export function useCreateTaskState() {
     setAdminContact,
     targetCount,
     setTargetCount,
-    maxPerHour,
-    setMaxPerHour,
     aiPrompt,
     setAiPrompt,
     isListening,

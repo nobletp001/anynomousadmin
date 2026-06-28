@@ -55,13 +55,7 @@ export function useAIAssistant(state: CreateTaskState) {
         if (d.title) state.setTitle(String(d.title));
         if (d.description) state.setDescription(String(d.description));
         if (d.caption) {
-          if (Array.isArray(d.caption)) {
-            state.setCaption(d.caption.join("\n\n"));
-            state.setCaptionMode("array");
-          } else {
-            state.setCaption(String(d.caption));
-            state.setCaptionMode("text");
-          }
+          state.setCaption(Array.isArray(d.caption) ? d.caption.join("\n\n") : String(d.caption));
         }
         if (d.link) state.setLink(String(d.link));
         if (d.instructions) {
@@ -94,7 +88,6 @@ export function useAIAssistant(state: CreateTaskState) {
         if (d.acceptMultipleImages !== undefined) state.setAcceptMultipleImages(Boolean(d.acceptMultipleImages));
         if (d.amount !== undefined) state.setAmount(String(d.amount));
         if (d.numberOfUsersNeeded !== undefined) state.setNumberOfUsersNeeded(String(d.numberOfUsersNeeded));
-        if (d.maxPerHour !== undefined) state.setMaxPerHour(d.maxPerHour ? String(d.maxPerHour) : "");
         if (d.noExpiry !== undefined) state.setNoExpiry(Boolean(d.noExpiry));
         state.setAiPrompt("");
       } else {

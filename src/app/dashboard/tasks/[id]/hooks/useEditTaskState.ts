@@ -11,7 +11,6 @@ export function useEditTaskState() {
   const [editLink, setEditLink] = useState("");
   const [editAssignedOfficer, setEditAssignedOfficer] = useState("");
   const [editCaption, setEditCaption] = useState("");
-  const [editCaptionMode, setEditCaptionMode] = useState<"text" | "array">("text");
   const [editTaskType, setEditTaskType] = useState("follow");
   const [editTargetPlatform, setEditTargetPlatform] = useState("instagram");
   const [editProofType, setEditProofType] = useState<"banner" | "url">("banner");
@@ -23,7 +22,6 @@ export function useEditTaskState() {
   const [editIsTobeIncludereferralCount, setEditIsTobeIncludereferralCount] = useState(true);
   const [editTargetCount, setEditTargetCount] = useState("");
   const [editAdminContact, setEditAdminContact] = useState("");
-  const [editMaxPerHour, setEditMaxPerHour] = useState("");
   const [editNoExpiry, setEditNoExpiry] = useState(false);
   const [editEnableTargeting, setEditEnableTargeting] = useState(false);
   const [editAudience, setEditAudience] = useState<AudienceFilter>({
@@ -78,8 +76,6 @@ export function useEditTaskState() {
     setEditAssignedOfficer,
     editCaption,
     setEditCaption,
-    editCaptionMode,
-    setEditCaptionMode,
     editTaskType,
     setEditTaskType,
     editTargetPlatform,
@@ -102,8 +98,6 @@ export function useEditTaskState() {
     setEditTargetCount,
     editAdminContact,
     setEditAdminContact,
-    editMaxPerHour,
-    setEditMaxPerHour,
     editNoExpiry,
     setEditNoExpiry,
     editEnableTargeting,

@@ -40,7 +40,6 @@ export function downloadExcelReport(task: Task, submissions: Submission[]) {
     "S/N",
     "Full Name",
     "Username",
-    "WhatsApp",
     "Status",
     "Proof Type",
     "Proof / URL",
@@ -62,7 +61,6 @@ export function downloadExcelReport(task: Task, submissions: Submission[]) {
       i + 1,
       sub.user?.name || "",
       `@${sub.username}`,
-      (sub.user as any)?.whatsappNumber || "",
       statusLabel,
       proofType,
       proofDetail,
@@ -78,7 +76,6 @@ export function downloadExcelReport(task: Task, submissions: Submission[]) {
     { wch: 5 }, // S/N
     { wch: 24 }, // Full Name
     { wch: 18 }, // Username
-    { wch: 16 }, // WhatsApp
     { wch: 16 }, // Status
     { wch: 12 }, // Proof Type
     { wch: 50 }, // Proof / URL

@@ -155,19 +155,7 @@ export default function TaskSubmissionsPage() {
     editState.setEditLink(task.link || "");
     editState.setEditAssignedOfficer(task.assignedOfficer || "");
     editState.setEditInstructions(task.instructions ? JSON.parse(task.instructions) : []);
-    let captionText = task.caption || "";
-    let captionMode: "text" | "array" = "text";
-    if (captionText.startsWith("[") && captionText.endsWith("]")) {
-      try {
-        const arr = JSON.parse(captionText);
-        if (Array.isArray(arr)) {
-          captionText = arr.join("\n\n");
-          captionMode = "array";
-        }
-      } catch (_e) {}
-    }
-    editState.setEditCaption(captionText);
-    editState.setEditCaptionMode(captionMode);
+    editState.setEditCaption(task.caption || "");
     editState.setEditTaskType(task.taskType || "follow");
     editState.setEditTargetPlatform(task.targetPlatform || "instagram");
     editState.setEditProofType(task.proofType === "url" ? "url" : "banner");
@@ -181,7 +169,6 @@ export default function TaskSubmissionsPage() {
     );
     editState.setEditTargetCount(String(task.targetCount ?? ""));
     editState.setEditAdminContact(task.adminContact || "");
-    editState.setEditMaxPerHour(String(task.maxPerHour ?? ""));
     editState.setEditNoExpiry(!!task.lifeline);
     editState.setEditEnableTargeting(!!task.targetAudience);
     editState.setEditAudience(

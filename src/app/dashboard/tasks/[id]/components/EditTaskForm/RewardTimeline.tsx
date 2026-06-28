@@ -11,8 +11,6 @@ interface RewardTimelineProps {
   setEditNumberOfUsers: (v: string) => void;
   editAmount: string;
   setEditAmount: (v: string) => void;
-  editMaxPerHour: string;
-  setEditMaxPerHour: (v: string) => void;
   editNoExpiry: boolean;
   setEditNoExpiry: React.Dispatch<React.SetStateAction<boolean>>;
   editTimeline: string;
@@ -32,8 +30,6 @@ export function RewardTimeline({
   setEditNumberOfUsers,
   editAmount,
   setEditAmount,
-  editMaxPerHour,
-  setEditMaxPerHour,
   editNoExpiry,
   setEditNoExpiry,
   editTimeline,
@@ -133,20 +129,6 @@ export function RewardTimeline({
             className={inputCls}
           />
         </div>
-      </div>
-
-      <div>
-        <FieldLabel>
-          Hourly Completion Limit <span className="text-zinc-650 font-normal">(optional)</span>
-        </FieldLabel>
-        <input
-          type="number"
-          min="1"
-          value={editMaxPerHour}
-          onChange={(e) => setEditMaxPerHour(e.target.value)}
-          placeholder="Unlimited"
-          className={inputCls}
-        />
       </div>
 
       <div>

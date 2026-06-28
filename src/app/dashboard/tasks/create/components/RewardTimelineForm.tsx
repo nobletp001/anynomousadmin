@@ -8,8 +8,6 @@ interface RewardTimelineFormProps {
   setAmount: (v: string) => void;
   numberOfUsersNeeded: string;
   setNumberOfUsersNeeded: (v: string) => void;
-  maxPerHour: string;
-  setMaxPerHour: (v: string) => void;
   noExpiry: boolean;
   setNoExpiry: React.Dispatch<React.SetStateAction<boolean>>;
   timelineMs: number;
@@ -29,8 +27,6 @@ export function RewardTimelineForm({
   setAmount,
   numberOfUsersNeeded,
   setNumberOfUsersNeeded,
-  maxPerHour,
-  setMaxPerHour,
   noExpiry,
   setNoExpiry,
   timelineMs,
@@ -179,20 +175,6 @@ export function RewardTimelineForm({
           </p>
         </div>
       )}
-
-      <div>
-        <FieldLabel>
-          Hourly Completion Limit <span className="text-zinc-600 font-normal">(optional — drip feed)</span>
-        </FieldLabel>
-        <input
-          type="number"
-          min="1"
-          value={maxPerHour}
-          onChange={(e) => setMaxPerHour(e.target.value)}
-          placeholder="e.g. 20 (leave blank for unlimited)"
-          className={inputCls}
-        />
-      </div>
 
       <div>
         <div className="flex items-center justify-between mb-1.5">

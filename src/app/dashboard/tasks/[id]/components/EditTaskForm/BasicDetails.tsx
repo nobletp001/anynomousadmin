@@ -9,8 +9,6 @@ const inputCls =
 interface BasicDetailsProps {
   editCaption: string;
   setEditCaption: (v: string) => void;
-  editCaptionMode: "text" | "array";
-  setEditCaptionMode: (v: "text" | "array") => void;
   editLink: string;
   setEditLink: (v: string) => void;
   editImages: Array<{ url?: string; file?: File; preview?: string }>;
@@ -22,8 +20,6 @@ interface BasicDetailsProps {
 export function BasicDetails({
   editCaption,
   setEditCaption,
-  editCaptionMode,
-  setEditCaptionMode,
   editLink,
   setEditLink,
   editImages,
@@ -64,43 +60,13 @@ export function BasicDetails({
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
       <h2 className="text-sm font-semibold text-zinc-300 pb-2 border-b border-zinc-800/60">Task Details</h2>
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <FieldLabel>
-            Caption <span className="text-zinc-605 font-normal">(optional — text users copy and post)</span>
-          </FieldLabel>
-          <div className="flex items-center gap-0.5 bg-zinc-950/60 p-0.5 rounded-lg border border-zinc-800/80">
-            <button
-              type="button"
-              onClick={() => setEditCaptionMode("text")}
-              className={`px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md transition-all duration-150 ${
-                editCaptionMode === "text"
-                  ? "bg-purple-650/20 text-purple-400 border border-purple-500/30"
-                  : "text-zinc-500 hover:text-zinc-300 border border-transparent"
-              }`}
-            >
-              Text
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditCaptionMode("array")}
-              className={`px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md transition-all duration-150 ${
-                editCaptionMode === "array"
-                  ? "bg-purple-650/20 text-purple-400 border border-purple-500/30"
-                  : "text-zinc-500 hover:text-zinc-300 border border-transparent"
-              }`}
-            >
-              Array (Multi)
-            </button>
-          </div>
-        </div>
+        <FieldLabel>
+          Caption <span className="text-zinc-605 font-normal">(optional — text users copy and post)</span>
+        </FieldLabel>
         <textarea
           value={editCaption}
           onChange={(e) => setEditCaption(e.target.value)}
-          placeholder={
-            editCaptionMode === "array"
-              ? "Enter multiple caption options, separated by double newlines (two enters). One random option will be shown to users and locked when selected..."
-              : "Paste the exact caption users should copy to their post or status..."
-          }
+          placeholder="Paste the exact caption users should copy to their post or status..."
           rows={3}
           className={`${inputCls} resize-none`}
         />
