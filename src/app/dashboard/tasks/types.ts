@@ -26,7 +26,12 @@ export interface Task {
   scheduledAt?: string | null;
   isPinned?: boolean;
   collectUserName?: boolean | null;
+  collect_username?: boolean | null;
   targetUsername?: string | null;
+  target_username?: string | null;
+  targetUserName?: string | null;
+  collectedUserName?: boolean | null;
+  collectedUsername?: boolean | null;
 }
 
 export interface TasksResponse {

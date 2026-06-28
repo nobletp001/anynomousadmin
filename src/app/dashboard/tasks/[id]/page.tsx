@@ -13,6 +13,7 @@ import { TaskDetailHeader } from "./components/TaskDetailHeader";
 import { SubmissionsTable } from "./components/SubmissionsTable";
 import { SecuredSpotsPanel } from "./components/SecuredSpotsPanel";
 import { AssistSubmissionPanel } from "./components/AssistSubmissionPanel";
+import { BulkActionPanel } from "./components/BulkActionPanel";
 import { TaskDetailModals } from "./components/TaskDetailModals";
 import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
@@ -79,6 +80,10 @@ export default function TaskSubmissionsPage() {
     closeViewingSub,
     closeEditTask,
   });
+
+  React.useEffect(() => {
+    clearBulkSelection();
+  }, [state.statusFilter, state.debouncedSearch]);
 
   const openRejectModal = (sub: Submission) => {
     state.setRejectModal({ subId: sub.id, username: sub.username, balance: sub.userBalance, mode: "reject" });
@@ -303,6 +308,37 @@ export default function TaskSubmissionsPage() {
           }}
         />
       </div>
+
+      {state.selectedIds.size > 0 && (
+        <BulkActionPanel
+          selectedCount={state.selectedIds.size}
+          bulkMode={state.bulkMode}
+          setBulkMode={state.setBulkMode}
+          bulkRating={state.bulkRating}
+          setBulkRating={state.setBulkRating}
+          bulkRejectReason={state.bulkRejectReason}
+          setBulkRejectReason={state.setBulkRejectReason}
+          onClearSelection={clearBulkSelection}
+          onConfirmApprove={() => {
+            if (state.bulkRating === null) return;
+            mutations.bulkAction.mutate({
+              ids: Array.from(state.selectedIds),
+              action: "approve",
+              rating: state.bulkRating,
+            });
+          }}
+          onConfirmReject={() => {
+            const rejectionReason = state.bulkRejectReason.trim();
+            if (!rejectionReason) return;
+            mutations.bulkAction.mutate({
+              ids: Array.from(state.selectedIds),
+              action: "reject",
+              rejectionReason,
+            });
+          }}
+          isPending={mutations.bulkAction.isPending}
+        />
+      )}
 
       <TaskDetailModals
         task={task}
