@@ -99,7 +99,8 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
   });
 
   const reverseSubmission = useMutation({
-    mutationFn: (subId: number) => apiClient.post(`/admin/submissions/${subId}/reverse`) as any,
+    mutationFn: (subId: number) =>
+      apiClient.post(`/admin/submissions/${subId}/reverse`, { reversePenalty: true }) as any,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
   });
 
