@@ -91,7 +91,7 @@ export function downloadPDFReport(task: Task, submissions: Submission[]) {
         .task-info-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 30px; }
         .task-title { font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 10px 0; }
         .task-desc { color: #475569; margin: 0 0 15px 0; font-size: 13px; }
-        .grid-info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .grid-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .info-block { display: flex; flex-direction: column; }
         .info-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
         .info-val { font-size: 14px; font-weight: 700; color: #334155; margin-top: 4px; }
@@ -139,7 +139,6 @@ export function downloadPDFReport(task: Task, submissions: Submission[]) {
         <div class="task-desc">${task.description}</div>
         <div class="grid-info">
           <div class="info-block"><span class="info-label">Platform / Type</span><span class="info-val" style="text-transform: capitalize;">${task.targetPlatform} · ${task.taskType}</span></div>
-          <div class="info-block"><span class="info-label">Pay Per User</span><span class="info-val">₦${task.amount}</span></div>
           <div class="info-block"><span class="info-label">Capacity</span><span class="info-val">${task.numberOfUsersNeeded} spots</span></div>
           <div class="info-block"><span class="info-label">Status</span><span class="info-val" style="text-transform: capitalize; color: ${task.status === "active" ? "#16a34a" : "#475569"}">${task.status}</span></div>
         </div>

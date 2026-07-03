@@ -17,7 +17,6 @@ export function downloadExcelReport(task: Task, submissions: Submission[]) {
     ["Task Title", task.title],
     ["Description", task.description],
     ["Platform / Type", `${task.targetPlatform} · ${task.taskType}`],
-    ["Reward per User", `₦${task.amount}`],
     ["Capacity", task.numberOfUsersNeeded],
     ["Status", task.status],
     ["Deadline", task.timeline ? new Date(task.timeline).toLocaleDateString() : "No Expiry"],
