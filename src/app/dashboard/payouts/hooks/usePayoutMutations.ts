@@ -33,7 +33,7 @@ export function usePayoutMutations(callbacks: PayoutMutationCallbacks) {
         ...(confirmToken ? { confirmToken } : {}),
       }) as Promise<any>;
     },
-    onSuccess: (data: any, variables) => {
+    onSuccess: async (data: any, variables) => {
       if (data?.requiresConfirmation) {
         callbacks.onConfirmRequired(
           data.expiresInSeconds ?? 60,
@@ -42,8 +42,11 @@ export function usePayoutMutations(callbacks: PayoutMutationCallbacks) {
         );
         return;
       }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin-payout-claims"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-redeemers"] }),
+      ]);
       callbacks.onSuccess();
-      queryClient.invalidateQueries({ queryKey: ["admin-payout-claims"] });
     },
     onError: (err: any) => {
       callbacks.onError(err);
