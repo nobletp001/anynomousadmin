@@ -29,7 +29,10 @@ export default function TasksPage() {
   const isSuperAdmin = user?.role === "super-admin";
 
   const allTasks = tasksQuery.data?.data ?? [];
-  const filtered = allTasks;
+  const pinnedCount = tasksQuery.data?.pinnedCount ?? allTasks.filter((task) => task.isPinned).length;
+  const pinnedTasks = allTasks.slice(0, pinnedCount);
+  const normalTasks = allTasks.slice(pinnedCount);
+  const filtered = normalTasks;
   const totalTasks = tasksQuery.data?.total ?? 0;
   const pageSize = tasksQuery.data?.limit ?? 1;
   const totalPages = Math.max(1, Math.ceil(totalTasks / pageSize));
@@ -128,7 +131,7 @@ export default function TasksPage() {
         </div>
       ) : (
         <div className="space-y-8">
-          {allTasks.filter((t) => t.isPinned).length > 0 && (
+          {pinnedTasks.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-extrabold uppercase tracking-widest text-amber-500">
@@ -137,19 +140,17 @@ export default function TasksPage() {
                 <div className="flex-1 h-px bg-amber-500/20" />
               </div>
               <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
-                {allTasks
-                  .filter((t) => t.isPinned)
-                  .map((task) => (
-                    <div key={`pinned-${task.id}`} className="min-w-[320px] max-w-[360px] flex-shrink-0">
-                      <TaskCard
-                        task={task}
-                        canManage={canManage}
-                        onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
-                        onDeleteClick={() => state.setConfirmDelete({ id: task.id, title: task.title })}
-                        onPinClick={() => togglePinTask.mutate({ id: task.id, isPinned: !task.isPinned })}
-                      />
-                    </div>
-                  ))}
+                {pinnedTasks.map((task) => (
+                  <div key={`pinned-${task.id}`} className="min-w-[320px] max-w-[360px] flex-shrink-0">
+                    <TaskCard
+                      task={task}
+                      canManage={canManage}
+                      onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
+                      onDeleteClick={() => state.setConfirmDelete({ id: task.id, title: task.title })}
+                      onPinClick={() => togglePinTask.mutate({ id: task.id, isPinned: !task.isPinned })}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           )}

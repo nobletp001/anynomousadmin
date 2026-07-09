@@ -3,7 +3,7 @@ import { apiClient } from "@/services/api-client";
 import { authQueryKey, authQueryFn } from "@/lib/auth";
 import { StatusFilter, TasksResponse } from "../types";
 
-const TASKS_PER_PAGE = 1;
+const TASKS_PER_PAGE = 10;
 
 export function useTasksQueries(page: number, statusFilter: StatusFilter) {
   const userQuery = useQuery({

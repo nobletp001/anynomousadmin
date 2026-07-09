@@ -40,6 +40,7 @@ export interface TasksResponse {
   total: number;
   page: number;
   limit: number;
+  pinnedCount?: number;
 }
 
 export type StatusFilter = "all" | "active" | "completed" | "paused";
