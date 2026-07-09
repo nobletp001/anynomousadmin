@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
 import { authQueryKey, authQueryFn } from "@/lib/auth";
-import { TasksResponse } from "../types";
+import { StatusFilter, TasksResponse } from "../types";
 
-export function useTasksQueries() {
+const TASKS_PER_PAGE = 1;
+
+export function useTasksQueries(page: number, statusFilter: StatusFilter) {
   const userQuery = useQuery({
     queryKey: authQueryKey,
     queryFn: authQueryFn,
@@ -12,8 +14,11 @@ export function useTasksQueries() {
   });
 
   const tasksQuery = useQuery<TasksResponse>({
-    queryKey: ["admin-tasks"],
-    queryFn: () => apiClient.get("/admin/tasks") as any,
+    queryKey: ["admin-tasks", page, statusFilter],
+    queryFn: () => {
+      const statusParam = statusFilter === "all" ? "" : `&status=${encodeURIComponent(statusFilter)}`;
+      return apiClient.get(`/admin/tasks?page=${page}&limit=${TASKS_PER_PAGE}${statusParam}`) as any;
+    },
   });
 
   return {

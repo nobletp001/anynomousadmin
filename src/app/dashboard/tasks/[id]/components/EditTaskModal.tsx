@@ -70,13 +70,15 @@ export function EditTaskModal({
 
     const filteredInstructions = editState.editInstructions.map((s) => s.trim()).filter(Boolean);
 
+    const timeline = editState.editNoExpiry
+      ? null
+      : editState.editTimeline
+        ? new Date(`${editState.editTimeline}T23:59:59.999`).toISOString()
+        : null;
+
     updateTaskMutation.mutate({
       scheduledAt: editState.editScheduledAt ? new Date(editState.editScheduledAt).toISOString() : null,
-      timeline: editState.editNoExpiry
-        ? null
-        : editState.editTimeline
-          ? new Date(editState.editTimeline).toISOString()
-          : null,
+      timeline,
       lifeline: editState.editNoExpiry,
       numberOfUsersNeeded: numUsersVal,
       instructions: filteredInstructions.length ? filteredInstructions : undefined,

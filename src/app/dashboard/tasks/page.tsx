@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { ClipboardList, AlertCircle, Plus, Trash2 } from "lucide-react";
+import { ClipboardList, AlertCircle, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useTasksQueries } from "./hooks/useTasksQueries";
 import { useTasksMutations } from "./hooks/useTasksMutations";
@@ -16,7 +16,7 @@ import { groupByDate } from "./utils";
 export default function TasksPage() {
   const router = useRouter();
   const state = useTasksState();
-  const { userQuery, tasksQuery } = useTasksQueries();
+  const { userQuery, tasksQuery } = useTasksQueries(state.page, state.statusFilter);
 
   const callbacks = {
     onDeleteSuccess: () => state.setConfirmDelete(null),
@@ -29,18 +29,28 @@ export default function TasksPage() {
   const isSuperAdmin = user?.role === "super-admin";
 
   const allTasks = tasksQuery.data?.data ?? [];
-  const filtered = state.statusFilter === "all" ? allTasks : allTasks.filter((t) => t.status === state.statusFilter);
+  const filtered = allTasks;
+  const totalTasks = tasksQuery.data?.total ?? 0;
+  const pageSize = tasksQuery.data?.limit ?? 1;
+  const totalPages = Math.max(1, Math.ceil(totalTasks / pageSize));
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
+    (page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2
+  );
   const groups = groupByDate(filtered);
 
   const counts = {
-    all: allTasks.length,
-    active: allTasks.filter((t) => t.status === "active").length,
-    completed: allTasks.filter((t) => t.status === "completed").length,
-    paused: allTasks.filter((t) => t.status === "paused").length,
+    all: state.statusFilter === "all" ? totalTasks : 0,
+    active: state.statusFilter === "active" ? totalTasks : 0,
+    completed: state.statusFilter === "completed" ? totalTasks : 0,
+    paused: state.statusFilter === "paused" ? totalTasks : 0,
   };
 
   const isLoading = tasksQuery.isLoading || userQuery.isLoading;
   const isError = tasksQuery.isError || userQuery.isError;
+  const setStatusFilter = (filter: typeof state.statusFilter) => {
+    state.setStatusFilter(filter);
+    state.setPage(1);
+  };
 
   return (
     <div className="space-y-6">
@@ -53,7 +63,7 @@ export default function TasksPage() {
         </div>
         {canManage && (
           <div className="flex items-center gap-2">
-            {isSuperAdmin && allTasks.length > 0 && (
+            {isSuperAdmin && totalTasks > 0 && (
               <Button
                 variant="outline"
                 size="md"
@@ -77,7 +87,7 @@ export default function TasksPage() {
       </div>
 
       {!isLoading && !isError && (
-        <StatusTabs statusFilter={state.statusFilter} setStatusFilter={state.setStatusFilter} counts={counts} />
+        <StatusTabs statusFilter={state.statusFilter} setStatusFilter={setStatusFilter} counts={counts} />
       )}
 
       {isLoading ? (
@@ -167,12 +177,60 @@ export default function TasksPage() {
               </div>
             </div>
           ))}
+
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-zinc-800 pt-5">
+              <p className="text-xs font-semibold text-zinc-500">
+                Page {state.page} of {totalPages} · {totalTasks} total task{totalTasks !== 1 ? "s" : ""}
+              </p>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={state.page === 1}
+                  onClick={() => state.setPage((page) => Math.max(1, page - 1))}
+                  leftIcon={<ChevronLeft className="w-3.5 h-3.5" />}
+                >
+                  Prev
+                </Button>
+                {pageNumbers.map((page, index) => {
+                  const previous = pageNumbers[index - 1];
+                  const needsGap = previous !== undefined && page - previous > 1;
+                  return (
+                    <React.Fragment key={page}>
+                      {needsGap && <span className="px-1 text-xs font-semibold text-zinc-600">...</span>}
+                      <button
+                        type="button"
+                        onClick={() => state.setPage(page)}
+                        className={`h-9 min-w-9 rounded-lg border px-3 text-sm font-bold transition-colors ${
+                          state.page === page
+                            ? "border-purple-500 bg-purple-500/15 text-purple-300"
+                            : "border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    </React.Fragment>
+                  );
+                })}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={state.page >= totalPages}
+                  onClick={() => state.setPage((page) => Math.min(totalPages, page + 1))}
+                  rightIcon={<ChevronRight className="w-3.5 h-3.5" />}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {state.confirmDeleteAll && (
         <DeleteAllTasksModal
-          tasksCount={allTasks.length}
+          tasksCount={totalTasks}
           isPending={deleteAllTasks.isPending}
           onClose={() => state.setConfirmDeleteAll(false)}
           onConfirm={() => deleteAllTasks.mutate()}

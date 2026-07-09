@@ -37,6 +37,9 @@ export interface Task {
 export interface TasksResponse {
   success: boolean;
   data: Task[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export type StatusFilter = "all" | "active" | "completed" | "paused";
