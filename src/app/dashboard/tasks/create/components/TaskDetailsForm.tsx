@@ -90,12 +90,12 @@ export function TaskDetailsForm({
       </div>
       <div>
         <FieldLabel>
-          Caption <span className="text-zinc-650 font-normal">(optional — text users copy and post)</span>
+          Caption <span className="text-zinc-650 font-normal">(optional — plain text shown to users)</span>
         </FieldLabel>
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
-          placeholder="Paste the exact caption users should copy to their post or status..."
+          placeholder="Add optional caption text to show with the task..."
           rows={4}
           className={`${inputCls} resize-none`}
         />

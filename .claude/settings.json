@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(psql \"postgresql://neondb_owner:npg_V1TkEpNsRA8c@ep-dry-surf-aqwvi1uf-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require\" -c \"SELECT id, name, username, email, created_at, disabled, withdrawal_disabled, task_disabled, monitored, whatsapp_number, email_verified, whatsapp_verified FROM users WHERE LOWER\\(username\\) = LOWER\\('Shinefrosh'\\) OR LOWER\\(name\\) LIKE LOWER\\('%Shinefrosh%'\\);\")",
+      "Bash(grep -E \"^pg$|^postgres$|neon\")",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

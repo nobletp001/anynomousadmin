@@ -61,12 +61,12 @@ export function BasicDetails({
       <h2 className="text-sm font-semibold text-zinc-300 pb-2 border-b border-zinc-800/60">Task Details</h2>
       <div>
         <FieldLabel>
-          Caption <span className="text-zinc-605 font-normal">(optional — text users copy and post)</span>
+          Caption <span className="text-zinc-605 font-normal">(optional — plain text shown to users)</span>
         </FieldLabel>
         <textarea
           value={editCaption}
           onChange={(e) => setEditCaption(e.target.value)}
-          placeholder="Paste the exact caption users should copy to their post or status..."
+          placeholder="Add optional caption text to show with the task..."
           rows={3}
           className={`${inputCls} resize-none`}
         />

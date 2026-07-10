@@ -329,9 +329,9 @@ export function TaskConfigForm({
       <div className="space-y-3 pt-3 border-t border-zinc-800/40">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-zinc-400 font-medium">Require Prompt Selection & Copy</p>
+            <p className="text-xs text-zinc-400 font-medium">Require Client Prompt Selection</p>
             <p className="text-[11px] text-zinc-500 mt-0.5">
-              Force users to select and copy a prompt before submission.
+              Force users to choose from Client-Suggested Prompts before submission.
             </p>
           </div>
           <div
