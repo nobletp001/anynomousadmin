@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui";
-import { ArrowLeft, Download, ExternalLink, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, CheckCircle, Copy, Download, ExternalLink, FileSpreadsheet } from "lucide-react";
 import { Task } from "../types";
 import { formatAmount } from "../utils";
-import { getBookedSlotCount } from "../../utils";
+import { getBookedSlotCount, getTargetUsername } from "../../utils";
 
 interface TaskDetailHeaderProps {
   task: Task;
@@ -26,8 +26,18 @@ export function TaskDetailHeader({
   onToggleStatusClick,
   toggleStatusPending,
 }: TaskDetailHeaderProps) {
+  const [copiedTargetUsername, setCopiedTargetUsername] = useState(false);
   const progress = Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100));
   const bookedSlotCount = getBookedSlotCount(task);
+  const targetUsername = getTargetUsername(task);
+
+  const handleCopyTargetUsername = () => {
+    if (!targetUsername) return;
+    navigator.clipboard.writeText(targetUsername).then(() => {
+      setCopiedTargetUsername(true);
+      setTimeout(() => setCopiedTargetUsername(false), 1500);
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -45,6 +55,27 @@ export function TaskDetailHeader({
       </div>
 
       <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6">
+        {targetUsername && (
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-purple-500/20 bg-purple-500/10 px-3 py-2.5">
+            <div className="min-w-0">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-purple-300">Target Username</p>
+              <p className="truncate text-sm font-bold text-zinc-100">{targetUsername}</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleCopyTargetUsername}
+              className="shrink-0 rounded-lg border border-purple-400/20 bg-zinc-950/40 p-2 text-purple-200 transition-colors hover:border-purple-300/40 hover:bg-purple-500/20"
+              title={copiedTargetUsername ? "Copied" : "Copy target username"}
+            >
+              {copiedTargetUsername ? (
+                <CheckCircle className="h-4 w-4 text-emerald-400" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">

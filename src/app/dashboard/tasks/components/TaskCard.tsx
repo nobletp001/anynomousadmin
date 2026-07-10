@@ -23,6 +23,7 @@ import {
   isScheduled,
   formatScheduledAt,
   getBookedSlotCount,
+  getTargetUsername,
 } from "../utils";
 
 interface TaskCardProps {
@@ -45,12 +46,7 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick, onPinClick }
   const expired = isExpired(task);
   const scheduled = isScheduled(task);
   const bookedSlotCount = getBookedSlotCount(task);
-  const collectsTargetUsername =
-    Boolean(task.collectUserName) ||
-    Boolean(task.collect_username) ||
-    Boolean(task.collectedUserName) ||
-    Boolean(task.collectedUsername);
-  const targetUsername = (task.targetUsername || task.target_username || task.targetUserName || "").trim();
+  const targetUsername = getTargetUsername(task);
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -163,22 +159,20 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick, onPinClick }
 
       <p className="text-xs text-zinc-550 line-clamp-2 mb-4">{task.description}</p>
 
-      {(collectsTargetUsername || targetUsername) && (
-        <div className="mb-4 flex items-center justify-between gap-2 rounded-xl border border-purple-500/20 bg-purple-500/10 px-3 py-2">
+      {targetUsername && (
+        <div className="mb-4 flex items-center justify-between gap-2 rounded-xl border border-purple-500/25 bg-purple-500/10 px-3 py-2">
           <div className="min-w-0">
             <p className="text-[9px] font-extrabold uppercase tracking-wider text-purple-300">Target Username</p>
-            <p className="truncate text-xs font-bold text-zinc-100">{targetUsername || "Collect from user"}</p>
+            <p className="truncate text-xs font-bold text-zinc-100">{targetUsername}</p>
           </div>
-          {targetUsername && (
-            <button
-              type="button"
-              onClick={handleCopyTargetUsername}
-              className="shrink-0 rounded-lg border border-purple-400/20 bg-zinc-950/40 p-1.5 text-purple-200 transition-colors hover:border-purple-300/40 hover:bg-purple-500/20"
-              title="Copy target username"
-            >
-              <Copy className="h-3.5 w-3.5" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleCopyTargetUsername}
+            className="shrink-0 rounded-lg border border-purple-400/20 bg-zinc-950/40 p-1.5 text-purple-200 transition-colors hover:border-purple-300/40 hover:bg-purple-500/20"
+            title="Copy target username"
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </button>
         </div>
       )}
 

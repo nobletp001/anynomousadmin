@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { ClipboardList, AlertCircle, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ClipboardList, AlertCircle, Plus, Trash2, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useTasksQueries } from "./hooks/useTasksQueries";
 import { useTasksMutations } from "./hooks/useTasksMutations";
@@ -16,7 +16,7 @@ import { groupByDate } from "./utils";
 export default function TasksPage() {
   const router = useRouter();
   const state = useTasksState();
-  const { userQuery, tasksQuery } = useTasksQueries(state.page, state.statusFilter);
+  const { userQuery, tasksQuery } = useTasksQueries(state.page, state.statusFilter, state.submittedSearch);
 
   const callbacks = {
     onDeleteSuccess: () => state.setConfirmDelete(null),
@@ -32,7 +32,15 @@ export default function TasksPage() {
   const pinnedCount = tasksQuery.data?.pinnedCount ?? allTasks.filter((task) => task.isPinned).length;
   const pinnedTasks = allTasks.slice(0, pinnedCount);
   const normalTasks = allTasks.slice(pinnedCount);
-  const filtered = normalTasks;
+  const searchTokens = state.submittedSearch
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+  const titleMatchesSearch = (title: string) =>
+    searchTokens.length === 0 || searchTokens.some((token) => title.toLowerCase().includes(token));
+  const filtered = searchTokens.length > 0 ? normalTasks.filter((task) => titleMatchesSearch(task.title)) : normalTasks;
   const totalTasks = tasksQuery.data?.total ?? 0;
   const pageSize = tasksQuery.data?.limit ?? 1;
   const totalPages = Math.max(1, Math.ceil(totalTasks / pageSize));
@@ -52,6 +60,16 @@ export default function TasksPage() {
   const isError = tasksQuery.isError || userQuery.isError;
   const setStatusFilter = (filter: typeof state.statusFilter) => {
     state.setStatusFilter(filter);
+    state.setPage(1);
+  };
+  const submitSearch = () => {
+    state.setSubmittedSearch(state.searchInput.trim());
+    state.setStatusFilter("all");
+    state.setPage(1);
+  };
+  const clearSearch = () => {
+    state.setSearchInput("");
+    state.setSubmittedSearch("");
     state.setPage(1);
   };
 
@@ -93,6 +111,41 @@ export default function TasksPage() {
         <StatusTabs statusFilter={state.statusFilter} setStatusFilter={setStatusFilter} counts={counts} />
       )}
 
+      <div className="flex flex-col gap-2 rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
+          <input
+            value={state.searchInput}
+            onChange={(e) => state.setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submitSearch();
+            }}
+            placeholder="Search tasks by title..."
+            className="h-10 w-full rounded-xl border border-zinc-800 bg-zinc-950/40 pl-9 pr-3 text-sm font-semibold text-zinc-100 outline-none transition-colors placeholder:text-zinc-600 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {state.submittedSearch && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-zinc-800 px-3 text-xs font-bold text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={submitSearch}
+            className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-purple-500 px-4 text-xs font-black uppercase tracking-wider text-white transition-colors hover:bg-purple-400"
+          >
+            <Search className="h-3.5 w-3.5" />
+            Search
+          </button>
+        </div>
+      </div>
+
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
@@ -112,11 +165,15 @@ export default function TasksPage() {
             Retry
           </Button>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : pinnedTasks.length === 0 && filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20 text-center backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl">
           <ClipboardList className="w-10 h-10 text-zinc-600" />
           <p className="text-zinc-400 text-sm font-medium">
-            {state.statusFilter === "all" ? "No tasks yet" : `No ${state.statusFilter} tasks`}
+            {state.submittedSearch
+              ? `No tasks found for "${state.submittedSearch}"`
+              : state.statusFilter === "all"
+                ? "No tasks yet"
+                : `No ${state.statusFilter} tasks`}
           </p>
           {canManage && state.statusFilter === "all" && (
             <Button

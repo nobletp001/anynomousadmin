@@ -26,10 +26,13 @@ export interface Task {
   scheduledAt?: string | null;
   isPinned?: boolean;
   collectUserName?: boolean | null;
+  collectUsername?: boolean | null;
   collect_username?: boolean | null;
   targetUsername?: string | null;
+  targetusername?: string | null;
   target_username?: string | null;
   targetUserName?: string | null;
+  target_user_name?: string | null;
   collectedUserName?: boolean | null;
   collectedUsername?: boolean | null;
 }

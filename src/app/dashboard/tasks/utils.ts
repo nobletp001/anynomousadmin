@@ -9,6 +9,19 @@ interface BookedSlotTask {
   secureSpotBookedCount?: number;
 }
 
+interface TargetUsernameTask {
+  collectUserName?: boolean | null;
+  collectUsername?: boolean | null;
+  collect_username?: boolean | null;
+  collectedUserName?: boolean | null;
+  collectedUsername?: boolean | null;
+  targetUsername?: string | null;
+  targetusername?: string | null;
+  target_username?: string | null;
+  targetUserName?: string | null;
+  target_user_name?: string | null;
+}
+
 export const PLATFORM_COLORS: Record<string, string> = {
   whatsapp: "bg-green-500/10 text-green-400 border-green-500/20",
   tiktok: "bg-pink-500/10 text-pink-400 border-pink-500/20",
@@ -74,6 +87,27 @@ export function getBookedSlotCount(task: BookedSlotTask) {
     task.secureSpotBookedCount ??
     null
   );
+}
+
+export function getCollectsTargetUsername(task: TargetUsernameTask) {
+  return (
+    Boolean(task.collectUserName) ||
+    Boolean(task.collectUsername) ||
+    Boolean(task.collect_username) ||
+    Boolean(task.collectedUserName) ||
+    Boolean(task.collectedUsername)
+  );
+}
+
+export function getTargetUsername(task: TargetUsernameTask) {
+  return (
+    task.targetUsername ||
+    task.targetUserName ||
+    task.target_username ||
+    task.target_user_name ||
+    task.targetusername ||
+    ""
+  ).trim();
 }
 
 export function formatScheduledAt(d: string) {
