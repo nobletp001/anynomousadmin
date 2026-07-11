@@ -40,7 +40,7 @@ Required GitHub Actions secrets:
 
 - `CLOUDFLARE_API_TOKEN`: scoped Cloudflare API token for Workers deploys. Do not use the Global API Key.
 - `CLOUDFLARE_ACCOUNT_ID`: Cloudflare account id.
-- `NEXT_PUBLIC_API_URL`: Railway backend API URL, including `/api`.
+- `NEXT_PUBLIC_API_URL`: Railway backend API URL, including `/api`. Current value for this deployment is `https://anynomousbackend-production.up.railway.app/api`.
 
 Local setup:
 
@@ -49,7 +49,7 @@ cp .env.example .env.local
 # set NEXT_PUBLIC_API_URL to the real Railway API URL including /api
 ```
 
-The production build fails clearly when `NEXT_PUBLIC_API_URL` is missing. Do not put private secrets behind a `NEXT_PUBLIC_` prefix.
+The production build fails clearly when `NEXT_PUBLIC_API_URL` is missing. It is set in `wrangler.jsonc` for Wrangler/OpenNext builds, and any other production build environment must also set it. Do not put private secrets behind a `NEXT_PUBLIC_` prefix.
 
 ## Railway backend requirements
 

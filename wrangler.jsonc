@@ -15,7 +15,8 @@
     "head_sampling_rate": 1
   },
   "vars": {
-    "NEXTJS_ENV": "production"
+    "NEXTJS_ENV": "production",
+    "NEXT_PUBLIC_API_URL": "https://anynomousbackend-production.up.railway.app/api"
   },
   "services": [
     {
