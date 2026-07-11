@@ -117,6 +117,7 @@ Use Node.js 22 or newer for Wrangler 4.
 ```bash
 npm run lint
 npm run type-check
+npm run build:next
 npm run build
 npm run build:cloudflare
 npm run preview:cloudflare
