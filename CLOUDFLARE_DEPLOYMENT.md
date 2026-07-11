@@ -30,7 +30,8 @@
 - Runtime flags: `nodejs_compat`, `global_fetch_strictly_public`.
 - Static assets binding: `ASSETS` mapped to `.open-next/assets`.
 - Observability: enabled in `wrangler.jsonc`.
-- Custom domain prepared: `admin.payfluence.com`. Connect the custom domain in Cloudflare before production deployment; this repo does not change DNS automatically.
+- Current deploy target: `workers.dev`.
+- Custom domain to connect later: `admin.payfluence.com`. Add the route/custom domain in Cloudflare after the `payfluence.com` zone is active in Cloudflare; this repo does not change DNS automatically.
 - Bindings: only the required static assets binding and `WORKER_SELF_REFERENCE` service binding are configured. No R2, D1, KV, or Durable Object cache bindings were added because this app does not currently use ISR or on-demand revalidation.
 
 ## Environment variables and secrets

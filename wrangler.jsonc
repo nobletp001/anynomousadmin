@@ -2,6 +2,8 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "payfluence-admin",
   "main": ".open-next/worker.js",
+  "workers_dev": true,
+  "preview_urls": false,
   "compatibility_date": "2026-07-11",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
@@ -19,12 +21,6 @@
     {
       "binding": "WORKER_SELF_REFERENCE",
       "service": "payfluence-admin"
-    }
-  ],
-  "routes": [
-    {
-      "pattern": "admin.payfluence.com",
-      "custom_domain": true
     }
   ]
 }
