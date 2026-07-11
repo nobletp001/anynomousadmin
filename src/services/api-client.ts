@@ -1,7 +1,13 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-// NEXT_PUBLIC_API_URL already includes /api (e.g. http://localhost:4000/api)
-const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/$/, "");
+// NEXT_PUBLIC_API_URL must include /api (for example, https://your-railway-app.up.railway.app/api).
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+if (!configuredApiUrl) {
+  throw new Error("NEXT_PUBLIC_API_URL is required. Set it to the Railway API URL including /api.");
+}
+
+const BASE_URL = configuredApiUrl.replace(/\/$/, "");
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
@@ -40,8 +46,8 @@ async function getCsrfToken(): Promise<string | null> {
         csrfToken = res.data?.csrfToken || null;
         return csrfToken;
       })
-      .catch((err) => {
-        console.error("Failed to fetch CSRF token:", err);
+      .catch(() => {
+        console.error("Failed to fetch CSRF token.");
         return null;
       })
       .finally(() => {

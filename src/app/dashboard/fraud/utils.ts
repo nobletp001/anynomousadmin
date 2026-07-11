@@ -1,13 +1,13 @@
 import { apiClient } from "@/services/api-client";
 
-export async function apiFetch(path: string, options?: RequestInit) {
+export async function apiFetch<T = any>(path: string, options?: RequestInit): Promise<T> {
   const method = (options?.method || "GET").toUpperCase();
   const response = await apiClient.request({
-    url: path,
+    url: path.replace(/^\/api(?=\/)/, ""),
     method,
     data: options?.body ? JSON.parse(options.body as string) : undefined,
   });
-  return response;
+  return response as T;
 }
 
 export function getImagesList(proof: string): string[] {

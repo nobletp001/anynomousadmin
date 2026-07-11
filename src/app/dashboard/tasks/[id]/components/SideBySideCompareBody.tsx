@@ -38,8 +38,8 @@ export function SideBySideCompareBody({
         body.deductedAmount = 0;
       }
 
-      const data = await apiClient.patch(`/admin/tasks/${task.id}/submissions/${subId}`, body);
-      if ((data as any).success) {
+      const data = (await apiClient.patch(`/admin/tasks/${task.id}/submissions/${subId}`, body)) as any;
+      if (data.success) {
         setLocalStatuses((prev) => ({ ...prev, [subId]: action }));
         queryClient.invalidateQueries({ queryKey: ["task-submissions", String(task.id)] });
       } else {
