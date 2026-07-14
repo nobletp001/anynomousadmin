@@ -14,6 +14,7 @@ import { QuickPresets } from "./components/QuickPresets";
 import { TaskAssignment } from "./components/TaskAssignment";
 import { TaskDetailsForm } from "./components/TaskDetailsForm";
 import { InstructionsForm } from "./components/InstructionsForm";
+import { ClientRequestReviewForm } from "./components/ClientRequestReviewForm";
 import { TaskConfigForm } from "./components/TaskConfigForm";
 import { TargetAudienceForm } from "./components/TargetAudienceForm";
 import { RewardTimelineForm } from "./components/RewardTimelineForm";
@@ -78,6 +79,13 @@ export default function CreateTaskPage() {
           setInstructions={state.setInstructions}
           draggedIdx={state.draggedIdx}
           setDraggedIdx={state.setDraggedIdx}
+        />
+
+        <ClientRequestReviewForm
+          hasClientRequestReview={state.hasClientRequestReview}
+          setHasClientRequestReview={state.setHasClientRequestReview}
+          clientRequestReviews={state.clientRequestReviews}
+          setClientRequestReviews={state.setClientRequestReviews}
         />
 
         <TaskConfigForm

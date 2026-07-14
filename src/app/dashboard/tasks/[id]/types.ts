@@ -150,6 +150,8 @@ export interface Task {
   secureSpotNumberPerDay?: number | null;
   additionalSlots?: number | null;
   blockSameDevice?: boolean;
+  clientRequestReviews?: string | string[] | null;
+  hasClientRequestReview?: boolean;
 }
 
 export interface UserInfo {
@@ -217,6 +219,7 @@ export interface Submission {
     totalStars: number;
     revisions: number;
   };
+  assignedReview?: string | null;
 }
 
 export interface SecuredSpot {

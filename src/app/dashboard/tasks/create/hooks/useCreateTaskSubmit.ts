@@ -119,6 +119,10 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       initialSlotUsers: state.isSecureSpotTask
         ? [...state.initialSlotSelectedUsers, state.initialSlotBulkUsers].filter(Boolean)
         : undefined,
+      hasClientRequestReview: state.hasClientRequestReview,
+      clientRequestReviews: state.hasClientRequestReview
+        ? state.clientRequestReviews.map((r) => r.trim()).filter(Boolean)
+        : undefined,
       targetAudience: state.enableTargeting
         ? {
             ...(state.audience.gender.length ? { gender: state.audience.gender } : {}),

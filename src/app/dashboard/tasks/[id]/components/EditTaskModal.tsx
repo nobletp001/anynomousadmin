@@ -10,6 +10,7 @@ import { Config } from "./EditTaskForm/Config";
 import { Targeting } from "./EditTaskForm/Targeting";
 import { RewardTimeline } from "./EditTaskForm/RewardTimeline";
 import { AllowedSubmissions } from "./EditTaskForm/AllowedSubmissions";
+import { ClientRequestReview } from "./EditTaskForm/ClientRequestReview";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
 
@@ -77,6 +78,10 @@ export function EditTaskModal({
         : null;
 
     updateTaskMutation.mutate({
+      hasClientRequestReview: editState.editHasClientRequestReview,
+      clientRequestReviews: editState.editHasClientRequestReview
+        ? editState.editClientRequestReviews.map((r) => r.trim()).filter(Boolean)
+        : null,
       scheduledAt: editState.editScheduledAt ? new Date(editState.editScheduledAt).toISOString() : null,
       timeline,
       lifeline: editState.editNoExpiry,
@@ -228,6 +233,12 @@ export function EditTaskModal({
           <Instructions
             editInstructions={editState.editInstructions}
             setEditInstructions={editState.setEditInstructions}
+          />
+          <ClientRequestReview
+            editHasClientRequestReview={editState.editHasClientRequestReview}
+            setEditHasClientRequestReview={editState.setEditHasClientRequestReview}
+            editClientRequestReviews={editState.editClientRequestReviews}
+            setEditClientRequestReviews={editState.setEditClientRequestReviews}
           />
           <Config
             editTaskType={editState.editTaskType}

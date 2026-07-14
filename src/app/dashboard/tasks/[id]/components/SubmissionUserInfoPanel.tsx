@@ -101,10 +101,24 @@ export function SubmissionUserInfoPanel({
         </div>
         {sub.selectedPrompt && (
           <div className="space-y-1.5 pt-3 border-t border-zinc-900/60">
-            <p className="text-[10px] text-zinc-500 uppercase font-semibold">Submitted Prompt / Text copied</p>
+            <p className="text-[10px] text-zinc-555 uppercase font-semibold">Submitted Prompt / Text copied</p>
             <div className="flex items-start gap-2 bg-zinc-900 p-2.5 rounded-lg border border-zinc-800">
               <p className="text-xs text-zinc-200 flex-1 break-all font-medium select-all">{sub.selectedPrompt}</p>
             </div>
+          </div>
+        )}
+        {sub.assignedReview && (
+          <div className="space-y-1.5 pt-3 border-t border-zinc-900/60">
+            <p className="text-[10px] text-zinc-550 uppercase font-semibold">Assigned Client Request Review to Use</p>
+            <div className="flex items-start gap-2 bg-zinc-900 p-2.5 rounded-lg border border-zinc-850 bg-amber-500/5">
+              <p className="text-xs text-amber-200 flex-1 break-all font-bold select-all text-center">
+                {sub.assignedReview}
+              </p>
+            </div>
+            <p className="text-[10px] text-amber-500/90 font-medium leading-normal flex items-start gap-1 mt-1">
+              <span className="text-xs leading-none">⚠️</span>
+              <span>Warning: Verify that the user used this exact review text and did not use something else!</span>
+            </p>
           </div>
         )}
       </div>

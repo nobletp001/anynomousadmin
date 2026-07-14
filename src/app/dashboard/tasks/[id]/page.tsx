@@ -213,6 +213,21 @@ export default function TaskSubmissionsPage() {
     );
     editState.setEditIsPinned(!!task.isPinned);
     editState.setEditBlockSameDevice(task.blockSameDevice !== false);
+    editState.setEditHasClientRequestReview(!!task.hasClientRequestReview);
+    let reviewsList: string[] = [""];
+    try {
+      if (task.clientRequestReviews) {
+        const parsed = Array.isArray(task.clientRequestReviews)
+          ? task.clientRequestReviews
+          : JSON.parse(task.clientRequestReviews as string);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          reviewsList = parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    editState.setEditClientRequestReviews(reviewsList);
     editState.setUploadError("");
   };
 

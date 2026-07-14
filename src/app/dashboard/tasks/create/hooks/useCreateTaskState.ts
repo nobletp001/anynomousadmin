@@ -55,6 +55,8 @@ export function useCreateTaskState() {
   const [blockSameDevice, setBlockSameDevice] = useState(true);
   const [initialSlotSelectedUsers, setInitialSlotSelectedUsers] = useState<string[]>([]);
   const [initialSlotBulkUsers, setInitialSlotBulkUsers] = useState("");
+  const [hasClientRequestReview, setHasClientRequestReview] = useState(false);
+  const [clientRequestReviews, setClientRequestReviews] = useState<string[]>([""]);
   const [audience, setAudience] = useState<AudienceFilter>({
     gender: [],
     employmentStatus: [],
@@ -173,6 +175,10 @@ export function useCreateTaskState() {
     setInitialSlotSelectedUsers,
     initialSlotBulkUsers,
     setInitialSlotBulkUsers,
+    hasClientRequestReview,
+    setHasClientRequestReview,
+    clientRequestReviews,
+    setClientRequestReviews,
   };
 }
 

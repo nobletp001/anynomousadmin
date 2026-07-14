@@ -55,6 +55,8 @@ export function useEditTaskState() {
   const [editSecureSpotNumberPerDay, setEditSecureSpotNumberPerDay] = useState("");
   const [editAdditionalSlots, setEditAdditionalSlots] = useState("0");
   const [editBlockSameDevice, setEditBlockSameDevice] = useState(true);
+  const [editHasClientRequestReview, setEditHasClientRequestReview] = useState(false);
+  const [editClientRequestReviews, setEditClientRequestReviews] = useState<string[]>([""]);
 
   return {
     editScheduledAt,
@@ -141,6 +143,10 @@ export function useEditTaskState() {
     setEditAdditionalSlots,
     editBlockSameDevice,
     setEditBlockSameDevice,
+    editHasClientRequestReview,
+    setEditHasClientRequestReview,
+    editClientRequestReviews,
+    setEditClientRequestReviews,
   };
 }
 export type EditTaskState = ReturnType<typeof useEditTaskState>;
