@@ -145,6 +145,9 @@ export interface Task {
   secureSpotIntervalType?: string | null;
   secureSpotInterval?: number | null;
   secureSpotConstantDelay?: number | null;
+  secureSpotIsExactDays?: boolean | null;
+  secureSpotIsPerDay?: boolean | null;
+  secureSpotNumberPerDay?: number | null;
   additionalSlots?: number | null;
   blockSameDevice?: boolean;
 }

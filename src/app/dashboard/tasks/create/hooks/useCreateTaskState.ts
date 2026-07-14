@@ -12,6 +12,7 @@ export function useCreateTaskState() {
   const [taskType, setTaskType] = useState("follow");
   const [targetPlatform, setTargetPlatform] = useState("instagram");
   const [timelineMs, setTimelineMs] = useState(24 * 60 * 60 * 1000);
+  const [customTimelineDate, setCustomTimelineDate] = useState("");
   const [amount, setAmount] = useState("");
   const [numberOfUsersNeeded, setNumberOfUsersNeeded] = useState("");
   const [adminContact, setAdminContact] = useState("");
@@ -47,6 +48,9 @@ export function useCreateTaskState() {
   const [secureSpotIntervalType, setSecureSpotIntervalType] = useState<"constant" | "minutes" | "days">("minutes");
   const [secureSpotInterval, setSecureSpotInterval] = useState("");
   const [secureSpotConstantDelay, setSecureSpotConstantDelay] = useState("");
+  const [secureSpotIsExactDays, setSecureSpotIsExactDays] = useState(false);
+  const [secureSpotIsPerDay, setSecureSpotIsPerDay] = useState(false);
+  const [secureSpotNumberPerDay, setSecureSpotNumberPerDay] = useState("");
   const [additionalSlots, setAdditionalSlots] = useState("5");
   const [blockSameDevice, setBlockSameDevice] = useState(true);
   const [initialSlotSelectedUsers, setInitialSlotSelectedUsers] = useState<string[]>([]);
@@ -85,6 +89,8 @@ export function useCreateTaskState() {
     setTargetPlatform,
     timelineMs,
     setTimelineMs,
+    customTimelineDate,
+    setCustomTimelineDate,
     amount,
     setAmount,
     numberOfUsersNeeded,
@@ -153,6 +159,12 @@ export function useCreateTaskState() {
     setSecureSpotInterval,
     secureSpotConstantDelay,
     setSecureSpotConstantDelay,
+    secureSpotIsExactDays,
+    setSecureSpotIsExactDays,
+    secureSpotIsPerDay,
+    setSecureSpotIsPerDay,
+    secureSpotNumberPerDay,
+    setSecureSpotNumberPerDay,
     additionalSlots,
     setAdditionalSlots,
     blockSameDevice,

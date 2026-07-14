@@ -35,7 +35,11 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       }
     }
 
-    const timeline = state.noExpiry ? undefined : new Date(Date.now() + state.timelineMs).toISOString();
+    const timeline = state.noExpiry
+      ? undefined
+      : state.customTimelineDate
+        ? new Date(`${state.customTimelineDate}T23:59:59.999`).toISOString()
+        : new Date(Date.now() + state.timelineMs).toISOString();
     const filteredInstructions = state.instructions.map((s) => s.trim()).filter(Boolean);
 
     createTask.mutate({
@@ -97,6 +101,17 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       secureSpotConstantDelay:
         state.isSecureSpotTask && state.secureSpotConstantDelay.trim()
           ? parseInt(state.secureSpotConstantDelay)
+          : undefined,
+      secureSpotIsExactDays:
+        state.isSecureSpotTask && state.secureSpotIntervalType === "days" ? state.secureSpotIsExactDays : undefined,
+      secureSpotIsPerDay:
+        state.isSecureSpotTask && state.secureSpotIntervalType === "days" ? state.secureSpotIsPerDay : undefined,
+      secureSpotNumberPerDay:
+        state.isSecureSpotTask &&
+        state.secureSpotIntervalType === "days" &&
+        state.secureSpotIsPerDay &&
+        state.secureSpotNumberPerDay.trim()
+          ? parseInt(state.secureSpotNumberPerDay)
           : undefined,
       additionalSlots:
         state.isSecureSpotTask && state.additionalSlots.trim() ? parseInt(state.additionalSlots) : undefined,

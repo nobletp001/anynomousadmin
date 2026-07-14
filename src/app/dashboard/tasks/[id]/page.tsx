@@ -200,6 +200,9 @@ export default function TaskSubmissionsPage() {
     );
     editState.setEditSecureSpotInterval(String(task.secureSpotInterval ?? ""));
     editState.setEditSecureSpotConstantDelay(String(task.secureSpotConstantDelay ?? ""));
+    editState.setEditSecureSpotIsExactDays(!!task.secureSpotIsExactDays);
+    editState.setEditSecureSpotIsPerDay(!!task.secureSpotIsPerDay);
+    editState.setEditSecureSpotNumberPerDay(String(task.secureSpotNumberPerDay ?? ""));
     editState.setEditAdditionalSlots(String(task.additionalSlots ?? 5));
     editState.setEditScheduledAt(
       task.scheduledAt

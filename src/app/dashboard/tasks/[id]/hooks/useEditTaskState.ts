@@ -50,6 +50,9 @@ export function useEditTaskState() {
   );
   const [editSecureSpotInterval, setEditSecureSpotInterval] = useState("");
   const [editSecureSpotConstantDelay, setEditSecureSpotConstantDelay] = useState("");
+  const [editSecureSpotIsExactDays, setEditSecureSpotIsExactDays] = useState(false);
+  const [editSecureSpotIsPerDay, setEditSecureSpotIsPerDay] = useState(false);
+  const [editSecureSpotNumberPerDay, setEditSecureSpotNumberPerDay] = useState("");
   const [editAdditionalSlots, setEditAdditionalSlots] = useState("5");
   const [editBlockSameDevice, setEditBlockSameDevice] = useState(true);
 
@@ -128,6 +131,12 @@ export function useEditTaskState() {
     setEditSecureSpotInterval,
     editSecureSpotConstantDelay,
     setEditSecureSpotConstantDelay,
+    editSecureSpotIsExactDays,
+    setEditSecureSpotIsExactDays,
+    editSecureSpotIsPerDay,
+    setEditSecureSpotIsPerDay,
+    editSecureSpotNumberPerDay,
+    setEditSecureSpotNumberPerDay,
     editAdditionalSlots,
     setEditAdditionalSlots,
     editBlockSameDevice,
