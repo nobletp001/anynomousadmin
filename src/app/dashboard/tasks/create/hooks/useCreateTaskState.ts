@@ -51,7 +51,7 @@ export function useCreateTaskState() {
   const [secureSpotIsExactDays, setSecureSpotIsExactDays] = useState(false);
   const [secureSpotIsPerDay, setSecureSpotIsPerDay] = useState(false);
   const [secureSpotNumberPerDay, setSecureSpotNumberPerDay] = useState("");
-  const [additionalSlots, setAdditionalSlots] = useState("5");
+  const [additionalSlots, setAdditionalSlots] = useState("0");
   const [blockSameDevice, setBlockSameDevice] = useState(true);
   const [initialSlotSelectedUsers, setInitialSlotSelectedUsers] = useState<string[]>([]);
   const [initialSlotBulkUsers, setInitialSlotBulkUsers] = useState("");

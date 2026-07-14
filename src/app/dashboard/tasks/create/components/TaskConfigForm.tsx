@@ -634,7 +634,7 @@ export function TaskConfigForm({
                   max={10000}
                   value={additionalSlots}
                   onChange={(e) => setAdditionalSlots(e.target.value)}
-                  placeholder="e.g. 5"
+                  placeholder="e.g. 0"
                   className={`${inputCls} pr-16`}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-zinc-500">
@@ -642,7 +642,7 @@ export function TaskConfigForm({
                 </span>
               </div>
               <p className="text-[10px] text-zinc-500 mt-1.5 leading-relaxed">
-                Extra spots shown beyond the task capacity so users can still secure a slot. Default 5.
+                Extra spots shown beyond the task capacity so users can still secure a slot. Default 0.
               </p>
             </div>
           </div>

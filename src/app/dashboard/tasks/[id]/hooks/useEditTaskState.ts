@@ -53,7 +53,7 @@ export function useEditTaskState() {
   const [editSecureSpotIsExactDays, setEditSecureSpotIsExactDays] = useState(false);
   const [editSecureSpotIsPerDay, setEditSecureSpotIsPerDay] = useState(false);
   const [editSecureSpotNumberPerDay, setEditSecureSpotNumberPerDay] = useState("");
-  const [editAdditionalSlots, setEditAdditionalSlots] = useState("5");
+  const [editAdditionalSlots, setEditAdditionalSlots] = useState("0");
   const [editBlockSameDevice, setEditBlockSameDevice] = useState(true);
 
   return {

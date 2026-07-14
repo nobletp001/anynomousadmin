@@ -203,7 +203,7 @@ export default function TaskSubmissionsPage() {
     editState.setEditSecureSpotIsExactDays(!!task.secureSpotIsExactDays);
     editState.setEditSecureSpotIsPerDay(!!task.secureSpotIsPerDay);
     editState.setEditSecureSpotNumberPerDay(String(task.secureSpotNumberPerDay ?? ""));
-    editState.setEditAdditionalSlots(String(task.additionalSlots ?? 5));
+    editState.setEditAdditionalSlots(String(task.additionalSlots ?? 0));
     editState.setEditScheduledAt(
       task.scheduledAt
         ? new Date(new Date(task.scheduledAt).getTime() - new Date(task.scheduledAt).getTimezoneOffset() * 60000)
