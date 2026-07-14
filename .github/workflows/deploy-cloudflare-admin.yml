@@ -40,11 +40,9 @@ jobs:
       - name: Type-check
         run: npm run type-check
 
-      - name: Build Next.js
+      - name: Build Cloudflare Worker
         run: npm run build
 
-      - name: Build OpenNext Cloudflare worker
-        run: npm run build:cloudflare
+      - name: Deploy to Cloudflare
+        run: npx opennextjs-cloudflare deploy
 
-      - name: Deploy with Wrangler
-        run: npx wrangler deploy
