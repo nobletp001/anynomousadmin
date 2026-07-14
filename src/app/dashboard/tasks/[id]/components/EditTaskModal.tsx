@@ -147,6 +147,21 @@ export function EditTaskModal({
         editState.editIsSecureSpotTask && editState.editSecureSpotConstantDelay.trim()
           ? parseInt(editState.editSecureSpotConstantDelay)
           : undefined,
+      secureSpotIsExactDays:
+        editState.editIsSecureSpotTask && editState.editSecureSpotIntervalType === "days"
+          ? editState.editSecureSpotIsExactDays
+          : undefined,
+      secureSpotIsPerDay:
+        editState.editIsSecureSpotTask && editState.editSecureSpotIntervalType === "days"
+          ? editState.editSecureSpotIsPerDay
+          : undefined,
+      secureSpotNumberPerDay:
+        editState.editIsSecureSpotTask &&
+        editState.editSecureSpotIntervalType === "days" &&
+        editState.editSecureSpotIsPerDay &&
+        editState.editSecureSpotNumberPerDay.trim()
+          ? parseInt(editState.editSecureSpotNumberPerDay)
+          : undefined,
       additionalSlots:
         editState.editIsSecureSpotTask && editState.editAdditionalSlots.trim()
           ? parseInt(editState.editAdditionalSlots)
@@ -255,6 +270,12 @@ export function EditTaskModal({
             setEditSecureSpotInterval={editState.setEditSecureSpotInterval}
             editSecureSpotConstantDelay={editState.editSecureSpotConstantDelay}
             setEditSecureSpotConstantDelay={editState.setEditSecureSpotConstantDelay}
+            editSecureSpotIsExactDays={editState.editSecureSpotIsExactDays}
+            setEditSecureSpotIsExactDays={editState.setEditSecureSpotIsExactDays}
+            editSecureSpotIsPerDay={editState.editSecureSpotIsPerDay}
+            setEditSecureSpotIsPerDay={editState.setEditSecureSpotIsPerDay}
+            editSecureSpotNumberPerDay={editState.editSecureSpotNumberPerDay}
+            setEditSecureSpotNumberPerDay={editState.setEditSecureSpotNumberPerDay}
             editAdditionalSlots={editState.editAdditionalSlots}
             setEditAdditionalSlots={editState.setEditAdditionalSlots}
             editBlockSameDevice={editState.editBlockSameDevice}

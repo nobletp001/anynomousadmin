@@ -121,6 +121,12 @@ export default function CreateTaskPage() {
           setSecureSpotInterval={state.setSecureSpotInterval}
           secureSpotConstantDelay={state.secureSpotConstantDelay}
           setSecureSpotConstantDelay={state.setSecureSpotConstantDelay}
+          secureSpotIsExactDays={state.secureSpotIsExactDays}
+          setSecureSpotIsExactDays={state.setSecureSpotIsExactDays}
+          secureSpotIsPerDay={state.secureSpotIsPerDay}
+          setSecureSpotIsPerDay={state.setSecureSpotIsPerDay}
+          secureSpotNumberPerDay={state.secureSpotNumberPerDay}
+          setSecureSpotNumberPerDay={state.setSecureSpotNumberPerDay}
           additionalSlots={state.additionalSlots}
           setAdditionalSlots={state.setAdditionalSlots}
           blockSameDevice={state.blockSameDevice}
@@ -152,6 +158,8 @@ export default function CreateTaskPage() {
           setNoExpiry={state.setNoExpiry}
           timelineMs={state.timelineMs}
           setTimelineMs={state.setTimelineMs}
+          customTimelineDate={state.customTimelineDate}
+          setCustomTimelineDate={state.setCustomTimelineDate}
           isPayFluenceTask={state.isPayFluenceTask}
           setIsPayFluenceTask={state.setIsPayFluenceTask}
           volutterPayFluenceTaskPerformNumber={state.volutterPayFluenceTaskPerformNumber}

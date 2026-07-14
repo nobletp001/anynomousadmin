@@ -12,6 +12,8 @@ interface RewardTimelineFormProps {
   setNoExpiry: React.Dispatch<React.SetStateAction<boolean>>;
   timelineMs: number;
   setTimelineMs: (v: number) => void;
+  customTimelineDate: string;
+  setCustomTimelineDate: (v: string) => void;
   isPayFluenceTask: boolean;
   setIsPayFluenceTask: (v: boolean) => void;
   volutterPayFluenceTaskPerformNumber: string;
@@ -31,6 +33,8 @@ export function RewardTimelineForm({
   setNoExpiry,
   timelineMs,
   setTimelineMs,
+  customTimelineDate,
+  setCustomTimelineDate,
   isPayFluenceTask,
   setIsPayFluenceTask,
   volutterPayFluenceTaskPerformNumber,
@@ -197,7 +201,10 @@ export function RewardTimelineForm({
         </div>
         <select
           value={timelineMs}
-          onChange={(e) => setTimelineMs(Number(e.target.value))}
+          onChange={(e) => {
+            setTimelineMs(Number(e.target.value));
+            setCustomTimelineDate("");
+          }}
           disabled={noExpiry}
           className={`${inputCls} ${noExpiry ? "opacity-40 cursor-not-allowed" : ""}`}
         >
@@ -207,10 +214,24 @@ export function RewardTimelineForm({
             </option>
           ))}
         </select>
+        {!noExpiry && (
+          <div className="mt-3">
+            <span className="text-[10px] font-medium text-zinc-500 mb-1 block">Custom End Date</span>
+            <input
+              type="date"
+              value={customTimelineDate}
+              onChange={(e) => setCustomTimelineDate(e.target.value)}
+              min={getLocalMinDateTime().split("T")[0]}
+              className={inputCls}
+            />
+          </div>
+        )}
         <p className="text-[11px] text-zinc-605 mt-1.5 leading-relaxed">
           {noExpiry
             ? "Task stays active until you manually close it."
-            : `Task closes ${TIMELINE_OPTIONS.find((o) => o.ms === timelineMs)?.label} from creation`}
+            : customTimelineDate
+              ? `Task closes at the end of ${customTimelineDate}.`
+              : `Task closes ${TIMELINE_OPTIONS.find((o) => o.ms === timelineMs)?.label} from creation`}
         </p>
       </div>
 

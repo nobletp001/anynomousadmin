@@ -45,6 +45,12 @@ interface TaskConfigFormProps {
   setSecureSpotInterval: (v: string) => void;
   secureSpotConstantDelay: string;
   setSecureSpotConstantDelay: (v: string) => void;
+  secureSpotIsExactDays: boolean;
+  setSecureSpotIsExactDays: (v: boolean) => void;
+  secureSpotIsPerDay: boolean;
+  setSecureSpotIsPerDay: (v: boolean) => void;
+  secureSpotNumberPerDay: string;
+  setSecureSpotNumberPerDay: (v: string) => void;
   additionalSlots: string;
   setAdditionalSlots: (v: string) => void;
   blockSameDevice: boolean;
@@ -92,6 +98,12 @@ export function TaskConfigForm({
   setSecureSpotInterval,
   secureSpotConstantDelay,
   setSecureSpotConstantDelay,
+  secureSpotIsExactDays,
+  setSecureSpotIsExactDays,
+  secureSpotIsPerDay,
+  setSecureSpotIsPerDay,
+  secureSpotNumberPerDay,
+  setSecureSpotNumberPerDay,
   additionalSlots,
   setAdditionalSlots,
   blockSameDevice,
@@ -456,6 +468,11 @@ export function TaskConfigForm({
                     type="button"
                     onClick={() => {
                       setSecureSpotIntervalType(type);
+                      if (type !== "days") {
+                        setSecureSpotIsExactDays(false);
+                        setSecureSpotIsPerDay(false);
+                        setSecureSpotNumberPerDay("");
+                      }
                       if (isImmediateSecureSpot) {
                         setSecureSpotInterval(type === "constant" ? "" : "60");
                         setSecureSpotConstantDelay(type === "constant" ? "60" : "0");
@@ -492,7 +509,7 @@ export function TaskConfigForm({
                   <input
                     type="number"
                     min={1}
-                    max={secureSpotIntervalType === "days" ? 100 : 1440}
+                    max={secureSpotIntervalType === "days" ? 36500 : 1440}
                     value={secureSpotInterval}
                     onChange={(e) => setSecureSpotInterval(e.target.value)}
                     placeholder={secureSpotIntervalType === "days" ? "e.g. 7" : "e.g. 60"}
@@ -502,6 +519,58 @@ export function TaskConfigForm({
                     {secureSpotIntervalType === "days" ? "days" : "min"}
                   </span>
                 </div>
+              </div>
+            )}
+
+            {!isImmediateSecureSpot && secureSpotIntervalType === "days" && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-700/70 bg-zinc-800/50 px-3 py-2.5">
+                  <span className="text-[11px] font-semibold text-zinc-300">Use exact days</span>
+                  <div
+                    onClick={() => setSecureSpotIsExactDays(!secureSpotIsExactDays)}
+                    className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${secureSpotIsExactDays ? "bg-purple-500" : "bg-zinc-700"}`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${secureSpotIsExactDays ? "translate-x-4" : "translate-x-0"}`}
+                    />
+                  </div>
+                </label>
+                <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-700/70 bg-zinc-800/50 px-3 py-2.5">
+                  <span className="text-[11px] font-semibold text-zinc-300">Drop per day</span>
+                  <div
+                    onClick={() => {
+                      const next = !secureSpotIsPerDay;
+                      setSecureSpotIsPerDay(next);
+                      if (!next) setSecureSpotNumberPerDay("");
+                    }}
+                    className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${secureSpotIsPerDay ? "bg-purple-500" : "bg-zinc-700"}`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${secureSpotIsPerDay ? "translate-x-4" : "translate-x-0"}`}
+                    />
+                  </div>
+                </label>
+                {secureSpotIsPerDay && (
+                  <div className="sm:col-span-2">
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
+                      Number Per Day
+                    </p>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min={1}
+                        max={100000}
+                        value={secureSpotNumberPerDay}
+                        onChange={(e) => setSecureSpotNumberPerDay(e.target.value)}
+                        placeholder="e.g. 2"
+                        className={`${inputCls} pr-16`}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-zinc-500">
+                        / day
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -545,7 +614,11 @@ export function TaskConfigForm({
                   : secureSpotIntervalType === "constant"
                     ? `All users wait exactly ${secureSpotConstantDelay || "X"} min before they can submit.`
                     : secureSpotIntervalType === "days"
-                      ? `Random between ${secureSpotConstantDelay || "0"} hrs and ${secureSpotInterval ? Math.round((Number(secureSpotInterval) / 3) * 24) : "N"} hrs (${secureSpotInterval || "N"} days ÷ 3). e.g. 3 days, 5 hr min → window is 5–24 hrs.`
+                      ? secureSpotIsPerDay
+                        ? `${secureSpotNumberPerDay || "N"} users become eligible per day, spread across each day. Remaining users fall on the final day.`
+                        : secureSpotIsExactDays
+                          ? `Random between ${secureSpotConstantDelay || "0"} hrs and ${secureSpotInterval || "N"} full days.`
+                          : `Random between ${secureSpotConstantDelay || "0"} hrs and ${secureSpotInterval ? Math.round((Number(secureSpotInterval) / 3) * 24) : "N"} hrs (${secureSpotInterval || "N"} days ÷ 3).`
                       : `Random between ${secureSpotConstantDelay || "0"} min and ${secureSpotInterval || "N"} min. Each user gets a different slot.`}
               </p>
             </div>
