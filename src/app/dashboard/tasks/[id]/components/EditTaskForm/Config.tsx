@@ -48,6 +48,12 @@ interface ConfigProps {
   setEditSecureSpotInterval: (v: string) => void;
   editSecureSpotConstantDelay: string;
   setEditSecureSpotConstantDelay: (v: string) => void;
+  editSecureSpotIsExactDays: boolean;
+  setEditSecureSpotIsExactDays: (v: boolean) => void;
+  editSecureSpotIsPerDay: boolean;
+  setEditSecureSpotIsPerDay: (v: boolean) => void;
+  editSecureSpotNumberPerDay: string;
+  setEditSecureSpotNumberPerDay: (v: string) => void;
   editAdditionalSlots: string;
   setEditAdditionalSlots: (v: string) => void;
   editBlockSameDevice: boolean;
@@ -95,6 +101,12 @@ export function Config({
   setEditSecureSpotInterval,
   editSecureSpotConstantDelay,
   setEditSecureSpotConstantDelay,
+  editSecureSpotIsExactDays,
+  setEditSecureSpotIsExactDays,
+  editSecureSpotIsPerDay,
+  setEditSecureSpotIsPerDay,
+  editSecureSpotNumberPerDay,
+  setEditSecureSpotNumberPerDay,
   editAdditionalSlots,
   setEditAdditionalSlots,
   editBlockSameDevice,
@@ -490,6 +502,11 @@ export function Config({
                     type="button"
                     onClick={() => {
                       setEditSecureSpotIntervalType(type);
+                      if (type !== "days") {
+                        setEditSecureSpotIsExactDays(false);
+                        setEditSecureSpotIsPerDay(false);
+                        setEditSecureSpotNumberPerDay("");
+                      }
                       if (isImmediateSecureSpot) {
                         setEditSecureSpotInterval(type === "constant" ? "" : "60");
                         setEditSecureSpotConstantDelay(type === "constant" ? "60" : "0");
@@ -523,7 +540,7 @@ export function Config({
                   <input
                     type="number"
                     min={1}
-                    max={editSecureSpotIntervalType === "days" ? 100 : 1440}
+                    max={editSecureSpotIntervalType === "days" ? 36500 : 1440}
                     value={editSecureSpotInterval}
                     onChange={(e) => setEditSecureSpotInterval(e.target.value)}
                     placeholder={editSecureSpotIntervalType === "days" ? "e.g. 7" : "e.g. 60"}
@@ -533,6 +550,58 @@ export function Config({
                     {editSecureSpotIntervalType === "days" ? "days" : "min"}
                   </span>
                 </div>
+              </div>
+            )}
+
+            {!isImmediateSecureSpot && editSecureSpotIntervalType === "days" && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-700/70 bg-zinc-800/50 px-3 py-2.5">
+                  <span className="text-[11px] font-semibold text-zinc-300">Use exact days</span>
+                  <div
+                    onClick={() => setEditSecureSpotIsExactDays(!editSecureSpotIsExactDays)}
+                    className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${editSecureSpotIsExactDays ? "bg-purple-500" : "bg-zinc-700"}`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editSecureSpotIsExactDays ? "translate-x-4" : "translate-x-0"}`}
+                    />
+                  </div>
+                </label>
+                <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-700/70 bg-zinc-800/50 px-3 py-2.5">
+                  <span className="text-[11px] font-semibold text-zinc-300">Drop per day</span>
+                  <div
+                    onClick={() => {
+                      const next = !editSecureSpotIsPerDay;
+                      setEditSecureSpotIsPerDay(next);
+                      if (!next) setEditSecureSpotNumberPerDay("");
+                    }}
+                    className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${editSecureSpotIsPerDay ? "bg-purple-500" : "bg-zinc-700"}`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editSecureSpotIsPerDay ? "translate-x-4" : "translate-x-0"}`}
+                    />
+                  </div>
+                </label>
+                {editSecureSpotIsPerDay && (
+                  <div className="sm:col-span-2">
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">
+                      Number Per Day
+                    </p>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min={1}
+                        max={100000}
+                        value={editSecureSpotNumberPerDay}
+                        onChange={(e) => setEditSecureSpotNumberPerDay(e.target.value)}
+                        placeholder="e.g. 2"
+                        className={`${inputCls} pr-16`}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-zinc-500">
+                        / day
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -571,7 +640,11 @@ export function Config({
                   : editSecureSpotIntervalType === "constant"
                     ? `All users wait exactly ${editSecureSpotConstantDelay || "X"} min before they can submit.`
                     : editSecureSpotIntervalType === "days"
-                      ? `Random between ${editSecureSpotConstantDelay || "0"} hrs and ${editSecureSpotInterval ? Math.round((Number(editSecureSpotInterval) / 3) * 24) : "N"} hrs (${editSecureSpotInterval || "N"} days ÷ 3). e.g. 3 days, 5 hr min → window is 5–24 hrs.`
+                      ? editSecureSpotIsPerDay
+                        ? `${editSecureSpotNumberPerDay || "N"} users become eligible per day, spread across each day. Remaining users fall on the final day.`
+                        : editSecureSpotIsExactDays
+                          ? `Random between ${editSecureSpotConstantDelay || "0"} hrs and ${editSecureSpotInterval || "N"} full days.`
+                          : `Random between ${editSecureSpotConstantDelay || "0"} hrs and ${editSecureSpotInterval ? Math.round((Number(editSecureSpotInterval) / 3) * 24) : "N"} hrs (${editSecureSpotInterval || "N"} days ÷ 3).`
                       : `Random between ${editSecureSpotConstantDelay || "0"} min and ${editSecureSpotInterval || "N"} min. Each user gets a different slot.`}
               </p>
             </div>
