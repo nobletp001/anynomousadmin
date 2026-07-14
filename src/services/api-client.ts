@@ -2,12 +2,14 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 // NEXT_PUBLIC_API_URL must include /api (for example, https://your-railway-app.up.railway.app/api).
 const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const configuredGoApiUrl = process.env.NEXT_PUBLIC_GO_API_URL;
 
 if (!configuredApiUrl) {
   throw new Error("NEXT_PUBLIC_API_URL is required. Set it to the Railway API URL including /api.");
 }
 
 const BASE_URL = configuredApiUrl.replace(/\/$/, "");
+const GO_BASE_URL = configuredGoApiUrl?.replace(/\/$/, "") || BASE_URL;
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
@@ -57,6 +59,28 @@ async function getCsrfToken(): Promise<string | null> {
   return csrfTokenPromise;
 }
 
+function isGoTaskPath(url?: string): boolean {
+  if (!url) return false;
+  let path = url;
+  if (url.startsWith("http")) {
+    try {
+      path = new URL(url).pathname;
+    } catch {
+      path = url;
+    }
+  }
+  path = path.split("?")[0].replace(/^\/api(?:\/v1)?/, "");
+  return (
+    path === "/tasks" ||
+    path.startsWith("/tasks/") ||
+    path === "/admin/upload" ||
+    path === "/admin/tasks" ||
+    path.startsWith("/admin/tasks/") ||
+    path === "/admin/fraud" ||
+    path.startsWith("/admin/fraud/")
+  );
+}
+
 // ── Session helpers ───────────────────────────────────────────────────────────
 
 function logoutAdmin() {
@@ -75,6 +99,10 @@ let isRefreshing = false;
 
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
+    if (GO_BASE_URL !== BASE_URL && isGoTaskPath(config.url)) {
+      config.baseURL = GO_BASE_URL;
+    }
+
     if (typeof window !== "undefined") {
       const token = sessionStorage.getItem("admin_token");
       if (token) {
