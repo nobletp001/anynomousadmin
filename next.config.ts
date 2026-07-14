@@ -10,16 +10,23 @@ if (process.env.NODE_ENV === "production" && !apiUrl) {
 }
 
 const apiOrigin = apiUrl ? new URL(apiUrl).origin : "http://localhost:4000";
+const goApiOrigin = process.env.NEXT_PUBLIC_GO_API_URL
+  ? new URL(process.env.NEXT_PUBLIC_GO_API_URL).origin
+  : "http://localhost:8080";
+const scriptSrc =
+  process.env.NODE_ENV === "production"
+    ? "script-src 'self' 'unsafe-inline'"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  scriptSrc,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
-  `connect-src 'self' ${apiOrigin}`,
+  `connect-src 'self' ${apiOrigin} ${goApiOrigin}`,
   "img-src 'self' data: blob: https: cloudinary.com *.cloudinary.com",
   "media-src 'self' data: blob: https:",
   "worker-src 'self' blob:",
