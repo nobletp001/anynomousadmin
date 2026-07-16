@@ -18,6 +18,7 @@ import { TaskDetailModals } from "./components/TaskDetailModals";
 import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
+import { downloadClientTaskBrief } from "./client-brief";
 import { Submission } from "./types";
 import { isActionableSubmissionStatus } from "./utils";
 import { apiClient } from "@/services/api-client";
@@ -238,6 +239,7 @@ export default function TaskSubmissionsPage() {
         submissionsCount={submissions.length}
         onBack={() => router.back()}
         onDownloadPDF={() => downloadPDFReport(task, submissions)}
+        onDownloadClientBrief={() => downloadClientTaskBrief(task)}
         onDownloadExcel={() => downloadExcelReport(task, submissions)}
         onEditClick={handleEditClick}
         onToggleStatusClick={() => mutations.toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}

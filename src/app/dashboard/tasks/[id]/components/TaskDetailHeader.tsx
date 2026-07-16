@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Badge } from "@/components/ui";
-import { ArrowLeft, CheckCircle, Copy, Download, ExternalLink, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, CheckCircle, Copy, Download, ExternalLink, FileText, FileSpreadsheet } from "lucide-react";
 import { Task } from "../types";
 import { formatAmount } from "../utils";
 import { getBookedSlotCount, getTargetUsername } from "../../utils";
@@ -10,6 +10,7 @@ interface TaskDetailHeaderProps {
   submissionsCount: number;
   onBack: () => void;
   onDownloadPDF: () => void;
+  onDownloadClientBrief: () => void;
   onDownloadExcel: () => void;
   onEditClick: () => void;
   onToggleStatusClick: () => void;
@@ -21,6 +22,7 @@ export function TaskDetailHeader({
   submissionsCount,
   onBack,
   onDownloadPDF,
+  onDownloadClientBrief,
   onDownloadExcel,
   onEditClick,
   onToggleStatusClick,
@@ -91,6 +93,13 @@ export function TaskDetailHeader({
           </div>
 
           <div className="flex items-center gap-3 self-start shrink-0 flex-wrap">
+            <button
+              onClick={onDownloadClientBrief}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-600/20 border border-sky-500/30 text-sky-300 hover:bg-sky-600/30 hover:text-white transition-colors"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Client Brief PDF
+            </button>
             <button
               onClick={onDownloadPDF}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-600/20 border border-purple-500/30 text-purple-300 hover:bg-purple-600/30 hover:text-white transition-colors"
