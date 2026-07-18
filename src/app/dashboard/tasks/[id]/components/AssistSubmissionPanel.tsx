@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
-import { UploadCloud } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Search, UploadCloud, X } from "lucide-react";
+import { apiClient } from "@/services/api-client";
 import { Task } from "../types";
 
 function fileToBase64(file: File): Promise<{ base64: string; mimeType: string }> {
@@ -19,22 +21,49 @@ interface AssistSubmissionPanelProps {
   onSubmit: (payload: Record<string, unknown>) => void;
 }
 
+interface SuggestedUser {
+  id: number;
+  name: string;
+  username: string;
+  email?: string | null;
+}
+
 export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmissionPanelProps) {
-  const [username, setUsername] = React.useState("");
+  const [userSearch, setUserSearch] = React.useState("");
+  const [selectedUser, setSelectedUser] = React.useState<SuggestedUser | null>(null);
   const [proofUrl, setProofUrl] = React.useState("");
   const [textResponse, setTextResponse] = React.useState("");
   const [numberResponse, setNumberResponse] = React.useState("");
   const [file, setFile] = React.useState<File | null>(null);
   const [error, setError] = React.useState("");
 
+  const usersQuery = useQuery<{ success: boolean; data: SuggestedUser[] }>({
+    queryKey: ["assist-submission-user-suggestions", userSearch],
+    queryFn: () => apiClient.get(`/admin/users?search=${encodeURIComponent(userSearch.trim())}&page=1`) as any,
+    enabled: userSearch.trim().length >= 2 && !selectedUser,
+  });
+
+  const suggestions = usersQuery.data?.data ?? [];
+
+  const selectUser = (user: SuggestedUser) => {
+    setSelectedUser(user);
+    setUserSearch("");
+    setError("");
+  };
+
+  const clearSelectedUser = () => {
+    setSelectedUser(null);
+    setUserSearch("");
+  };
+
   const submit = async () => {
     setError("");
-    if (!username.trim()) {
-      setError("Enter one username or email.");
+    if (!selectedUser) {
+      setError("Select one user from the suggestions first.");
       return;
     }
     const payload: Record<string, unknown> = {
-      username: username.trim(),
+      username: selectedUser.username,
       textResponse: textResponse.trim() || undefined,
       numberResponse: numberResponse.trim() || undefined,
     };
@@ -53,7 +82,8 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
       return;
     }
     onSubmit(payload);
-    setUsername("");
+    setSelectedUser(null);
+    setUserSearch("");
     setProofUrl("");
     setTextResponse("");
     setNumberResponse("");
@@ -69,12 +99,56 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
         </p>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <input
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-          placeholder="Username or email"
-          className="rounded-xl border border-zinc-700/70 bg-zinc-800/70 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-555 focus:border-purple-500/50 focus:outline-none"
-        />
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+          <input
+            value={selectedUser ? `@${selectedUser.username}` : userSearch}
+            onChange={(event) => {
+              setSelectedUser(null);
+              setUserSearch(event.target.value);
+            }}
+            placeholder="Search username, name, or email"
+            className="w-full rounded-xl border border-zinc-700/70 bg-zinc-800/70 py-2.5 pl-9 pr-9 text-sm text-zinc-100 placeholder:text-zinc-555 focus:border-purple-500/50 focus:outline-none"
+          />
+          {(selectedUser || userSearch) && (
+            <button
+              type="button"
+              onClick={clearSelectedUser}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-200"
+              aria-label="Clear selected user"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+
+          {!selectedUser && userSearch.trim().length >= 2 && (
+            <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-56 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950/95 shadow-2xl">
+              {usersQuery.isFetching ? (
+                <div className="px-3 py-3 text-xs text-zinc-500">Searching...</div>
+              ) : suggestions.length === 0 ? (
+                <div className="px-3 py-3 text-xs text-zinc-500">No users found</div>
+              ) : (
+                suggestions.slice(0, 8).map((user) => (
+                  <button
+                    key={user.id}
+                    type="button"
+                    onClick={() => selectUser(user)}
+                    className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-zinc-800/80"
+                  >
+                    <span>
+                      <span className="block text-xs font-bold text-zinc-100">{user.name || user.username}</span>
+                      <span className="block text-[10px] text-zinc-500">
+                        @{user.username}
+                        {user.email ? ` - ${user.email}` : ""}
+                      </span>
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300">Select</span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
         {task.proofType === "url" ? (
           <input
             value={proofUrl}
@@ -111,6 +185,25 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
           />
         )}
       </div>
+      {selectedUser && (
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-purple-500/20 bg-purple-500/10 px-3 py-2">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-purple-300">Submitting for</p>
+            <p className="text-sm font-bold text-zinc-100">
+              {selectedUser.name || selectedUser.username}{" "}
+              <span className="text-xs font-semibold text-zinc-400">@{selectedUser.username}</span>
+            </p>
+            {selectedUser.email && <p className="text-[11px] text-zinc-500">{selectedUser.email}</p>}
+          </div>
+          <button
+            type="button"
+            onClick={clearSelectedUser}
+            className="rounded-lg border border-zinc-700 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 hover:border-purple-500/50 hover:text-zinc-100"
+          >
+            Change
+          </button>
+        </div>
+      )}
       {error && <p className="mt-2 text-xs font-semibold text-red-400">{error}</p>}
       <button
         type="button"
