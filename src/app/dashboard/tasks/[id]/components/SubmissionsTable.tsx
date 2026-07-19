@@ -6,6 +6,13 @@ import { isActionableSubmissionStatus } from "../utils";
 
 interface SubmissionsTableProps {
   submissions: Submission[];
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+  };
+  onPageChange: (page: number) => void;
+  isFetching?: boolean;
   selectedIds: Set<number>;
   setSelectedIds: React.Dispatch<React.SetStateAction<Set<number>>>;
   viewingSub: Submission | null;
@@ -22,6 +29,9 @@ interface SubmissionsTableProps {
 
 export function SubmissionsTable({
   submissions,
+  pagination,
+  onPageChange,
+  isFetching = false,
   selectedIds,
   setSelectedIds,
   viewingSub,
@@ -36,6 +46,12 @@ export function SubmissionsTable({
   onRemoveSubmission,
 }: SubmissionsTableProps) {
   const selectableSubmissions = submissions.filter((s) => isActionableSubmissionStatus(s.status));
+  const page = pagination?.page ?? 1;
+  const limit = pagination?.limit ?? 50;
+  const total = pagination?.total ?? submissions.length;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const firstItem = total === 0 ? 0 : (page - 1) * limit + 1;
+  const lastItem = Math.min(total, (page - 1) * limit + submissions.length);
 
   const allSelected = selectableSubmissions.length > 0 && selectableSubmissions.every((s) => selectedIds.has(s.id));
 
@@ -79,12 +95,40 @@ export function SubmissionsTable({
             >
               <option value="">All Submissions</option>
               <option value="pending">Pending</option>
-              <option value="fraud">Fraud Alert</option>
+              <option value="fraud_detect">Fraud Alert</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
               <option value="needs_correction">Correction Requested</option>
               <option value="removed">Removed</option>
             </select>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 border-b border-zinc-800 bg-zinc-950/10 px-4 py-3 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            Showing {firstItem}-{lastItem} of {total} submission{total === 1 ? "" : "s"}
+            {isFetching ? " · Refreshing..." : ""}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => onPageChange(Math.max(1, page - 1))}
+              className="rounded-lg border border-zinc-800 px-3 py-1.5 font-semibold text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <span className="min-w-20 text-center font-semibold text-zinc-400">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+              className="rounded-lg border border-zinc-800 px-3 py-1.5 font-semibold text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
           </div>
         </div>
 

@@ -2,13 +2,24 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
 import { SecuredSpot, SubmissionsResponse } from "../types";
 
-export function useTaskQueries(taskId: string, statusFilter: string, debouncedSearch: string) {
+export function useTaskQueries(
+  taskId: string,
+  statusFilter: string,
+  debouncedSearch: string,
+  submissionsPage: number,
+  submissionsLimit: number
+) {
   const submissionsQuery = useQuery<SubmissionsResponse>({
-    queryKey: ["task-submissions", taskId, statusFilter, debouncedSearch],
-    queryFn: () =>
-      apiClient.get(
-        `/admin/tasks/${taskId}/submissions?status=${statusFilter}&search=${encodeURIComponent(debouncedSearch)}`
-      ) as any,
+    queryKey: ["task-submissions", taskId, statusFilter, debouncedSearch, submissionsPage, submissionsLimit],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: String(submissionsPage),
+        limit: String(submissionsLimit),
+      });
+      if (statusFilter) params.set("status", statusFilter);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      return apiClient.get(`/admin/tasks/${taskId}/submissions?${params.toString()}`) as any;
+    },
     placeholderData: keepPreviousData,
   });
 

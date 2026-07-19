@@ -242,6 +242,11 @@ export interface SubmissionsResponse {
   data: {
     task: Task;
     submissions: Submission[];
+    pagination?: {
+      total: number;
+      page: number;
+      limit: number;
+    };
   };
 }
 

@@ -8,6 +8,8 @@ export function useTaskState() {
   const [statusFilter, setStatusFilter] = useState("");
   const [searchFilter, setSearchFilter] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [submissionsPage, setSubmissionsPage] = useState(1);
+  const [submissionsLimit, setSubmissionsLimit] = useState(50);
   const [viewingSub, setViewingSub] = useState<Submission | null>(null);
   const [rating, setRating] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -75,6 +77,10 @@ export function useTaskState() {
     setSearchFilter,
     debouncedSearch,
     setDebouncedSearch,
+    submissionsPage,
+    setSubmissionsPage,
+    submissionsLimit,
+    setSubmissionsLimit,
     viewingSub,
     setViewingSub,
     rating,

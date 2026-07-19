@@ -19,7 +19,7 @@ import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
 import { downloadClientTaskBrief } from "./client-brief";
-import { Submission } from "./types";
+import { Submission, SubmissionsResponse } from "./types";
 import { isActionableSubmissionStatus } from "./utils";
 import { apiClient } from "@/services/api-client";
 
@@ -39,10 +39,13 @@ export default function TaskSubmissionsPage() {
   const { submissionsQuery, officersQuery, securedSpotsQuery } = useTaskQueries(
     taskId,
     state.statusFilter,
-    state.debouncedSearch
+    state.debouncedSearch,
+    state.submissionsPage,
+    state.submissionsLimit
   );
   const task = submissionsQuery.data?.data?.task;
   const submissions = submissionsQuery.data?.data?.submissions ?? [];
+  const submissionsPagination = submissionsQuery.data?.data?.pagination;
   const officers = officersQuery.data?.data ?? [];
   const securedSpots = securedSpotsQuery.data?.data ?? [];
 
@@ -65,6 +68,29 @@ export default function TaskSubmissionsPage() {
     state.setBulkRejectReason("");
   };
 
+  const fetchAllSubmissionsForExport = React.useCallback(async () => {
+    const total = submissionsPagination?.total ?? submissions.length;
+    if (total <= submissions.length) {
+      return submissions;
+    }
+
+    const pageLimit = 100;
+    const totalPages = Math.ceil(total / pageLimit);
+    const all: Submission[] = [];
+
+    for (let page = 1; page <= totalPages; page++) {
+      const params = new URLSearchParams({ page: String(page), limit: String(pageLimit) });
+      if (state.statusFilter) params.set("status", state.statusFilter);
+      if (state.debouncedSearch) params.set("search", state.debouncedSearch);
+      const res = (await apiClient.get(
+        `/admin/tasks/${taskId}/submissions?${params.toString()}`
+      )) as SubmissionsResponse;
+      all.push(...(res.data?.submissions ?? []));
+    }
+
+    return all;
+  }, [state.debouncedSearch, state.statusFilter, submissions, submissionsPagination?.total, taskId]);
+
   const closeViewingSub = () => {
     state.setViewingSub(null);
     state.setShowReportForm(false);
@@ -84,7 +110,12 @@ export default function TaskSubmissionsPage() {
 
   React.useEffect(() => {
     clearBulkSelection();
+    state.setSubmissionsPage(1);
   }, [state.statusFilter, state.debouncedSearch]);
+
+  React.useEffect(() => {
+    clearBulkSelection();
+  }, [state.submissionsPage]);
 
   const openRejectModal = (sub: Submission) => {
     state.setRejectModal({ subId: sub.id, username: sub.username, balance: sub.userBalance, mode: "reject" });
@@ -236,11 +267,11 @@ export default function TaskSubmissionsPage() {
     <div className="space-y-6">
       <TaskDetailHeader
         task={task}
-        submissionsCount={submissions.length}
+        submissionsCount={submissionsPagination?.total ?? submissions.length}
         onBack={() => router.back()}
-        onDownloadPDF={() => downloadPDFReport(task, submissions)}
+        onDownloadPDF={async () => downloadPDFReport(task, await fetchAllSubmissionsForExport())}
         onDownloadClientBrief={() => downloadClientTaskBrief(task)}
-        onDownloadExcel={() => downloadExcelReport(task, submissions)}
+        onDownloadExcel={async () => downloadExcelReport(task, await fetchAllSubmissionsForExport())}
         onEditClick={handleEditClick}
         onToggleStatusClick={() => mutations.toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}
         toggleStatusPending={mutations.toggleTaskStatus.isPending}
@@ -304,6 +335,9 @@ export default function TaskSubmissionsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <SubmissionsTable
           submissions={submissions}
+          pagination={submissionsPagination}
+          onPageChange={state.setSubmissionsPage}
+          isFetching={submissionsQuery.isFetching}
           selectedIds={state.selectedIds}
           setSelectedIds={state.setSelectedIds}
           viewingSub={state.viewingSub}
