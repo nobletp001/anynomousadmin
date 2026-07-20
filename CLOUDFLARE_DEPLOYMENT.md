@@ -40,7 +40,7 @@ Required GitHub Actions secrets:
 
 - `CLOUDFLARE_API_TOKEN`: scoped Cloudflare API token for Workers deploys. Do not use the Global API Key.
 - `CLOUDFLARE_ACCOUNT_ID`: Cloudflare account id.
-- `NEXT_PUBLIC_API_URL`: Railway backend API URL, including `/api`. Current value for this deployment is `https://anynomousbackend-production.up.railway.app/api`.
+- `NEXT_PUBLIC_API_URL`: Railway API gateway URL, including `/api`. Current value for this deployment is `https://api-gateway-production-529f.up.railway.app/api`.
 
 Local setup:
 
