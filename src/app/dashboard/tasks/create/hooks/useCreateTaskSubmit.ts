@@ -2,6 +2,8 @@ import React from "react";
 import { CreateTaskState } from "./useCreateTaskState";
 import { useCreateTaskMutations } from "./useCreateTaskMutations";
 
+const toInteger = (value: string) => parseInt(value, 10);
+
 export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnType<typeof useCreateTaskMutations>) {
   const { uploadImage, createTask } = mutations;
 
@@ -58,10 +60,10 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       numberLabel: state.acceptNumber ? state.numberLabel.trim() : undefined,
       acceptMultipleImages: state.acceptMultipleImages,
       lifeline: state.noExpiry,
-      amount: state.isPayFluenceTask && !state.amount ? "0" : state.amount,
-      numberOfUsersNeeded: state.numberOfUsersNeeded,
+      amount: state.isPayFluenceTask && !state.amount ? 0 : toInteger(state.amount),
+      numberOfUsersNeeded: toInteger(state.numberOfUsersNeeded),
       timeline,
-      targetCount: state.targetCount.trim() ? state.targetCount : undefined,
+      targetCount: state.targetCount.trim() ? toInteger(state.targetCount) : undefined,
       adminContact: state.adminContact.trim() || undefined,
       assignedOfficer: state.assignedOfficer || undefined,
       prompts: state.prompts.trim()
@@ -90,17 +92,17 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       collectUserName: state.collectUserName,
       targetUsername: state.collectUserName ? state.targetUsername.trim() || undefined : undefined,
       volutterPayFluenceTaskPerformNumber: state.volutterPayFluenceTaskPerformNumber.trim()
-        ? parseInt(state.volutterPayFluenceTaskPerformNumber)
+        ? toInteger(state.volutterPayFluenceTaskPerformNumber)
         : undefined,
       isSecureSpotTask: state.isSecureSpotTask,
       secureSpotIntervalType: state.isSecureSpotTask ? state.secureSpotIntervalType : undefined,
       secureSpotInterval:
         state.isSecureSpotTask && state.secureSpotIntervalType !== "constant" && state.secureSpotInterval.trim()
-          ? parseInt(state.secureSpotInterval)
+          ? toInteger(state.secureSpotInterval)
           : undefined,
       secureSpotConstantDelay:
         state.isSecureSpotTask && state.secureSpotConstantDelay.trim()
-          ? parseInt(state.secureSpotConstantDelay)
+          ? toInteger(state.secureSpotConstantDelay)
           : undefined,
       secureSpotIsExactDays:
         state.isSecureSpotTask && state.secureSpotIntervalType === "days" ? state.secureSpotIsExactDays : undefined,
@@ -111,10 +113,10 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
         state.secureSpotIntervalType === "days" &&
         state.secureSpotIsPerDay &&
         state.secureSpotNumberPerDay.trim()
-          ? parseInt(state.secureSpotNumberPerDay)
+          ? toInteger(state.secureSpotNumberPerDay)
           : undefined,
       additionalSlots:
-        state.isSecureSpotTask && state.additionalSlots.trim() ? parseInt(state.additionalSlots) : undefined,
+        state.isSecureSpotTask && state.additionalSlots.trim() ? toInteger(state.additionalSlots) : undefined,
       blockSameDevice: state.blockSameDevice,
       initialSlotUsers: state.isSecureSpotTask
         ? [...state.initialSlotSelectedUsers, state.initialSlotBulkUsers].filter(Boolean)
