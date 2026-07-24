@@ -73,8 +73,9 @@ export function downloadClientTaskBrief(task: Task) {
       <title>Client Task Brief - ${escapeHtml(task.title)}</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @page { size: auto; margin: 0; }
         body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; color: #0f172a; background: #fff; margin: 0; padding: 42px; font-size: 13px; line-height: 1.55; }
-        @media print { body { padding: 0; } .no-print { display: none; } }
+        @media print { html, body { margin: 0; } body { padding: 42px; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display: none; } }
         .print-actions { display: flex; justify-content: flex-end; margin-bottom: 22px; }
         .btn { border: 0; border-radius: 8px; background: #0284c7; color: #fff; padding: 10px 18px; font-weight: 800; cursor: pointer; }
         .header { display: flex; justify-content: space-between; gap: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 18px; margin-bottom: 28px; }

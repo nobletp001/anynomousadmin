@@ -78,11 +78,12 @@ export function downloadPDFReport(task: Task, submissions: Submission[]) {
       <title>Task Summary Report - ${task.title}</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @page { size: auto; margin: 0; }
         body {
           font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
           color: #1c1917; background-color: #ffffff; margin: 0; padding: 40px; font-size: 13px; line-height: 1.5;
         }
-        @media print { body { padding: 0; } .no-print { display: none; } }
+        @media print { html, body { margin: 0; } body { padding: 40px; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display: none; } }
         .header-container { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
         .brand-logo { font-weight: 800; font-size: 24px; color: #7c3aed; letter-spacing: -0.05em; }
         .report-title { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-top: 4px; }
