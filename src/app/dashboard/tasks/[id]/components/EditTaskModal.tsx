@@ -101,6 +101,10 @@ export function EditTaskModal({
       numberLabel: editState.editAcceptNumber ? editState.editNumberLabel.trim() : null,
       acceptMultipleImages: editState.editAcceptMultipleImages,
       isTobeIncludereferralCount: editState.editIsTobeIncludereferralCount,
+      isAddedNewReferral: editState.editIsAddedNewReferral,
+      amountAddedFortheReeferral: editState.editIsAddedNewReferral
+        ? Number(editState.editAmountAddedFortheReeferral)
+        : 0,
       collectUserName: editState.editCollectUserName,
       targetUsername: editState.editCollectUserName ? editState.editTargetUsername.trim() || null : null,
       targetCount: editState.editTargetCount.trim() ? editState.editTargetCount : null,
@@ -259,6 +263,10 @@ export function EditTaskModal({
             setEditAcceptMultipleImages={editState.setEditAcceptMultipleImages}
             editIsTobeIncludereferralCount={editState.editIsTobeIncludereferralCount}
             setEditIsTobeIncludereferralCount={editState.setEditIsTobeIncludereferralCount}
+            editIsAddedNewReferral={editState.editIsAddedNewReferral}
+            setEditIsAddedNewReferral={editState.setEditIsAddedNewReferral}
+            editAmountAddedFortheReeferral={editState.editAmountAddedFortheReeferral}
+            setEditAmountAddedFortheReeferral={editState.setEditAmountAddedFortheReeferral}
             editTargetCount={editState.editTargetCount}
             setEditTargetCount={editState.setEditTargetCount}
             editAdminContact={editState.editAdminContact}

@@ -204,6 +204,8 @@ export default function TaskSubmissionsPage() {
     editState.setEditIsTobeIncludereferralCount(
       task.isTobeIncludereferralCount !== undefined ? !!task.isTobeIncludereferralCount : true
     );
+    editState.setEditIsAddedNewReferral(!!task.isAddedNewReferral);
+    editState.setEditAmountAddedFortheReeferral(String(task.amountAddedFortheReeferral ?? ""));
     editState.setEditTargetCount(String(task.targetCount ?? ""));
     editState.setEditAdminContact(task.adminContact || "");
     editState.setEditNoExpiry(!!task.lifeline);

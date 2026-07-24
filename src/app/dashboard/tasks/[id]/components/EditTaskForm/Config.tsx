@@ -26,6 +26,10 @@ interface ConfigProps {
   setEditAcceptMultipleImages: React.Dispatch<React.SetStateAction<boolean>>;
   editIsTobeIncludereferralCount: boolean;
   setEditIsTobeIncludereferralCount: React.Dispatch<React.SetStateAction<boolean>>;
+  editIsAddedNewReferral: boolean;
+  setEditIsAddedNewReferral: React.Dispatch<React.SetStateAction<boolean>>;
+  editAmountAddedFortheReeferral: string;
+  setEditAmountAddedFortheReeferral: (v: string) => void;
   editTargetCount: string;
   setEditTargetCount: (v: string) => void;
   editAdminContact: string;
@@ -79,6 +83,10 @@ export function Config({
   setEditAcceptMultipleImages,
   editIsTobeIncludereferralCount,
   setEditIsTobeIncludereferralCount,
+  editIsAddedNewReferral,
+  setEditIsAddedNewReferral,
+  editAmountAddedFortheReeferral,
+  setEditAmountAddedFortheReeferral,
   editTargetCount,
   setEditTargetCount,
   editAdminContact,
@@ -322,6 +330,53 @@ export function Config({
             </div>
           </label>
         </div>
+      </div>
+
+      <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-zinc-400 font-medium">One-Time New Referral Bonus</p>
+            <p className="text-[11px] text-zinc-555 mt-0.5">
+              Pay the referrer once when their new referred user gets approved on this task.
+            </p>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+            <span
+              className={`text-xs font-semibold transition-colors ${editIsAddedNewReferral ? "text-emerald-400" : "text-zinc-555"}`}
+            >
+              {editIsAddedNewReferral ? "On" : "Off"}
+            </span>
+            <div
+              onClick={() => {
+                const next = !editIsAddedNewReferral;
+                setEditIsAddedNewReferral(next);
+                if (!next) setEditAmountAddedFortheReeferral("");
+              }}
+              className={`relative w-9 h-5 rounded-full transition-all ${
+                editIsAddedNewReferral ? "bg-emerald-500" : "bg-zinc-700"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                  editIsAddedNewReferral ? "translate-x-4" : "translate-x-0"
+                }`}
+              />
+            </div>
+          </label>
+        </div>
+        {editIsAddedNewReferral && (
+          <div>
+            <FieldLabel required>Referral Bonus Amount</FieldLabel>
+            <input
+              type="number"
+              min="1"
+              value={editAmountAddedFortheReeferral}
+              onChange={(e) => setEditAmountAddedFortheReeferral(e.target.value)}
+              placeholder="e.g. 100"
+              className={inputCls}
+            />
+          </div>
+        )}
       </div>
 
       <div>

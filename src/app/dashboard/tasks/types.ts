@@ -23,6 +23,8 @@ export interface Task {
   createdAt: string;
   submissionCount: number;
   isTobeIncludereferralCount?: boolean | null;
+  isAddedNewReferral?: boolean | null;
+  amountAddedFortheReeferral?: number | null;
   scheduledAt?: string | null;
   isPinned?: boolean;
   collectUserName?: boolean | null;

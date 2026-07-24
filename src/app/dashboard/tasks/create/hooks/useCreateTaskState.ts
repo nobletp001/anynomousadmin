@@ -39,6 +39,8 @@ export function useCreateTaskState() {
   const [isPayFluenceTask, setIsPayFluenceTask] = useState(false);
   const [volutterPayFluenceTaskPerformNumber, setVolutterPayFluenceTaskPerformNumber] = useState("");
   const [isTobeIncludereferralCount, setIsTobeIncludereferralCount] = useState(true);
+  const [isAddedNewReferral, setIsAddedNewReferral] = useState(false);
+  const [amountAddedFortheReeferral, setAmountAddedFortheReeferral] = useState("");
   const [enableTargeting, setEnableTargeting] = useState(false);
   const [scheduledAt, setScheduledAt] = useState("");
   const [isPinned, setIsPinned] = useState(false);
@@ -149,6 +151,10 @@ export function useCreateTaskState() {
     setVolutterPayFluenceTaskPerformNumber,
     isTobeIncludereferralCount,
     setIsTobeIncludereferralCount,
+    isAddedNewReferral,
+    setIsAddedNewReferral,
+    amountAddedFortheReeferral,
+    setAmountAddedFortheReeferral,
     collectUserName,
     setCollectUserName,
     targetUsername,

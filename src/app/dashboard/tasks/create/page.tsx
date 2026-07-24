@@ -107,6 +107,10 @@ export default function CreateTaskPage() {
           setAcceptMultipleImages={state.setAcceptMultipleImages}
           isTobeIncludereferralCount={state.isTobeIncludereferralCount}
           setIsTobeIncludereferralCount={state.setIsTobeIncludereferralCount}
+          isAddedNewReferral={state.isAddedNewReferral}
+          setIsAddedNewReferral={state.setIsAddedNewReferral}
+          amountAddedFortheReeferral={state.amountAddedFortheReeferral}
+          setAmountAddedFortheReeferral={state.setAmountAddedFortheReeferral}
           targetCount={state.targetCount}
           setTargetCount={state.setTargetCount}
           adminContact={state.adminContact}

@@ -12,6 +12,7 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
     state.description.trim() &&
     state.targetPlatform.trim() &&
     (state.isPayFluenceTask ? state.amount === "" || Number(state.amount) >= 0 : Number(state.amount) > 0) &&
+    (!state.isAddedNewReferral || Number(state.amountAddedFortheReeferral) > 0) &&
     Number(state.numberOfUsersNeeded) > 0 &&
     (state.taskType !== "views" || Number(state.targetCount) > 0);
 
@@ -87,6 +88,8 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       marketingText: state.marketingText.trim() || undefined,
       isPayFluenceTask: state.isPayFluenceTask,
       isTobeIncludereferralCount: state.isTobeIncludereferralCount,
+      isAddedNewReferral: state.isAddedNewReferral,
+      amountAddedFortheReeferral: state.isAddedNewReferral ? toInteger(state.amountAddedFortheReeferral) : 0,
       scheduledAt: state.scheduledAt ? new Date(state.scheduledAt).toISOString() : undefined,
       isPinned: state.isPinned,
       collectUserName: state.collectUserName,

@@ -23,6 +23,10 @@ interface TaskConfigFormProps {
   setAcceptMultipleImages: React.Dispatch<React.SetStateAction<boolean>>;
   isTobeIncludereferralCount: boolean;
   setIsTobeIncludereferralCount: (v: boolean) => void;
+  isAddedNewReferral: boolean;
+  setIsAddedNewReferral: (v: boolean) => void;
+  amountAddedFortheReeferral: string;
+  setAmountAddedFortheReeferral: (v: string) => void;
   targetCount: string;
   setTargetCount: (v: string) => void;
   adminContact: string;
@@ -76,6 +80,10 @@ export function TaskConfigForm({
   setAcceptMultipleImages,
   isTobeIncludereferralCount,
   setIsTobeIncludereferralCount,
+  isAddedNewReferral,
+  setIsAddedNewReferral,
+  amountAddedFortheReeferral,
+  setAmountAddedFortheReeferral,
   targetCount,
   setTargetCount,
   adminContact,
@@ -308,6 +316,46 @@ export function TaskConfigForm({
             />
           </div>
         </div>
+      </div>
+
+      <div className="space-y-3 pt-3 border-t border-zinc-800/40">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs text-zinc-400 font-medium">One-Time New Referral Bonus</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Pay the referrer once when their new referred user gets approved on this task.
+            </p>
+          </div>
+          <div
+            onClick={() => {
+              const next = !isAddedNewReferral;
+              setIsAddedNewReferral(next);
+              if (!next) setAmountAddedFortheReeferral("");
+            }}
+            className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${
+              isAddedNewReferral ? "bg-emerald-500" : "bg-zinc-700"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                isAddedNewReferral ? "translate-x-4" : "translate-x-0"
+              }`}
+            />
+          </div>
+        </div>
+        {isAddedNewReferral && (
+          <div>
+            <FieldLabel required>Referral Bonus Amount</FieldLabel>
+            <input
+              type="number"
+              min="1"
+              value={amountAddedFortheReeferral}
+              onChange={(e) => setAmountAddedFortheReeferral(e.target.value)}
+              placeholder="e.g. 100"
+              className={inputCls}
+            />
+          </div>
+        )}
       </div>
 
       <div>

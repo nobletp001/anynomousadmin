@@ -129,6 +129,8 @@ export interface Task {
   requirePromptSelection?: boolean;
   marketingText?: string | null;
   isTobeIncludereferralCount?: boolean | null;
+  isAddedNewReferral?: boolean | null;
+  amountAddedFortheReeferral?: number | null;
   scheduledAt?: string | null;
   isPinned?: boolean;
   collectUserName?: boolean | null;

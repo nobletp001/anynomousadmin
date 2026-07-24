@@ -20,6 +20,8 @@ export function useEditTaskState() {
   const [editNumberLabel, setEditNumberLabel] = useState("");
   const [editAcceptMultipleImages, setEditAcceptMultipleImages] = useState(false);
   const [editIsTobeIncludereferralCount, setEditIsTobeIncludereferralCount] = useState(true);
+  const [editIsAddedNewReferral, setEditIsAddedNewReferral] = useState(false);
+  const [editAmountAddedFortheReeferral, setEditAmountAddedFortheReeferral] = useState("");
   const [editTargetCount, setEditTargetCount] = useState("");
   const [editAdminContact, setEditAdminContact] = useState("");
   const [editNoExpiry, setEditNoExpiry] = useState(false);
@@ -99,6 +101,10 @@ export function useEditTaskState() {
     setEditAcceptMultipleImages,
     editIsTobeIncludereferralCount,
     setEditIsTobeIncludereferralCount,
+    editIsAddedNewReferral,
+    setEditIsAddedNewReferral,
+    editAmountAddedFortheReeferral,
+    setEditAmountAddedFortheReeferral,
     editTargetCount,
     setEditTargetCount,
     editAdminContact,
