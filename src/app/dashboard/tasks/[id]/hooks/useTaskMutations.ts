@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
+import type { SecuredSpot } from "../types";
 
 interface MutationCallbacks {
   advanceToNextPending: (subId: number) => void;
@@ -112,7 +113,27 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
   const removeSecuredSpot = useMutation({
     mutationFn: (username: string) =>
       apiClient.delete(`/admin/tasks/${taskId}/secured-spots/${encodeURIComponent(username)}`) as any,
-    onSuccess: () => {
+    onMutate: async (username) => {
+      const queryKey = ["task-secured-spots", taskId];
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<{ success: boolean; data: SecuredSpot[] }>(queryKey);
+
+      queryClient.setQueryData<{ success: boolean; data: SecuredSpot[] }>(queryKey, (current) => {
+        if (!current?.data) return current;
+        return {
+          ...current,
+          data: current.data.filter((spot) => spot.username.toLowerCase() !== username.toLowerCase()),
+        };
+      });
+
+      return { previous };
+    },
+    onError: (_error, _username, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["task-secured-spots", taskId], context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["task-secured-spots", taskId] });
       queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] });
     },
