@@ -2,7 +2,7 @@ import React from "react";
 import { CheckCircle, ChevronLeft, ChevronRight, Copy, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import { Badge, Button } from "@/components/ui";
 import { NewUser } from "../types";
-import { formatDate } from "../utils";
+import { formatDateTime, formatRelativeTime } from "../utils";
 
 interface NewUsersTableProps {
   users: NewUser[];
@@ -91,7 +91,16 @@ export function NewUsersTable({
                         {user.whatsappVerified ? "verified" : "not verified"}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-xs text-zinc-500">{formatDate(user.createdAt)}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="whitespace-nowrap text-xs font-semibold text-zinc-300">
+                          {formatDateTime(user.createdAt)}
+                        </span>
+                        <span className="w-fit rounded-full border border-zinc-700/80 bg-zinc-800/50 px-2 py-0.5 text-[11px] font-bold text-zinc-400">
+                          {formatRelativeTime(user.createdAt)}
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       {user.emailVerified ? (
                         <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400">
