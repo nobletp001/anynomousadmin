@@ -22,7 +22,7 @@ export default function TasksPage() {
     onDeleteSuccess: () => state.setConfirmDelete(null),
     onDeleteAllSuccess: () => state.setConfirmDeleteAll(false),
   };
-  const { deleteTask, deleteAllTasks, togglePinTask } = useTasksMutations(callbacks);
+  const { deleteTask, deleteAllTasks, togglePinTask, sendOpenWindowReminders } = useTasksMutations(callbacks);
 
   const user = userQuery.data;
   const canManage = user?.role === "super-admin" || user?.role === "admin";
@@ -71,6 +71,22 @@ export default function TasksPage() {
     state.setSearchInput("");
     state.setSubmittedSearch("");
     state.setPage(1);
+  };
+  const sendReminderForTask = (task: { id: number }) => {
+    sendOpenWindowReminders.mutate(task.id, {
+      onSuccess: (res: any) => {
+        const queued = Number(res?.data?.queued ?? 0);
+        const eligible = Number(res?.data?.eligible ?? queued);
+        alert(
+          `Reminder queued for ${queued} user${queued === 1 ? "" : "s"} with an open window.${
+            eligible === 0 ? " No eligible open windows were found." : ""
+          }`
+        );
+      },
+      onError: (error) => {
+        alert(error instanceof Error ? error.message : "Failed to send reminders.");
+      },
+    });
   };
 
   return (
@@ -205,6 +221,10 @@ export default function TasksPage() {
                       onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
                       onDeleteClick={() => state.setConfirmDelete({ id: task.id, title: task.title })}
                       onPinClick={() => togglePinTask.mutate({ id: task.id, isPinned: !task.isPinned })}
+                      onReminderClick={() => sendReminderForTask(task)}
+                      reminderPending={
+                        sendOpenWindowReminders.isPending && sendOpenWindowReminders.variables === task.id
+                      }
                     />
                   </div>
                 ))}
@@ -230,6 +250,8 @@ export default function TasksPage() {
                     onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
                     onDeleteClick={() => state.setConfirmDelete({ id: task.id, title: task.title })}
                     onPinClick={() => togglePinTask.mutate({ id: task.id, isPinned: !task.isPinned })}
+                    onReminderClick={() => sendReminderForTask(task)}
+                    reminderPending={sendOpenWindowReminders.isPending && sendOpenWindowReminders.variables === task.id}
                   />
                 ))}
               </div>

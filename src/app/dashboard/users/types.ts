@@ -9,6 +9,21 @@ export interface User {
   withdrawalDisabled: boolean;
   taskDisabled: boolean;
   whatsappNumber?: string | null;
+  emailVerified?: boolean;
+  emailVerificationExpiresAt?: string | null;
+  whatsappVerified?: boolean;
+}
+
+export interface NewUser {
+  id: number;
+  name: string;
+  username: string;
+  email: string | null;
+  emailVerified: boolean;
+  emailVerificationExpiresAt: string | null;
+  whatsappVerified: boolean;
+  createdAt: string;
+  disabled: boolean;
 }
 
 export interface UsersResponse {

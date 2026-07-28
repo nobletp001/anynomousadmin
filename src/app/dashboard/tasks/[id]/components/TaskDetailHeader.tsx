@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Badge } from "@/components/ui";
-import { ArrowLeft, CheckCircle, Copy, Download, ExternalLink, FileText, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, Bell, CheckCircle, Copy, Download, ExternalLink, FileText, FileSpreadsheet } from "lucide-react";
 import { Task } from "../types";
 import { formatAmount } from "../utils";
 import { getBookedSlotCount, getTargetUsername } from "../../utils";
@@ -14,7 +14,9 @@ interface TaskDetailHeaderProps {
   onDownloadExcel: () => void;
   onEditClick: () => void;
   onToggleStatusClick: () => void;
+  onSendReminderClick: () => void;
   toggleStatusPending: boolean;
+  reminderPending: boolean;
 }
 
 export function TaskDetailHeader({
@@ -26,7 +28,9 @@ export function TaskDetailHeader({
   onDownloadExcel,
   onEditClick,
   onToggleStatusClick,
+  onSendReminderClick,
   toggleStatusPending,
+  reminderPending,
 }: TaskDetailHeaderProps) {
   const [copiedTargetUsername, setCopiedTargetUsername] = useState(false);
   const progress = Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100));
@@ -120,6 +124,16 @@ export function TaskDetailHeader({
             >
               Edit Task
             </button>
+            {task.isSecureSpotTask && (
+              <button
+                onClick={onSendReminderClick}
+                disabled={reminderPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/10 border border-amber-500/25 text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 disabled:opacity-60 transition-colors"
+              >
+                <Bell className="w-3.5 h-3.5" />
+                {reminderPending ? "Sending..." : "Reminder"}
+              </button>
+            )}
             <button
               onClick={onToggleStatusClick}
               disabled={toggleStatusPending}

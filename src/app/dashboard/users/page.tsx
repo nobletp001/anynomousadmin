@@ -10,6 +10,7 @@ import { useUsersState } from "./hooks/useUsersState";
 import { TopPerformers } from "./components/TopPerformers";
 import { UsersTable } from "./components/UsersTable";
 import { GWVerifiedTable } from "./components/GWVerifiedTable";
+import { NewUsersTable } from "./components/NewUsersTable";
 import { UserDetailModal } from "./components/UserDetailModal";
 import { UserTrackingTab } from "./components/UserTrackingTab";
 import { ShieldOff, CreditCard, ClipboardX } from "lucide-react";
@@ -18,15 +19,15 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
   const state = useUsersState();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"all" | "tracking" | "gw">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "new" | "tracking" | "gw">("all");
 
-  const { usersQuery, gwQuery, detailQuery, topUsersQuery } = useUsersQueries(
+  const { usersQuery, gwQuery, newUsersQuery, detailQuery, topUsersQuery } = useUsersQueries(
     state.page,
     state.debouncedSearch,
     state.selectedUser,
     activeTab
   );
-  const { updateFlags } = useUsersMutations(state.page);
+  const { updateFlags, resendEmailOtp, manualVerifyEmail } = useUsersMutations(state.page);
 
   const handleSendAction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +78,7 @@ export default function UsersPage() {
   const showGW = activeTab === "gw";
 
   const activeQueryData = showAll ? usersQuery.data : showGW ? gwQuery.data : null;
+  const newUsersTotalPages = newUsersQuery.data ? Math.ceil(newUsersQuery.data.total / newUsersQuery.data.limit) : 1;
   const totalPages = activeQueryData ? Math.ceil(activeQueryData.total / activeQueryData.limit) : 1;
 
   return (
@@ -87,9 +89,11 @@ export default function UsersPage() {
           <p className="text-zinc-400 text-sm mt-1">
             {activeTab === "all"
               ? "All registered accounts — newest first"
-              : activeTab === "gw"
-                ? "Google & WhatsApp verified accounts — newest first"
-                : "Track active/inactive user engagement and referrals"}
+              : activeTab === "new"
+                ? "New registrations in the last 24 hours — email verification support"
+                : activeTab === "gw"
+                  ? "Google & WhatsApp verified accounts — newest first"
+                  : "Track active/inactive user engagement and referrals"}
           </p>
         </div>
 
@@ -105,6 +109,17 @@ export default function UsersPage() {
               }`}
             >
               All Users
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("new");
+                state.setPage(1);
+              }}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "new" ? "bg-purple-600 text-white shadow-lg" : "text-zinc-405 hover:text-zinc-250"
+              }`}
+            >
+              New Users
             </button>
             <button
               onClick={() => {
@@ -150,6 +165,28 @@ export default function UsersPage() {
 
       {activeTab === "tracking" ? (
         <UserTrackingTab />
+      ) : activeTab === "new" ? (
+        <NewUsersTable
+          users={newUsersQuery.data?.data || []}
+          page={state.page}
+          setPage={state.setPage}
+          totalPages={newUsersTotalPages}
+          totalUsers={newUsersQuery.data?.total || 0}
+          resendingUsername={(resendEmailOtp.variables as string | undefined) ?? null}
+          verifyingUsername={(manualVerifyEmail.variables as string | undefined) ?? null}
+          onResendOtp={(username) => {
+            resendEmailOtp.mutate(username, {
+              onSuccess: () => alert("Email OTP queued."),
+              onError: (error) => alert(error instanceof Error ? error.message : "Failed to resend OTP."),
+            });
+          }}
+          onManualVerify={(username) => {
+            manualVerifyEmail.mutate(username, {
+              onSuccess: () => alert("Email manually verified."),
+              onError: (error) => alert(error instanceof Error ? error.message : "Failed to verify email."),
+            });
+          }}
+        />
       ) : (
         <>
           {activeTab === "all" && (

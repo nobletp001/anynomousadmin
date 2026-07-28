@@ -27,6 +27,7 @@ export interface Task {
   amountAddedFortheReeferral?: number | null;
   scheduledAt?: string | null;
   isPinned?: boolean;
+  isSecureSpotTask?: boolean;
   collectUserName?: boolean | null;
   collectUsername?: boolean | null;
   collect_username?: boolean | null;

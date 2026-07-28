@@ -276,7 +276,22 @@ export default function TaskSubmissionsPage() {
         onDownloadExcel={async () => downloadExcelReport(task, await fetchAllSubmissionsForExport())}
         onEditClick={handleEditClick}
         onToggleStatusClick={() => mutations.toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}
+        onSendReminderClick={() => {
+          mutations.sendOpenWindowReminders.mutate(undefined, {
+            onSuccess: (res: any) => {
+              const queued = Number(res?.data?.queued ?? 0);
+              const eligible = Number(res?.data?.eligible ?? queued);
+              alert(
+                `Reminder queued for ${queued} user${queued === 1 ? "" : "s"} with an open window.${eligible === 0 ? " No eligible open windows were found." : ""}`
+              );
+            },
+            onError: (error) => {
+              alert(error instanceof Error ? error.message : "Failed to send reminders.");
+            },
+          });
+        }}
         toggleStatusPending={mutations.toggleTaskStatus.isPending}
+        reminderPending={mutations.sendOpenWindowReminders.isPending}
       />
 
       {task.isSecureSpotTask && (

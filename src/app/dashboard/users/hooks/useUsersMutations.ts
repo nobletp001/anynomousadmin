@@ -41,7 +41,26 @@ export function useUsersMutations(page: number) {
     },
   });
 
+  const resendEmailOtp = useMutation({
+    mutationFn: (username: string) => apiClient.post(`/admin/users/${username}/email-verification/resend`, {}) as any,
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-new-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+
+  const manualVerifyEmail = useMutation({
+    mutationFn: (username: string) =>
+      apiClient.post(`/admin/users/${username}/email-verification/manual-verify`, {}) as any,
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-new-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+
   return {
     updateFlags,
+    resendEmailOtp,
+    manualVerifyEmail,
   };
 }

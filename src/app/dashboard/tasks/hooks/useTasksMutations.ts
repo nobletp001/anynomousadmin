@@ -33,9 +33,17 @@ export function useTasksMutations(callbacks: TasksMutationCallbacks) {
     },
   });
 
+  const sendOpenWindowReminders = useMutation({
+    mutationFn: (id: number) => apiClient.post(`/admin/tasks/${id}/reminders/open-window`, {}) as any,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-tasks"] });
+    },
+  });
+
   return {
     deleteTask,
     deleteAllTasks,
     togglePinTask,
+    sendOpenWindowReminders,
   };
 }

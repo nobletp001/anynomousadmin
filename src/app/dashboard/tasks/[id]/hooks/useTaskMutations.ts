@@ -156,6 +156,13 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     },
   });
 
+  const sendOpenWindowReminders = useMutation({
+    mutationFn: () => apiClient.post(`/admin/tasks/${taskId}/reminders/open-window`, {}) as any,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-secured-spots", taskId] });
+    },
+  });
+
   return {
     approveSubmission,
     rejectSubmission,
@@ -170,5 +177,6 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     removeSecuredSpot,
     addSecuredSpots,
     assistSubmission,
+    sendOpenWindowReminders,
   };
 }

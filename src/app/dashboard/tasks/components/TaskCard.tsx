@@ -10,6 +10,7 @@ import {
   Share2,
   Pin,
   Copy,
+  Bell,
 } from "lucide-react";
 import { Badge } from "@/components/ui";
 import { Task } from "../types";
@@ -32,6 +33,8 @@ interface TaskCardProps {
   onClick: () => void;
   onDeleteClick: () => void;
   onPinClick?: () => void;
+  onReminderClick?: () => void;
+  reminderPending?: boolean;
 }
 
 const FRONTEND_URL =
@@ -40,7 +43,15 @@ const FRONTEND_URL =
     ? window.location.origin.replace(":3001", ":3000").replace("admin.", "")
     : "http://localhost:3000");
 
-export function TaskCard({ task, canManage, onClick, onDeleteClick, onPinClick }: TaskCardProps) {
+export function TaskCard({
+  task,
+  canManage,
+  onClick,
+  onDeleteClick,
+  onPinClick,
+  onReminderClick,
+  reminderPending,
+}: TaskCardProps) {
   const progress =
     task.numberOfUsersNeeded > 0 ? Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100)) : 0;
   const expired = isExpired(task);
@@ -97,6 +108,19 @@ export function TaskCard({ task, canManage, onClick, onDeleteClick, onPinClick }
             className={`p-1.5 rounded-lg transition-colors ${task.isPinned ? "text-amber-400 bg-amber-500/10 opacity-100" : "text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10 opacity-0 group-hover:opacity-100"}`}
           >
             <Pin className="w-4 h-4" />
+          </button>
+        )}
+        {canManage && task.isSecureSpotTask && onReminderClick && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onReminderClick();
+            }}
+            disabled={reminderPending}
+            className="p-1.5 rounded-lg text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+            title="Send open-window reminder"
+          >
+            <Bell className="w-4 h-4" />
           </button>
         )}
         {canManage && (
