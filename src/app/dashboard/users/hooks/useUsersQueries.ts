@@ -39,6 +39,7 @@ export function useUsersQueries(
     queryKey: ["admin-new-users", page],
     queryFn: () => apiClient.get(`/admin/users/new?page=${page}&limit=20`) as any,
     enabled: activeTab === "new",
+    refetchInterval: activeTab === "new" ? 15000 : false,
   });
 
   const detailQuery = useQuery({
