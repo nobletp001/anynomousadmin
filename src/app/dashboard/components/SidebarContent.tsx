@@ -62,6 +62,12 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     roles: ["super-admin", "admin"],
   },
   {
+    name: "Celebrity Review",
+    href: "/dashboard/celebrity",
+    icon: Crown,
+    roles: ["super-admin", "admin"],
+  },
+  {
     name: "Family Management",
     href: "/dashboard/family",
     icon: Crown,
