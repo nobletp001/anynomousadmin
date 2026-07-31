@@ -6,6 +6,7 @@ import { apiClient } from "@/services/api-client";
 import { FamilyMember } from "./types";
 import { AddMemberModal } from "./components/AddMemberModal";
 import { EditPointsModal } from "./components/EditPointsModal";
+import { toast } from "sonner";
 
 export default function FamilyPage() {
   const [members, setMembers] = useState<FamilyMember[]>([]);
@@ -70,7 +71,7 @@ export default function FamilyPage() {
         fetchMembers();
       }
     } catch (err: any) {
-      alert(err.message || "Failed to delete family member.");
+      toast.error(err.message || "Failed to delete family member.");
     }
   };
 

@@ -3,6 +3,7 @@ import { CheckCircle, ChevronLeft, ChevronRight, Copy, Mail, ShieldCheck, UserPl
 import { Badge, Button } from "@/components/ui";
 import { NewUser } from "../types";
 import { formatDateTime, formatRelativeTime } from "../utils";
+import { toast } from "sonner";
 
 interface NewUsersTableProps {
   users: NewUser[];
@@ -30,7 +31,7 @@ export function NewUsersTable({
   const copyEmail = (email: string | null) => {
     if (!email) return;
     navigator.clipboard.writeText(email).then(() => {
-      alert("Email copied.");
+      toast.success("Email copied.");
     });
   };
 

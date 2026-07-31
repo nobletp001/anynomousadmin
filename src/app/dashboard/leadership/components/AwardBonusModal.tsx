@@ -3,9 +3,9 @@
 import React, { useState } from "react";
 import { Coins, Loader2 } from "lucide-react";
 import { apiClient } from "@/services/api-client";
+import { toast } from "sonner";
 
 import { LeaderboardItem } from "../types";
-
 
 interface AwardBonusModalProps {
   user: LeaderboardItem;
@@ -46,7 +46,7 @@ export function AwardBonusModal({ user, monthLabel, onClose, onSuccess }: AwardB
         }, 1500);
       }
     } catch (err: any) {
-      alert(err.message || "Failed to award bonus.");
+      toast.error(err.message || "Failed to award bonus.");
     } finally {
       setAwarding(false);
     }

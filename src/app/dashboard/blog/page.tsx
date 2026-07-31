@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/services/api-client";
 import RichTextEditor from "../components/RichTextEditor";
+import { toast } from "sonner";
 
 interface BlogArticle {
   id: number;
@@ -111,19 +112,19 @@ export default function BlogManagementPage() {
               updateCreateBanner(imageUrl);
             }
           } else {
-            alert("Upload succeeded but no image URL was returned in the response.");
+            toast.warning("Upload succeeded but no image URL was returned in the response.");
           }
         } else {
-          alert("Image upload failed");
+          toast.error("Image upload failed");
         }
       } catch (err: any) {
-        alert(err.message || "Failed to upload image");
+        toast.error(err.message || "Failed to upload image");
       } finally {
         setUploadingImage(false);
       }
     };
     reader.onerror = () => {
-      alert("Failed to read file");
+      toast.error("Failed to read file");
     };
     reader.readAsDataURL(file);
   };
@@ -271,10 +272,10 @@ export default function BlogManagementPage() {
         setEditingArticle(null);
         fetchBlogs();
       } else {
-        alert("Failed to update article");
+        toast.error("Failed to update article");
       }
     } catch (err: any) {
-      alert(err.message || "Failed to update article");
+      toast.error(err.message || "Failed to update article");
     } finally {
       setUpdating(false);
     }
@@ -289,10 +290,10 @@ export default function BlogManagementPage() {
       if (res && res.success) {
         fetchBlogs();
       } else {
-        alert("Failed to delete article");
+        toast.error("Failed to delete article");
       }
     } catch (err: any) {
-      alert(err.message || "Failed to delete article");
+      toast.error(err.message || "Failed to delete article");
     }
   };
 

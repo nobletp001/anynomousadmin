@@ -24,10 +24,11 @@ interface TaskDetailHeaderProps {
   onDownloadExcel: () => void;
   onEditClick: () => void;
   onToggleStatusClick: () => void;
-  onBusinessPaymentAction: (action: "confirm_payment" | "approve_task" | "reject_task" | "reject_payment") => void;
+  onBusinessPaymentAction: (action: "confirm_payment" | "approve_task" | "reject_payment") => void;
   onSendReminderClick: () => void;
   toggleStatusPending: boolean;
   businessPaymentPending: boolean;
+  businessPaymentAction: "confirm_payment" | "approve_task" | "reject_payment" | null;
   reminderPending: boolean;
 }
 
@@ -44,6 +45,7 @@ export function TaskDetailHeader({
   onSendReminderClick,
   toggleStatusPending,
   businessPaymentPending,
+  businessPaymentAction,
   reminderPending,
 }: TaskDetailHeaderProps) {
   const [copiedTargetUsername, setCopiedTargetUsername] = useState(false);
@@ -55,6 +57,8 @@ export function TaskDetailHeader({
   const clientUsername = task.clientUsername || (task.creatorType === "business" ? task.createdBy : "");
   const isForClient = task.isForClient || task.creatorType === "business";
   const isBusinessPaymentRequest = task.creatorType === "business" && !!businessInfo.receiptName;
+  const moneyConfirmed = isBusinessPaymentRequest && task.status !== "rejected" && !!task.verifiedBy;
+  const taskFinalized = task.status === "active" || task.status === "rejected";
 
   const handleCopyTargetUsername = () => {
     if (!targetUsername) return;
@@ -157,38 +161,46 @@ export function TaskDetailHeader({
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button
-                  className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/20 disabled:opacity-60"
-                  disabled={businessPaymentPending}
-                  onClick={() => onBusinessPaymentAction("confirm_payment")}
-                  type="button"
-                >
-                  Confirm money
-                </button>
-                <button
-                  className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60"
-                  disabled={businessPaymentPending}
-                  onClick={() => onBusinessPaymentAction("approve_task")}
-                  type="button"
-                >
-                  Accept task
-                </button>
-                <button
-                  className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200 hover:bg-red-500/20 disabled:opacity-60"
-                  disabled={businessPaymentPending}
-                  onClick={() => onBusinessPaymentAction("reject_task")}
-                  type="button"
-                >
-                  Reject task
-                </button>
-                <button
-                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-zinc-800 disabled:opacity-60"
-                  disabled={businessPaymentPending}
-                  onClick={() => onBusinessPaymentAction("reject_payment")}
-                  type="button"
-                >
-                  Reject money
-                </button>
+                {!taskFinalized && !moneyConfirmed ? (
+                  <>
+                    <button
+                      className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/20 disabled:opacity-60"
+                      disabled={businessPaymentPending}
+                      onClick={() => onBusinessPaymentAction("confirm_payment")}
+                      type="button"
+                    >
+                      {businessPaymentAction === "confirm_payment" ? "Confirming..." : "Confirm money"}
+                    </button>
+                    <button
+                      className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-zinc-800 disabled:opacity-60"
+                      disabled={businessPaymentPending}
+                      onClick={() => onBusinessPaymentAction("reject_payment")}
+                      type="button"
+                    >
+                      {businessPaymentAction === "reject_payment" ? "Rejecting..." : "Reject money"}
+                    </button>
+                  </>
+                ) : null}
+                {!taskFinalized && moneyConfirmed ? (
+                  <button
+                    className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60"
+                    disabled={businessPaymentPending}
+                    onClick={() => onBusinessPaymentAction("approve_task")}
+                    type="button"
+                  >
+                    {businessPaymentAction === "approve_task" ? "Accepting..." : "Accept task"}
+                  </button>
+                ) : null}
+                {task.status === "active" ? (
+                  <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-200">
+                    Task accepted
+                  </span>
+                ) : null}
+                {task.status === "rejected" ? (
+                  <span className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200">
+                    Task rejected
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>

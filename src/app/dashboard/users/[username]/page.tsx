@@ -14,6 +14,7 @@ import { AdminActionForm } from "../components/AdminActionForm";
 import { UserDetailsHeader } from "../components/UserDetailsHeader";
 import { UserTasksTable } from "../components/UserTasksTable";
 import { UserReferralsTable } from "../components/UserReferralsTable";
+import { toast } from "sonner";
 
 export default function UserDetailPage() {
   const params = useParams();
@@ -156,7 +157,7 @@ export default function UserDetailPage() {
       fetchReferrals();
       fetchUserDetail();
     } catch (err: any) {
-      alert(err?.message || "Failed to update referral shaved status");
+      toast.error(err?.message || "Failed to update referral shaved status");
     }
   };
 

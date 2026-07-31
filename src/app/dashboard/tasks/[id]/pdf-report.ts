@@ -1,9 +1,10 @@
 import { Task, Submission } from "./types";
+import { toast } from "sonner";
 
 export function downloadPDFReport(task: Task, submissions: Submission[]) {
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
-    alert("Please allow popups to download the PDF report.");
+    toast.error("Please allow popups to download the PDF report.");
     return;
   }
 

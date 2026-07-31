@@ -8,6 +8,7 @@ import { SubmissionProofPanel } from "./SubmissionProofPanel";
 import { SideBySideCompareBody } from "./SideBySideCompareBody";
 import { apiClient } from "@/services/api-client";
 import { isActionableSubmissionStatus } from "../utils";
+import { toast } from "sonner";
 
 interface SubmissionDetailsModalProps {
   sub: Submission;
@@ -121,9 +122,7 @@ export function SubmissionDetailsModal({
     if (match) {
       setComparisonSub(match);
     } else {
-      alert(
-        `User @${username} has not submitted this task, but is flagged for collision details. We've logged this collision context in Fraud.`
-      );
+      toast.info(`@${username} has not submitted this task, but the collision context was logged in Fraud.`);
       apiClient.post(`/admin/fraud/analyze/${sub.username}`).catch(console.error);
       apiClient.post(`/admin/fraud/analyze/${username}`).catch(console.error);
     }

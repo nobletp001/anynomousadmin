@@ -16,12 +16,13 @@ import {
   Target,
   Crown,
   BookOpen,
+  Gavel,
 } from "lucide-react";
 
 interface SidebarItem {
   name: string;
   href: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   roles?: string[];
 }
 
@@ -65,6 +66,12 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     name: "Celebrity Review",
     href: "/dashboard/celebrity",
     icon: Crown,
+    roles: ["super-admin", "admin"],
+  },
+  {
+    name: "Celebrity Disputes",
+    href: "/dashboard/celebrity-disputes",
+    icon: Gavel,
     roles: ["super-admin", "admin"],
   },
   {

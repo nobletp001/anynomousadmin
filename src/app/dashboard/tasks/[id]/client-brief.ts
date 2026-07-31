@@ -1,4 +1,5 @@
 import { Task } from "./types";
+import { toast } from "sonner";
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "")
@@ -51,7 +52,7 @@ function formatDropSchedule(task: Task): string {
 export function downloadClientTaskBrief(task: Task) {
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
-    alert("Please allow popups to download the client brief.");
+    toast.error("Please allow popups to download the client brief.");
     return;
   }
 

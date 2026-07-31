@@ -14,6 +14,7 @@ import { NewUsersTable } from "./components/NewUsersTable";
 import { UserDetailModal } from "./components/UserDetailModal";
 import { UserTrackingTab } from "./components/UserTrackingTab";
 import { ShieldOff, CreditCard, ClipboardX } from "lucide-react";
+import { toast } from "sonner";
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
@@ -176,14 +177,14 @@ export default function UsersPage() {
           verifyingUsername={(manualVerifyEmail.variables as string | undefined) ?? null}
           onResendOtp={(username) => {
             resendEmailOtp.mutate(username, {
-              onSuccess: () => alert("Email OTP queued."),
-              onError: (error) => alert(error instanceof Error ? error.message : "Failed to resend OTP."),
+              onSuccess: () => toast.success("Email OTP queued."),
+              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to resend OTP."),
             });
           }}
           onManualVerify={(username) => {
             manualVerifyEmail.mutate(username, {
-              onSuccess: () => alert("Email manually verified."),
-              onError: (error) => alert(error instanceof Error ? error.message : "Failed to verify email."),
+              onSuccess: () => toast.success("Email manually verified."),
+              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to verify email."),
             });
           }}
         />

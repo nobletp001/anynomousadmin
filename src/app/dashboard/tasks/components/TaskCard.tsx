@@ -26,6 +26,7 @@ import {
   getBookedSlotCount,
   getTargetUsername,
 } from "../utils";
+import { toast } from "sonner";
 
 interface TaskCardProps {
   task: Task;
@@ -75,7 +76,7 @@ export function TaskCard({
         .catch(() => {});
     } else {
       navigator.clipboard.writeText(text).then(() => {
-        alert("Frontend task link and details copied to clipboard!");
+        toast.success("Frontend task link and details copied to clipboard.");
       });
     }
   };
@@ -84,7 +85,7 @@ export function TaskCard({
     e.stopPropagation();
     if (!targetUsername) return;
     navigator.clipboard.writeText(targetUsername).then(() => {
-      alert("Target username copied to clipboard!");
+      toast.success("Target username copied to clipboard.");
     });
   };
 

@@ -5,6 +5,7 @@ import { Trophy, Calendar, Loader2, ShieldAlert, Target, Plus, Trash2, Edit3, Ar
 import { apiClient } from "@/services/api-client";
 import { Goal, GoalWinnersResponse } from "./types";
 import { CreateGoalModal } from "./components/CreateGoalModal";
+import { toast } from "sonner";
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -102,7 +103,7 @@ export default function GoalsPage() {
         }
       }
     } catch (err: any) {
-      alert(err.message || "Failed to delete target goal.");
+      toast.error(err.message || "Failed to delete target goal.");
     }
   };
 

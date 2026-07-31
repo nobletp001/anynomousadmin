@@ -4,6 +4,7 @@ import { Submission, Task } from "../types";
 import { formatAmount, formatSubmissionStatus, getImagesList, isActionableSubmissionStatus } from "../utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
+import { toast } from "sonner";
 
 interface SideBySideCompareBodyProps {
   sub: Submission;
@@ -43,11 +44,11 @@ export function SideBySideCompareBody({
         setLocalStatuses((prev) => ({ ...prev, [subId]: action }));
         queryClient.invalidateQueries({ queryKey: ["task-submissions", String(task.id)] });
       } else {
-        alert("Action failed: " + data.error);
+        toast.error("Action failed: " + data.error);
       }
     } catch (err) {
       console.error(err);
-      alert("Network error actioning submission.");
+      toast.error("Network error actioning submission.");
     } finally {
       setActionsPending((prev) => ({ ...prev, [subId]: false }));
     }

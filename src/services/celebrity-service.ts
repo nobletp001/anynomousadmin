@@ -4,8 +4,13 @@ export type CelebrityApplication = {
   id: number;
   username: string;
   fullName: string;
+  displayName?: string | null;
+  email?: string | null;
+  phone?: string | null;
   category: string;
   country: string;
+  state?: string | null;
+  languages?: string | null;
   bio: string;
   status: "pending" | "approved" | "rejected";
   googleMeetLink?: string | null;
@@ -16,12 +21,26 @@ export type CelebrityApplication = {
   verifiedBy?: string | null;
   verifiedAt?: string | null;
   verificationMethod?: "meeting_review" | "manual_username" | string | null;
+  createdAt: string;
+  updatedAt: string;
   verificationDocuments?: Array<{
     type: "government_id" | "selfie";
     fileName: string;
     mimeType: string;
     dataUrl: string;
   }>;
+};
+
+export type AdminUserDetail = {
+  user?: {
+    username?: string;
+    name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    whatsappNumber?: string | null;
+  };
+  profile?: Record<string, unknown> | null;
+  bankDetails?: { whatsappNumber?: string | null } | null;
 };
 
 export type CelebrityService = {
@@ -33,7 +52,9 @@ export type CelebrityService = {
   visibility: "public" | "private";
   terms: string;
   prices: Array<{ duration: string; amount: string }>;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "disabled";
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type CelebrityOrder = {
@@ -75,6 +96,10 @@ export async function listCelebrityApplications(status = "pending") {
   >;
 }
 
+export async function getCelebrityApplicantDetail(username: string) {
+  return apiClient.get(`/admin/users/${encodeURIComponent(username)}`) as Promise<ApiResponse<AdminUserDetail>>;
+}
+
 export async function reviewCelebrityApplication(
   id: number,
   action: "approve" | "reject",
@@ -100,22 +125,25 @@ function idempotencyKey(prefix: string) {
   return `${prefix}:${random}`;
 }
 
-export async function directVerifyCelebrity(data: {
-  username: string;
-  referralUsername?: string;
-  category?: string;
-  country?: string;
-}) {
+export async function directVerifyCelebrity(data: { username: string; category?: string; country?: string }) {
   return apiClient.post("/admin/celebrity/applications/direct-verify", data, {
     headers: { "Idempotency-Key": idempotencyKey("admin-celebrity-direct-verify") },
   }) as Promise<ApiResponse<CelebrityApplication>>;
 }
 
-export async function listCelebrityServices(status = "pending") {
-  return apiClient.get("/admin/celebrity/services", { params: { status } }) as Promise<ApiResponse<CelebrityService[]>>;
+export async function attachCelebrityReferral(data: { celebrityUsername: string; referralUsername: string }) {
+  return apiClient.post("/admin/celebrity/applications/attach-referral", data) as Promise<
+    ApiResponse<CelebrityApplication>
+  >;
 }
 
-export async function reviewCelebrityService(id: number, action: "approve" | "reject") {
+export async function listCelebrityServices(status?: CelebrityService["status"] | "") {
+  return apiClient.get("/admin/celebrity/services", { params: status ? { status } : undefined }) as Promise<
+    ApiResponse<CelebrityService[]>
+  >;
+}
+
+export async function reviewCelebrityService(id: number, action: "approve" | "reject" | "enable" | "disable") {
   return apiClient.post(`/admin/celebrity/services/${id}/${action}`, {}) as Promise<ApiResponse<CelebrityService>>;
 }
 

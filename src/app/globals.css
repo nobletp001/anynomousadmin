@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "react-datepicker/dist/react-datepicker.css";
 
 :root {
   --background: #ffffff;
@@ -25,4 +26,55 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.pf-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+#admin-datepicker-portal {
+  position: relative;
+  z-index: 9999;
+}
+
+.pf-datepicker-calendar.react-datepicker {
+  overflow: hidden;
+  border: 1px solid rgb(63 63 70 / 0.9);
+  border-radius: 16px;
+  background: rgb(9 9 11);
+  color: rgb(244 244 245);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 0.45);
+  font-family: inherit;
+}
+
+.pf-datepicker-calendar .react-datepicker__header,
+.pf-datepicker-calendar .react-datepicker__time-container,
+.pf-datepicker-calendar .react-datepicker__time,
+.pf-datepicker-calendar .react-datepicker__time-box {
+  border-color: rgb(39 39 42);
+  background: rgb(9 9 11);
+}
+
+.pf-datepicker-calendar .react-datepicker__current-month,
+.pf-datepicker-calendar .react-datepicker-time__header,
+.pf-datepicker-calendar .react-datepicker__day-name,
+.pf-datepicker-calendar .react-datepicker__day,
+.pf-datepicker-calendar .react-datepicker__time-list-item {
+  color: rgb(244 244 245);
+}
+
+.pf-datepicker-calendar .react-datepicker__day:hover,
+.pf-datepicker-calendar .react-datepicker__time-list-item:hover {
+  background: rgb(88 28 135) !important;
+}
+
+.pf-datepicker-calendar .react-datepicker__day--selected,
+.pf-datepicker-calendar .react-datepicker__day--keyboard-selected,
+.pf-datepicker-calendar .react-datepicker__time-list-item--selected {
+  background: rgb(147 51 234) !important;
+  color: white !important;
+}
+
+.pf-datepicker-calendar .react-datepicker__day--disabled {
+  color: rgb(82 82 91);
 }

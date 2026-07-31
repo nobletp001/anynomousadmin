@@ -7,6 +7,7 @@ import { Button } from "@/components/ui";
 import { apiClient } from "@/services/api-client";
 import { PayoutBreakdown, PayoutClaim } from "../types";
 import { fmt } from "../utils";
+import { toast } from "sonner";
 import { TaskCompletionsList } from "./payout-breakdown/TaskCompletionsList";
 import { ReferralEarningsList } from "./payout-breakdown/ReferralEarningsList";
 import { BalanceSummary } from "./payout-breakdown/BalanceSummary";
@@ -47,7 +48,7 @@ export function PayoutBreakdownModal({ claim, onClose, onPay, onReject, actionDi
       }>);
       setData(res.data);
     } catch (err: any) {
-      alert(err?.message || "Failed to reverse submission");
+      toast.error(err?.message || "Failed to reverse submission");
     } finally {
       setReversingId(null);
     }

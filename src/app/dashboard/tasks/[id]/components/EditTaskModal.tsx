@@ -13,6 +13,7 @@ import { AllowedSubmissions } from "./EditTaskForm/AllowedSubmissions";
 import { ClientRequestReview } from "./EditTaskForm/ClientRequestReview";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
+import { toast } from "sonner";
 
 interface EditTaskModalProps {
   task: Task;
@@ -47,7 +48,7 @@ export function EditTaskModal({
   const handleSave = async () => {
     const numUsersVal = parseInt(editState.editNumberOfUsers);
     if (isNaN(numUsersVal) || numUsersVal < task.approvedCount) {
-      alert(`Capacity must be at least ${task.approvedCount}`);
+      toast.error(`Capacity must be at least ${task.approvedCount}`);
       return;
     }
 

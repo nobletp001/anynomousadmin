@@ -12,6 +12,7 @@ import { DeleteTaskModal } from "./components/DeleteTaskModal";
 import { DeleteAllTasksModal } from "./components/DeleteAllTasksModal";
 import { StatusTabs } from "./components/StatusTabs";
 import { groupByDate } from "./utils";
+import { toast } from "sonner";
 
 export default function TasksPage() {
   const router = useRouter();
@@ -95,14 +96,14 @@ export default function TasksPage() {
       onSuccess: (res: any) => {
         const queued = Number(res?.data?.queued ?? 0);
         const eligible = Number(res?.data?.eligible ?? queued);
-        alert(
+        toast.success(
           `Reminder queued for ${queued} user${queued === 1 ? "" : "s"} with an open window.${
             eligible === 0 ? " No eligible open windows were found." : ""
           }`
         );
       },
       onError: (error) => {
-        alert(error instanceof Error ? error.message : "Failed to send reminders.");
+        toast.error(error instanceof Error ? error.message : "Failed to send reminders.");
       },
     });
   };

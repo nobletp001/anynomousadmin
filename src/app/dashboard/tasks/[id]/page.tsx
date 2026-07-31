@@ -22,6 +22,7 @@ import { downloadClientTaskBrief } from "./client-brief";
 import { Submission, SubmissionsResponse } from "./types";
 import { isActionableSubmissionStatus } from "./utils";
 import { apiClient } from "@/services/api-client";
+import { toast } from "sonner";
 
 export default function TaskSubmissionsPage() {
   const router = useRouter();
@@ -35,6 +36,9 @@ export default function TaskSubmissionsPage() {
   } | null>(null);
   const [slotSelectedUsers, setSlotSelectedUsers] = React.useState<string[]>([]);
   const [slotBulkUsers, setSlotBulkUsers] = React.useState("");
+  const [businessPaymentAction, setBusinessPaymentAction] = React.useState<
+    "confirm_payment" | "approve_task" | "reject_payment" | null
+  >(null);
 
   const { submissionsQuery, officersQuery, securedSpotsQuery } = useTaskQueries(
     taskId,
@@ -136,14 +140,18 @@ export default function TaskSubmissionsPage() {
         runAnalysis: true,
       });
       if ((data as any).success) {
-        alert(
-          `✅ @${username} is now under watch.\n${(data as any).newAlerts?.length > 0 ? `${(data as any).newAlerts.length} fraud signal(s) detected.` : "No immediate flags found — monitoring is active."}`
+        toast.success(
+          `@${username} is now under watch. ${
+            (data as any).newAlerts?.length > 0
+              ? `${(data as any).newAlerts.length} fraud signal(s) detected.`
+              : "No immediate flags found. Monitoring is active."
+          }`
         );
       } else {
-        alert(`Failed to track user: ${(data as any).error}`);
+        toast.error(`Failed to track user: ${(data as any).error}`);
       }
     } catch {
-      alert("Network error — could not place user under watch.");
+      toast.error("Network error. Could not place user under watch.");
     }
   };
 
@@ -276,23 +284,24 @@ export default function TaskSubmissionsPage() {
         onDownloadExcel={async () => downloadExcelReport(task, await fetchAllSubmissionsForExport())}
         onEditClick={handleEditClick}
         onToggleStatusClick={() => mutations.toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}
+        businessPaymentAction={businessPaymentAction}
         onBusinessPaymentAction={(action) => {
-          const needsReason = action === "reject_task" || action === "reject_payment";
+          const needsReason = action === "reject_payment";
           const reason = needsReason ? window.prompt("Enter reason for this decision.") : undefined;
           if (needsReason && !reason?.trim()) return;
+          setBusinessPaymentAction(action);
           mutations.businessPaymentReview.mutate(
             { action, reason: reason?.trim() },
             {
               onSuccess: () => {
-                if (action === "confirm_payment") alert("Payment confirmed. You can now accept or reject the task.");
-                if (action === "approve_task") alert("Task accepted and activated.");
-                if (action === "reject_task")
-                  alert("Task rejected. Confirmed money was refunded to the business wallet.");
-                if (action === "reject_payment") alert("Payment rejected and task marked rejected.");
+                if (action === "confirm_payment") toast.success("Money confirmed. You can now accept the task.");
+                if (action === "approve_task") toast.success("Task accepted and activated.");
+                if (action === "reject_payment") toast.success("Money rejected and task marked rejected.");
               },
               onError: (error) => {
-                alert(error instanceof Error ? error.message : "Failed to review business payment.");
+                toast.error(error instanceof Error ? error.message : "Failed to review business payment.");
               },
+              onSettled: () => setBusinessPaymentAction(null),
             }
           );
         }}
@@ -301,12 +310,12 @@ export default function TaskSubmissionsPage() {
             onSuccess: (res: any) => {
               const queued = Number(res?.data?.queued ?? 0);
               const eligible = Number(res?.data?.eligible ?? queued);
-              alert(
+              toast.success(
                 `Reminder queued for ${queued} user${queued === 1 ? "" : "s"} with an open window.${eligible === 0 ? " No eligible open windows were found." : ""}`
               );
             },
             onError: (error) => {
-              alert(error instanceof Error ? error.message : "Failed to send reminders.");
+              toast.error(error instanceof Error ? error.message : "Failed to send reminders.");
             },
           });
         }}

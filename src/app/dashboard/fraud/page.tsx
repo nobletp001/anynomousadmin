@@ -16,6 +16,7 @@ import {
 import { apiFetch } from "./utils";
 import { AlertsTab } from "./components/AlertsTab";
 import { MonitoredTab } from "./components/MonitoredTab";
+import { toast } from "sonner";
 import { CollisionTab } from "./components/CollisionTab";
 import { CollisionDetailsView } from "./components/CollisionDetailsView";
 
@@ -134,7 +135,7 @@ export default function FraudPage() {
       body: JSON.stringify({ monitored: true, runAnalysis: true }),
     });
     if (data.success) {
-      alert(`✅ @${username} is now under watch.`);
+      toast.success(`@${username} is now under watch.`);
       loadMonitored();
       loadAlerts();
       loadSummary();
