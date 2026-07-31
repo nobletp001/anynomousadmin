@@ -276,6 +276,26 @@ export default function TaskSubmissionsPage() {
         onDownloadExcel={async () => downloadExcelReport(task, await fetchAllSubmissionsForExport())}
         onEditClick={handleEditClick}
         onToggleStatusClick={() => mutations.toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}
+        onBusinessPaymentAction={(action) => {
+          const needsReason = action === "reject_task" || action === "reject_payment";
+          const reason = needsReason ? window.prompt("Enter reason for this decision.") : undefined;
+          if (needsReason && !reason?.trim()) return;
+          mutations.businessPaymentReview.mutate(
+            { action, reason: reason?.trim() },
+            {
+              onSuccess: () => {
+                if (action === "confirm_payment") alert("Payment confirmed. You can now accept or reject the task.");
+                if (action === "approve_task") alert("Task accepted and activated.");
+                if (action === "reject_task")
+                  alert("Task rejected. Confirmed money was refunded to the business wallet.");
+                if (action === "reject_payment") alert("Payment rejected and task marked rejected.");
+              },
+              onError: (error) => {
+                alert(error instanceof Error ? error.message : "Failed to review business payment.");
+              },
+            }
+          );
+        }}
         onSendReminderClick={() => {
           mutations.sendOpenWindowReminders.mutate(undefined, {
             onSuccess: (res: any) => {
@@ -291,6 +311,7 @@ export default function TaskSubmissionsPage() {
           });
         }}
         toggleStatusPending={mutations.toggleTaskStatus.isPending}
+        businessPaymentPending={mutations.businessPaymentReview.isPending}
         reminderPending={mutations.sendOpenWindowReminders.isPending}
       />
 

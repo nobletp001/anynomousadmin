@@ -55,6 +55,14 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
   });
 
+  const businessPaymentReview = useMutation({
+    mutationFn: (payload: {
+      action: "confirm_payment" | "approve_task" | "reject_task" | "reject_payment";
+      reason?: string;
+    }) => apiClient.post(`/admin/tasks/${taskId}/business-payment-review`, payload) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
   const bulkAction = useMutation({
     mutationFn: (payload: {
       ids: number[];
@@ -168,6 +176,7 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     rejectSubmission,
     requestCorrection,
     toggleTaskStatus,
+    businessPaymentReview,
     bulkAction,
     reportSubmission,
     updateTask,

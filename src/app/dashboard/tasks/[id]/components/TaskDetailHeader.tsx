@@ -1,6 +1,16 @@
 import React, { useState } from "react";
 import { Badge } from "@/components/ui";
-import { ArrowLeft, Bell, CheckCircle, Copy, Download, ExternalLink, FileText, FileSpreadsheet } from "lucide-react";
+import {
+  ArrowLeft,
+  Bell,
+  CheckCircle,
+  Copy,
+  Download,
+  ExternalLink,
+  FileText,
+  FileSpreadsheet,
+  WalletCards,
+} from "lucide-react";
 import { Task } from "../types";
 import { formatAmount } from "../utils";
 import { getBookedSlotCount, getTargetUsername } from "../../utils";
@@ -14,8 +24,10 @@ interface TaskDetailHeaderProps {
   onDownloadExcel: () => void;
   onEditClick: () => void;
   onToggleStatusClick: () => void;
+  onBusinessPaymentAction: (action: "confirm_payment" | "approve_task" | "reject_task" | "reject_payment") => void;
   onSendReminderClick: () => void;
   toggleStatusPending: boolean;
+  businessPaymentPending: boolean;
   reminderPending: boolean;
 }
 
@@ -28,20 +40,34 @@ export function TaskDetailHeader({
   onDownloadExcel,
   onEditClick,
   onToggleStatusClick,
+  onBusinessPaymentAction,
   onSendReminderClick,
   toggleStatusPending,
+  businessPaymentPending,
   reminderPending,
 }: TaskDetailHeaderProps) {
   const [copiedTargetUsername, setCopiedTargetUsername] = useState(false);
+  const [copiedClientUsername, setCopiedClientUsername] = useState(false);
   const progress = Math.min(100, Math.round((task.approvedCount / task.numberOfUsersNeeded) * 100));
   const bookedSlotCount = getBookedSlotCount(task);
   const targetUsername = getTargetUsername(task);
+  const businessInfo = parseBusinessRequestInfo(task);
+  const clientUsername = task.clientUsername || (task.creatorType === "business" ? task.createdBy : "");
+  const isForClient = task.isForClient || task.creatorType === "business";
+  const isBusinessPaymentRequest = task.creatorType === "business" && !!businessInfo.receiptName;
 
   const handleCopyTargetUsername = () => {
     if (!targetUsername) return;
     navigator.clipboard.writeText(targetUsername).then(() => {
       setCopiedTargetUsername(true);
       setTimeout(() => setCopiedTargetUsername(false), 1500);
+    });
+  };
+  const handleCopyClientUsername = () => {
+    if (!clientUsername) return;
+    navigator.clipboard.writeText(clientUsername).then(() => {
+      setCopiedClientUsername(true);
+      setTimeout(() => setCopiedClientUsername(false), 1500);
     });
   };
 
@@ -79,6 +105,92 @@ export function TaskDetailHeader({
                 <Copy className="h-4 w-4" />
               )}
             </button>
+          </div>
+        )}
+        {isForClient && clientUsername && (
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-sky-500/20 bg-sky-500/10 px-3 py-2.5">
+            <div className="min-w-0">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-sky-300">Client username</p>
+              <p className="truncate text-base font-black text-zinc-100">@{clientUsername}</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleCopyClientUsername}
+              className="shrink-0 rounded-lg border border-sky-400/20 bg-zinc-950/40 p-2 text-sky-200 transition-colors hover:border-sky-300/40 hover:bg-sky-500/20"
+              title={copiedClientUsername ? "Copied" : "Copy client username"}
+            >
+              {copiedClientUsername ? (
+                <CheckCircle className="h-4 w-4 text-emerald-400" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+        )}
+        {isBusinessPaymentRequest && (
+          <div className="mb-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <WalletCards className="h-4 w-4 text-amber-300" />
+                  <p className="text-sm font-extrabold text-amber-200">Business task payment review</p>
+                </div>
+                <div className="mt-3 grid gap-2 text-xs text-zinc-300 sm:grid-cols-2 xl:grid-cols-3">
+                  <BusinessInfo label="Created by" value={`@${task.createdBy}`} />
+                  <BusinessInfo label="Verified by" value={task.verifiedBy || "pending"} />
+                  <BusinessInfo label="Phone" value={businessInfo.phone || "Not provided"} />
+                  <BusinessInfo label="Bank" value={businessInfo.bank || "FCMB"} />
+                  <BusinessInfo label="Account number" value={businessInfo.accountNumber || "1049708347"} />
+                  <BusinessInfo label="Account name" value={businessInfo.accountName || "fluence social network ltd"} />
+                  <BusinessInfo label="Client price/user" value={businessInfo.clientPricePerUser || "—"} />
+                  <BusinessInfo label="Receipt file" value={businessInfo.receiptName || "—"} />
+                  {businessInfo.receiptUpload ? (
+                    <a
+                      className="font-bold text-sky-300 underline decoration-sky-300/30 underline-offset-4"
+                      href={businessInfo.receiptUpload}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      Open receipt
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/20 disabled:opacity-60"
+                  disabled={businessPaymentPending}
+                  onClick={() => onBusinessPaymentAction("confirm_payment")}
+                  type="button"
+                >
+                  Confirm money
+                </button>
+                <button
+                  className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60"
+                  disabled={businessPaymentPending}
+                  onClick={() => onBusinessPaymentAction("approve_task")}
+                  type="button"
+                >
+                  Accept task
+                </button>
+                <button
+                  className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200 hover:bg-red-500/20 disabled:opacity-60"
+                  disabled={businessPaymentPending}
+                  onClick={() => onBusinessPaymentAction("reject_task")}
+                  type="button"
+                >
+                  Reject task
+                </button>
+                <button
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-zinc-800 disabled:opacity-60"
+                  disabled={businessPaymentPending}
+                  onClick={() => onBusinessPaymentAction("reject_payment")}
+                  type="button"
+                >
+                  Reject money
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -207,4 +319,43 @@ export function TaskDetailHeader({
       </div>
     </div>
   );
+}
+
+function BusinessInfo({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <span className="block text-[10px] font-black uppercase tracking-wider text-zinc-500">{label}</span>
+      <span className="block truncate font-bold text-zinc-200" title={value}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function parseBusinessRequestInfo(task: Task) {
+  const notes = parseReviewNotes(task.clientRequestReviews);
+  const find = (prefix: string) => {
+    const row = notes.find((note) => note.toLowerCase().startsWith(prefix.toLowerCase()));
+    return row ? row.slice(prefix.length).trim() : "";
+  };
+  return {
+    bank: find("Manual payment bank:"),
+    accountNumber: find("Manual payment account number:"),
+    accountName: find("Manual payment account name:"),
+    phone: find("Payment phone:"),
+    receiptName: find("Payment receipt file:"),
+    receiptUpload: find("Payment receipt upload:"),
+    clientPricePerUser: find("Client price per user:"),
+  };
+}
+
+function parseReviewNotes(raw: Task["clientRequestReviews"]) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.map(String);
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
 }

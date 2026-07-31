@@ -115,6 +115,10 @@ export interface Task {
   secureSpotBookedCount?: number;
   submissionCount?: number;
   createdBy: string;
+  creatorType?: string;
+  verifiedBy?: string;
+  isForClient?: boolean;
+  clientUsername?: string;
   assignedOfficer: string | null;
   proofType?: string | null;
   acceptText?: boolean | null;

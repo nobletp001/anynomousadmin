@@ -56,6 +56,10 @@ export default function CreateTaskPage() {
         <TaskAssignment
           assignedOfficer={state.assignedOfficer}
           setAssignedOfficer={state.setAssignedOfficer}
+          isForClient={state.isForClient}
+          setIsForClient={state.setIsForClient}
+          clientUsername={state.clientUsername}
+          setClientUsername={state.setClientUsername}
           officers={officers}
         />
 

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { StatusFilter } from "../types";
+import { OwnerFilter, StatusFilter } from "../types";
 
 export function useTasksState() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [ownerFilter, setOwnerFilter] = useState<OwnerFilter>("all");
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [submittedSearch, setSubmittedSearch] = useState("");
@@ -12,6 +13,8 @@ export function useTasksState() {
   return {
     statusFilter,
     setStatusFilter,
+    ownerFilter,
+    setOwnerFilter,
     page,
     setPage,
     searchInput,

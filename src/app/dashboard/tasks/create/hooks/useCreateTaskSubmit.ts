@@ -11,6 +11,7 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
     state.title.trim() &&
     state.description.trim() &&
     state.targetPlatform.trim() &&
+    (!state.isForClient || state.clientUsername.trim()) &&
     (state.isPayFluenceTask ? state.amount === "" || Number(state.amount) >= 0 : Number(state.amount) > 0) &&
     (!state.isAddedNewReferral || Number(state.amountAddedFortheReeferral) > 0) &&
     Number(state.numberOfUsersNeeded) > 0 &&
@@ -67,6 +68,8 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       targetCount: state.targetCount.trim() ? toInteger(state.targetCount) : undefined,
       adminContact: state.adminContact.trim() || undefined,
       assignedOfficer: state.assignedOfficer || undefined,
+      isForClient: state.isForClient,
+      clientUsername: state.isForClient ? state.clientUsername.trim().replace(/^@/, "") : undefined,
       prompts: state.prompts.trim()
         ? JSON.stringify(
             ((): string[] => {

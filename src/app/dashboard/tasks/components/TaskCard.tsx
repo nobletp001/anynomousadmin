@@ -58,6 +58,7 @@ export function TaskCard({
   const scheduled = isScheduled(task);
   const bookedSlotCount = getBookedSlotCount(task);
   const targetUsername = getTargetUsername(task);
+  const isClientOwned = task.isForClient || task.creatorType === "business";
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -140,7 +141,18 @@ export function TaskCard({
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-zinc-800/50 border border-zinc-700/40 w-fit">
           <UserCircle2 className="w-3 h-3 text-purple-400 shrink-0" />
-          <span className="text-[10px] font-bold text-purple-300 tracking-wide">@{task.createdBy}</span>
+          <span className="text-[10px] font-black text-purple-300 tracking-wide">@{task.createdBy}</span>
+        </div>
+        <div
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border w-fit ${
+            isClientOwned
+              ? "border-sky-500/20 bg-sky-500/10 text-sky-300"
+              : "border-zinc-700/40 bg-zinc-800/50 text-zinc-400"
+          }`}
+        >
+          <span className="text-[9px] font-extrabold tracking-wider">
+            {isClientOwned ? "CLIENT-OWNED" : "ADMIN-CREATED"}
+          </span>
         </div>
         {task.isPinned && (
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 w-fit">

@@ -16,7 +16,12 @@ import { groupByDate } from "./utils";
 export default function TasksPage() {
   const router = useRouter();
   const state = useTasksState();
-  const { userQuery, tasksQuery } = useTasksQueries(state.page, state.statusFilter, state.submittedSearch);
+  const { userQuery, tasksQuery } = useTasksQueries(
+    state.page,
+    state.statusFilter,
+    state.ownerFilter,
+    state.submittedSearch
+  );
 
   const callbacks = {
     onDeleteSuccess: () => state.setConfirmDelete(null),
@@ -48,6 +53,15 @@ export default function TasksPage() {
     (page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2
   );
   const groups = groupByDate(filtered);
+  const emptyMessage = state.submittedSearch
+    ? `No tasks found for "${state.submittedSearch}"`
+    : state.ownerFilter === "client"
+      ? "No client-owned tasks"
+      : state.ownerFilter === "admin"
+        ? "No admin-created tasks"
+        : state.statusFilter === "all"
+          ? "No tasks yet"
+          : `No ${state.statusFilter} tasks`;
 
   const counts = {
     all: state.statusFilter === "all" ? totalTasks : 0,
@@ -60,6 +74,10 @@ export default function TasksPage() {
   const isError = tasksQuery.isError || userQuery.isError;
   const setStatusFilter = (filter: typeof state.statusFilter) => {
     state.setStatusFilter(filter);
+    state.setPage(1);
+  };
+  const setOwnerFilter = (filter: typeof state.ownerFilter) => {
+    state.setOwnerFilter(filter);
     state.setPage(1);
   };
   const submitSearch = () => {
@@ -141,6 +159,15 @@ export default function TasksPage() {
           />
         </div>
         <div className="flex items-center gap-2">
+          <select
+            value={state.ownerFilter}
+            onChange={(event) => setOwnerFilter(event.target.value as typeof state.ownerFilter)}
+            className="h-10 rounded-xl border border-zinc-800 bg-zinc-950/40 px-3 text-xs font-bold text-zinc-200 outline-none transition-colors focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20"
+          >
+            <option value="all">All owners</option>
+            <option value="client">Client-owned</option>
+            <option value="admin">Admin-created</option>
+          </select>
           {state.submittedSearch && (
             <button
               type="button"
@@ -184,13 +211,7 @@ export default function TasksPage() {
       ) : pinnedTasks.length === 0 && filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20 text-center backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl">
           <ClipboardList className="w-10 h-10 text-zinc-600" />
-          <p className="text-zinc-400 text-sm font-medium">
-            {state.submittedSearch
-              ? `No tasks found for "${state.submittedSearch}"`
-              : state.statusFilter === "all"
-                ? "No tasks yet"
-                : `No ${state.statusFilter} tasks`}
-          </p>
+          <p className="text-zinc-400 text-sm font-medium">{emptyMessage}</p>
           {canManage && state.statusFilter === "all" && (
             <Button
               variant="primary"

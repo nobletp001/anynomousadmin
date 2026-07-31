@@ -20,6 +20,10 @@ export interface Task {
   reservedSlotCount?: number;
   secureSpotBookedCount?: number;
   createdBy: string;
+  creatorType?: string;
+  verifiedBy?: string;
+  isForClient?: boolean;
+  clientUsername?: string;
   createdAt: string;
   submissionCount: number;
   isTobeIncludereferralCount?: boolean | null;
@@ -50,3 +54,4 @@ export interface TasksResponse {
 }
 
 export type StatusFilter = "all" | "active" | "completed" | "paused";
+export type OwnerFilter = "all" | "client" | "admin";
