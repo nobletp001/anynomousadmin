@@ -17,6 +17,7 @@ import {
   Crown,
   BookOpen,
   Gavel,
+  Banknote,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -67,6 +68,12 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     href: "/dashboard/celebrity",
     icon: Crown,
     roles: ["super-admin", "admin"],
+  },
+  {
+    name: "Celebrity Payment",
+    href: "/dashboard/celebrity-payments",
+    icon: Banknote,
+    roles: ["super-admin", "admin", "accountant"],
   },
   {
     name: "Celebrity Disputes",

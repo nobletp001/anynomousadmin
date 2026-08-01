@@ -21,13 +21,15 @@ export function usePayoutMutations(callbacks: PayoutMutationCallbacks) {
     mutationFn: (variables: {
       id: number;
       status: "paid" | "rejected";
+      scope?: "task" | "business";
       confirmToken?: string;
       idempotencyKey?: string;
     }) => {
-      const { id, status, confirmToken, idempotencyKey } = variables;
+      const { id, status, scope = "task", confirmToken, idempotencyKey } = variables;
       const requestIdempotencyKey = idempotencyKey || makeIdempotencyKey(id, status);
       variables.idempotencyKey = requestIdempotencyKey;
-      return apiClient.patch(`/admin/payouts/${id}/status`, {
+      const endpoint = scope === "business" ? `/admin/business-payouts/${id}/status` : `/admin/payouts/${id}/status`;
+      return apiClient.patch(endpoint, {
         status,
         idempotencyKey: requestIdempotencyKey,
         ...(confirmToken ? { confirmToken } : {}),

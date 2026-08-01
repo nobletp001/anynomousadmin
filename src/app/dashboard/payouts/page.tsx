@@ -70,6 +70,7 @@ export default function PayoutsPage() {
     mutations.mutate({
       id: pendingConfirm.id,
       status: "paid",
+      scope: pendingConfirm.claim.scope,
       confirmToken: confirmCode.trim(),
       idempotencyKey: pendingConfirm.idempotencyKey,
     });
@@ -218,8 +219,8 @@ export default function PayoutsPage() {
         <PayoutBreakdownModal
           claim={breakdownClaim}
           onClose={() => setBreakdownClaim(null)}
-          onPay={(id) => mutations.mutate({ id, status: "paid" })}
-          onReject={(id) => mutations.mutate({ id, status: "rejected" })}
+          onPay={(id) => mutations.mutate({ id, status: "paid", scope: breakdownClaim.scope })}
+          onReject={(id) => mutations.mutate({ id, status: "rejected", scope: breakdownClaim.scope })}
           actionDisabled={mutations.isPending}
         />
       )}
@@ -227,8 +228,14 @@ export default function PayoutsPage() {
       {state.tab === "requests" ? (
         <PayoutRequestsTab
           requests={requests}
-          onAction={(id, status) => mutations.mutate({ id, status })}
-          onViewBreakdown={(claim) => setBreakdownClaim(claim)}
+          onAction={(claim, status) => mutations.mutate({ id: claim.id, status, scope: claim.scope })}
+          onViewBreakdown={(claim) => {
+            if (claim.scope === "business") {
+              state.setActionError("Business payout claims use the bank details and bucket summary shown on the row.");
+              return;
+            }
+            setBreakdownClaim(claim);
+          }}
           disabled={mutations.isPending}
         />
       ) : (

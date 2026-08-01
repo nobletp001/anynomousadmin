@@ -289,9 +289,24 @@ export default function TaskSubmissionsPage() {
           const needsReason = action === "reject_payment";
           const reason = needsReason ? window.prompt("Enter reason for this decision.") : undefined;
           if (needsReason && !reason?.trim()) return;
+          const expectedAmount = Number(task.amount || 0) * Number(task.numberOfUsersNeeded || 0);
+          let amountReceived: number | undefined;
+          if (action === "confirm_payment") {
+            const rawAmount = window.prompt(`Enter amount received. Expected: ₦${expectedAmount.toLocaleString()}`);
+            if (!rawAmount?.trim()) return;
+            amountReceived = Number(rawAmount.replace(/[^\d]/g, ""));
+            if (!Number.isSafeInteger(amountReceived) || amountReceived <= 0) {
+              toast.error("Enter a valid whole-naira amount received.");
+              return;
+            }
+            if (amountReceived !== expectedAmount) {
+              toast.error(`Amount received must match expected amount: ₦${expectedAmount.toLocaleString()}.`);
+              return;
+            }
+          }
           setBusinessPaymentAction(action);
           mutations.businessPaymentReview.mutate(
-            { action, reason: reason?.trim() },
+            { action, reason: reason?.trim(), amountReceived },
             {
               onSuccess: () => {
                 if (action === "confirm_payment") toast.success("Money confirmed. You can now accept the task.");

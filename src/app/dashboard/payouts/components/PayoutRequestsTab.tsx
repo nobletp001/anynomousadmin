@@ -5,7 +5,7 @@ import { PayoutRequestRow } from "./PayoutRequestRow";
 
 interface PayoutRequestsTabProps {
   requests: PayoutClaim[];
-  onAction: (id: number, status: "paid" | "rejected") => void;
+  onAction: (claim: PayoutClaim, status: "paid" | "rejected") => void;
   onViewBreakdown: (claim: PayoutClaim) => void;
   disabled: boolean;
 }
@@ -27,7 +27,7 @@ export function PayoutRequestsTab({ requests, onAction, onViewBreakdown, disable
         <div className="divide-y divide-zinc-800/40">
           {requests.map((r) => (
             <PayoutRequestRow
-              key={r.id}
+              key={`${r.scope ?? "task"}-${r.id}`}
               r={r}
               onAction={onAction}
               onViewBreakdown={onViewBreakdown}

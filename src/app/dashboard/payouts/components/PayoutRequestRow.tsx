@@ -7,7 +7,7 @@ import { BankCard } from "./BankCard";
 
 interface PayoutRequestRowProps {
   r: PayoutClaim;
-  onAction: (id: number, status: "paid" | "rejected") => void;
+  onAction: (claim: PayoutClaim, status: "paid" | "rejected") => void;
   onViewBreakdown: (claim: PayoutClaim) => void;
   disabled: boolean;
 }
@@ -22,6 +22,9 @@ export function PayoutRequestRow({ r, onAction, onViewBreakdown, disabled }: Pay
         <div>
           <p className="text-sm font-bold text-zinc-100">@{r.username}</p>
           <p className="text-base font-black text-emerald-400 leading-tight mt-0.5">{fmt(r.amount)}</p>
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+            {r.scope === "business" ? "Business balance" : "Task balance"}
+          </p>
           <p className="text-[10px] text-zinc-650 mt-1">
             Requested:{" "}
             {new Date(r.createdAt).toLocaleDateString("en-NG", {
@@ -43,6 +46,12 @@ export function PayoutRequestRow({ r, onAction, onViewBreakdown, disabled }: Pay
             <p className="text-xs text-zinc-500">No bank details linked yet</p>
           </div>
         )}
+        {r.scope === "business" ? (
+          <p className="mt-2 text-[10px] font-semibold text-zinc-500">
+            Seller {fmt(r.sellerAmount ?? 0)} · Refunds {fmt(r.refundAmount ?? 0)} · Referrals{" "}
+            {fmt(r.referralAmount ?? 0)} · Unused tasks {fmt(r.unusedTaskAmount ?? 0)}
+          </p>
+        ) : null}
       </div>
 
       <div className="flex items-center gap-2.5 shrink-0 md:justify-end">
@@ -50,7 +59,7 @@ export function PayoutRequestRow({ r, onAction, onViewBreakdown, disabled }: Pay
           variant="outline"
           size="sm"
           onClick={() => onViewBreakdown(r)}
-          disabled={disabled}
+          disabled={disabled || r.scope === "business"}
           className="border-purple-500/30 text-purple-400 bg-purple-500/5 hover:bg-purple-500 hover:text-white"
         >
           <Search className="w-3.5 h-3.5 mr-1.5" />
@@ -59,7 +68,7 @@ export function PayoutRequestRow({ r, onAction, onViewBreakdown, disabled }: Pay
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onAction(r.id, "paid")}
+          onClick={() => onAction(r, "paid")}
           disabled={disabled}
           className="border-emerald-500/30 text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500 hover:text-white"
         >
@@ -68,7 +77,7 @@ export function PayoutRequestRow({ r, onAction, onViewBreakdown, disabled }: Pay
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onAction(r.id, "rejected")}
+          onClick={() => onAction(r, "rejected")}
           disabled={disabled}
           className="border-red-500/30 text-red-400 bg-red-500/5 hover:bg-red-500 hover:text-white"
         >

@@ -23,9 +23,10 @@ export function PayoutHistoryTab({
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  const paidHistory = claims.filter((c) => {
-    if (c.status !== "paid" || !c.paidAt) return false;
-    const paidDate = new Date(c.paidAt);
+  const actionedHistory = claims.filter((c) => {
+    const actionedAt = c.status === "paid" ? c.paidAt : c.rejectedAt;
+    if (!["paid", "rejected"].includes(c.status) || !actionedAt) return false;
+    const paidDate = new Date(actionedAt);
 
     if (dateFilter === "today") return paidDate >= startOfToday;
     if (dateFilter === "yesterday") {
@@ -58,6 +59,7 @@ export function PayoutHistoryTab({
     return true;
   });
 
+  const paidHistory = actionedHistory.filter((c) => c.status === "paid");
   const totalPaid = paidHistory.reduce((sum, c) => sum + c.amount, 0);
   const payoutCount = paidHistory.length;
   const avgPayout = payoutCount > 0 ? totalPaid / payoutCount : 0;
@@ -109,26 +111,59 @@ export function PayoutHistoryTab({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Paid", val: fmt(totalPaid), sub: "Active filter earnings", icon: <DollarSign className="w-3.5 h-3.5" />, color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-          { label: "Payout Count", val: payoutCount, sub: "Claims paid out", icon: <Activity className="w-3.5 h-3.5" />, color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
-          { label: "Average Payout", val: fmt(avgPayout), sub: "Average claim volume", icon: <TrendingUp className="w-3.5 h-3.5" />, color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-          { label: "Max Payout", val: fmt(maxPayout), sub: "Largest paid settlement", icon: <Wallet className="w-3.5 h-3.5" />, color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+          {
+            label: "Total Paid",
+            val: fmt(totalPaid),
+            sub: "Active filter earnings",
+            icon: <DollarSign className="w-3.5 h-3.5" />,
+            color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+          },
+          {
+            label: "Payout Count",
+            val: payoutCount,
+            sub: "Claims paid out",
+            icon: <Activity className="w-3.5 h-3.5" />,
+            color: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+          },
+          {
+            label: "Average Payout",
+            val: fmt(avgPayout),
+            sub: "Average claim volume",
+            icon: <TrendingUp className="w-3.5 h-3.5" />,
+            color: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+          },
+          {
+            label: "Max Payout",
+            val: fmt(maxPayout),
+            sub: "Largest paid settlement",
+            icon: <Wallet className="w-3.5 h-3.5" />,
+            color: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+          },
         ].map((c) => (
-          <div key={c.label} className="bg-zinc-900/40 border border-zinc-850 p-5 rounded-2xl backdrop-blur-md hover:border-zinc-800 transition duration-200">
+          <div
+            key={c.label}
+            className="bg-zinc-900/40 border border-zinc-850 p-5 rounded-2xl backdrop-blur-md hover:border-zinc-800 transition duration-200"
+          >
             <div className="flex justify-between items-start">
               <p className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">{c.label}</p>
               <div className={`h-7 w-7 rounded-lg flex items-center justify-center border ${c.color}`}>{c.icon}</div>
             </div>
-            <p className={`text-2xl font-black mt-2 ${c.label === "Total Paid" ? "text-emerald-450" : c.label === "Payout Count" ? "text-purple-450" : c.label === "Average Payout" ? "text-blue-450" : "text-amber-450"}`}>{c.val}</p>
+            <p
+              className={`text-2xl font-black mt-2 ${c.label === "Total Paid" ? "text-emerald-450" : c.label === "Payout Count" ? "text-purple-450" : c.label === "Average Payout" ? "text-blue-450" : "text-amber-450"}`}
+            >
+              {c.val}
+            </p>
             <p className="text-[9px] text-zinc-550 mt-1 font-semibold">{c.sub}</p>
           </div>
         ))}
       </div>
 
       <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
-        {paidHistory.length === 0 ? (
+        {actionedHistory.length === 0 ? (
           <div className="flex flex-col items-center gap-3.5 py-24 text-center text-zinc-500">
-            <div className="h-12 w-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400"><History className="w-5 h-5 opacity-40" /></div>
+            <div className="h-12 w-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
+              <History className="w-5 h-5 opacity-40" />
+            </div>
             <div>
               <p className="text-sm font-extrabold text-zinc-300">No payout records found</p>
               <p className="text-xs text-zinc-500 mt-1">No claims match the active date filter criteria.</p>
@@ -136,8 +171,8 @@ export function PayoutHistoryTab({
           </div>
         ) : (
           <div className="divide-y divide-zinc-800/40">
-            {paidHistory.map((historyItem) => (
-              <PayoutHistoryRow key={historyItem.id} c={historyItem} />
+            {actionedHistory.map((historyItem) => (
+              <PayoutHistoryRow key={`${historyItem.scope ?? "task"}-${historyItem.id}`} c={historyItem} />
             ))}
           </div>
         )}

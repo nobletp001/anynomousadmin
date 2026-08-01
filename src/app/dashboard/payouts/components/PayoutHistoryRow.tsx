@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertCircle, CircleCheck } from "lucide-react";
+import { AlertCircle, CircleCheck, CircleX } from "lucide-react";
 import { PayoutClaim } from "../types";
 import { fmt } from "../utils";
 import { BankCard } from "./BankCard";
@@ -18,6 +18,9 @@ export function PayoutHistoryRow({ c }: PayoutHistoryRowProps) {
         <div>
           <p className="text-sm font-bold text-zinc-100">@{c.username}</p>
           <p className="text-base font-black text-emerald-400 leading-tight mt-0.5">{fmt(c.amount)}</p>
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+            {c.scope === "business" ? "Business balance" : "Task balance"}
+          </p>
           {c.paidAt && (
             <p className="text-[10px] text-zinc-600 mt-1">
               Paid:{" "}
@@ -45,13 +48,20 @@ export function PayoutHistoryRow({ c }: PayoutHistoryRowProps) {
 
       <div className="flex items-center gap-3 shrink-0 lg:justify-end">
         <div className="text-left lg:text-right">
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-2.5 py-1">
-            <CircleCheck className="w-3.5 h-3.5" />
-            Paid
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${
+              c.status === "rejected"
+                ? "border-red-500/20 bg-red-500/10 text-red-400"
+                : "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+            }`}
+          >
+            {c.status === "rejected" ? <CircleX className="w-3.5 h-3.5" /> : <CircleCheck className="w-3.5 h-3.5" />}
+            {c.status === "rejected" ? "Rejected" : "Paid"}
           </span>
-          {c.paidBy ? (
+          {c.paidBy || c.rejectedBy ? (
             <p className="text-[10px] text-zinc-500 mt-1.5 font-medium leading-none">
-              by <span className="text-zinc-355 font-bold">@{c.paidBy}</span> ({c.paidByRole || "Admin"})
+              by <span className="text-zinc-355 font-bold">@{c.paidBy || c.rejectedBy}</span> (
+              {c.paidByRole || c.rejectedByRole || "Admin"})
             </p>
           ) : (
             <p className="text-[10px] text-zinc-600 mt-1.5 font-medium leading-none">by unknown admin</p>

@@ -4,11 +4,16 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, ExternalLink, Gavel, XCircle } from "lucide-react";
 
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge, Button, Card, Input } from "@/components/ui";
 import { listCelebrityDisputes, resolveCelebrityDispute, type CelebrityOrder } from "@/services/celebrity-service";
 
-type DisputeAction = "complete" | "reject";
-type ConfirmState = { order: CelebrityOrder; action: DisputeAction } | null;
+type DisputeAction = "complete" | "reject" | "split";
+type ConfirmState = {
+  order: CelebrityOrder;
+  action: DisputeAction;
+  sellerPercent: number;
+  buyerPercent: number;
+} | null;
 
 export default function CelebrityDisputesPage() {
   const queryClient = useQueryClient();
@@ -20,11 +25,21 @@ export default function CelebrityDisputesPage() {
   });
   const disputes = disputesQuery.data || [];
 
-  async function resolveDispute(order: CelebrityOrder, action: DisputeAction) {
+  async function resolveDispute(state: NonNullable<ConfirmState>) {
     setMessage(null);
     try {
-      await resolveCelebrityDispute(order.id, action);
-      setMessage(action === "complete" ? "Dispute completed for celebrity." : "Dispute rejected.");
+      await resolveCelebrityDispute(
+        state.order.id,
+        state.action,
+        state.action === "split" ? { sellerPercent: state.sellerPercent, buyerPercent: state.buyerPercent } : undefined
+      );
+      setMessage(
+        state.action === "complete"
+          ? "Dispute completed for celebrity."
+          : state.action === "split"
+            ? "Dispute split between buyer and celebrity."
+            : "Dispute returned to buyer."
+      );
       setConfirmState(null);
       await queryClient.invalidateQueries({ queryKey: ["admin", "celebrity", "disputes"] });
     } catch (error) {
@@ -60,7 +75,18 @@ export default function CelebrityDisputesPage() {
 
       <div className="grid gap-4 xl:grid-cols-2">
         {disputes.map((order) => (
-          <DisputeCard key={order.id} order={order} onResolve={(action) => setConfirmState({ order, action })} />
+          <DisputeCard
+            key={order.id}
+            order={order}
+            onResolve={(action) =>
+              setConfirmState({
+                order,
+                action,
+                sellerPercent: action === "complete" ? 100 : action === "reject" ? 0 : 50,
+                buyerPercent: action === "complete" ? 0 : action === "reject" ? 100 : 50,
+              })
+            }
+          />
         ))}
       </div>
 
@@ -79,8 +105,9 @@ export default function CelebrityDisputesPage() {
       {confirmState ? (
         <ConfirmDisputeModal
           state={confirmState}
+          onChange={(patch) => setConfirmState((current) => (current ? { ...current, ...patch } : current))}
           onClose={() => setConfirmState(null)}
-          onSubmit={() => resolveDispute(confirmState.order, confirmState.action)}
+          onSubmit={() => resolveDispute(confirmState)}
         />
       ) : null}
     </div>
@@ -128,10 +155,13 @@ function DisputeCard({ order, onResolve }: { order: CelebrityOrder; onResolve: (
         </a>
         <div className="flex gap-2">
           <Button onClick={() => onResolve("complete")} size="sm">
-            Complete order
+            Seller gets net
+          </Button>
+          <Button onClick={() => onResolve("split")} size="sm" variant="secondary">
+            Split net
           </Button>
           <Button onClick={() => onResolve("reject")} size="sm" variant="danger">
-            Reject order
+            Buyer gets net
           </Button>
         </div>
       </div>
@@ -141,14 +171,18 @@ function DisputeCard({ order, onResolve }: { order: CelebrityOrder; onResolve: (
 
 function ConfirmDisputeModal({
   state,
+  onChange,
   onClose,
   onSubmit,
 }: {
-  state: { order: CelebrityOrder; action: DisputeAction };
+  state: { order: CelebrityOrder; action: DisputeAction; sellerPercent: number; buyerPercent: number };
+  onChange: (patch: Partial<NonNullable<ConfirmState>>) => void;
   onClose: () => void;
   onSubmit: () => void;
 }) {
   const completing = state.action === "complete";
+  const splitting = state.action === "split";
+  const splitValid = !splitting || state.sellerPercent + state.buyerPercent === 100;
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
       <Card className="w-full max-w-lg border-zinc-700 bg-zinc-950 p-5">
@@ -160,20 +194,56 @@ function ConfirmDisputeModal({
           )}
           <div>
             <h2 className="text-xl font-black text-zinc-50">
-              {completing ? "Complete this order?" : "Reject this order?"}
+              {completing
+                ? "Give seller the net amount?"
+                : splitting
+                  ? "Split the net amount?"
+                  : "Give buyer the net amount?"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-zinc-400">
               This resolves dispute order #{state.order.id} between @{state.order.buyerUsername} and @
-              {state.order.sellerUsername}.
+              {state.order.sellerUsername}. Platform commission is removed first; this decision distributes the
+              remaining net amount.
             </p>
           </div>
         </div>
+        {splitting ? (
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <Input
+              label="Seller %"
+              min={0}
+              max={100}
+              onChange={(event) => {
+                const sellerPercent = Number(event.target.value);
+                onChange({ sellerPercent, buyerPercent: Math.max(0, 100 - sellerPercent) });
+              }}
+              type="number"
+              value={String(state.sellerPercent)}
+            />
+            <Input
+              label="Buyer %"
+              min={0}
+              max={100}
+              onChange={(event) => {
+                const buyerPercent = Number(event.target.value);
+                onChange({ buyerPercent, sellerPercent: Math.max(0, 100 - buyerPercent) });
+              }}
+              type="number"
+              value={String(state.buyerPercent)}
+            />
+            {!splitValid ? (
+              <p className="text-sm font-semibold text-red-300 sm:col-span-2">
+                Seller and buyer percentages must total 100.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button onClick={onClose} variant="secondary">
             Cancel
           </Button>
-          <Button onClick={onSubmit} variant={completing ? "primary" : "danger"}>
-            {completing ? "Confirm completion" : "Confirm rejection"}
+          <Button disabled={!splitValid} onClick={onSubmit} variant={completing || splitting ? "primary" : "danger"}>
+            {completing ? "Confirm seller payout" : splitting ? "Confirm split" : "Confirm buyer return"}
           </Button>
         </div>
       </Card>

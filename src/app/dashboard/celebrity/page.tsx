@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DatePicker from "react-datepicker";
 import {
   Ban,
+  Banknote,
   CalendarClock,
   ChevronLeft,
   ChevronRight,
@@ -13,6 +14,7 @@ import {
   ExternalLink,
   FileBadge,
   Link2,
+  Percent,
   Power,
   Search,
   ShieldCheck,
@@ -27,13 +29,17 @@ import {
   attachCelebrityReferral,
   directVerifyCelebrity,
   getCelebrityApplicantDetail,
+  getCelebrityPaymentDashboard,
   listCelebrityApplications,
   listCelebrityServices,
   reviewCelebrityApplication,
   reviewCelebrityService,
   scheduleCelebrityApplication,
+  updateCelebrityPaymentSettings,
+  upsertCelebrityReferralCommissionSplit,
   type AdminUserDetail,
   type CelebrityApplication,
+  type CelebrityPaymentDashboard,
   type CelebrityService,
 } from "@/services/celebrity-service";
 
@@ -58,6 +64,11 @@ const CATEGORY_OPTIONS = [
   "Business",
 ];
 const COUNTRY_OPTIONS = ["Nigeria"];
+const currencyFormatter = new Intl.NumberFormat("en-NG", {
+  currency: "NGN",
+  maximumFractionDigits: 0,
+  style: "currency",
+});
 
 export default function CelebrityAdminPage() {
   const queryClient = useQueryClient();
@@ -73,6 +84,14 @@ export default function CelebrityAdminPage() {
   const [scheduleDrafts, setScheduleDrafts] = useState<Record<number, ScheduleDraft>>({});
   const [directVerify, setDirectVerify] = useState({ username: "", category: "", country: "Nigeria" });
   const [referralAttach, setReferralAttach] = useState({ celebrityUsername: "", referralUsername: "" });
+  const [commissionPercent, setCommissionPercent] = useState(10);
+  const [clearanceDays, setClearanceDays] = useState(5);
+  const [splitDraft, setSplitDraft] = useState({
+    celebrityUsername: "",
+    referrerUsername: "",
+    systemSharePercent: 50,
+    referralSharePercent: 50,
+  });
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
@@ -92,6 +111,19 @@ export default function CelebrityAdminPage() {
     queryKey: ["admin", "celebrity", "services", "all"],
     queryFn: () => listCelebrityServices().then((res) => res.data || []),
   });
+  const paymentsQuery = useQuery({
+    queryKey: ["admin", "celebrity", "payments", 1],
+    queryFn: () => getCelebrityPaymentDashboard({ page: 1, limit: 8 }).then((res) => res.data),
+  });
+
+  useEffect(() => {
+    if (paymentsQuery.data?.settings?.commissionPercent !== undefined) {
+      setCommissionPercent(paymentsQuery.data.settings.commissionPercent);
+    }
+    if (paymentsQuery.data?.settings?.clearanceDays !== undefined) {
+      setClearanceDays(paymentsQuery.data.settings.clearanceDays);
+    }
+  }, [paymentsQuery.data?.settings?.commissionPercent, paymentsQuery.data?.settings?.clearanceDays]);
 
   const applications = useMemo(
     () => (activeTab === "pending" ? pendingQuery.data || [] : approvedQuery.data || []),
@@ -130,6 +162,7 @@ export default function CelebrityAdminPage() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["admin", "celebrity", "applications"] }),
       queryClient.invalidateQueries({ queryKey: ["admin", "celebrity", "services"] }),
+      queryClient.invalidateQueries({ queryKey: ["admin", "celebrity", "payments"] }),
       selectedApp
         ? queryClient.invalidateQueries({ queryKey: ["admin", "celebrity", "applicant", selectedApp.username] })
         : Promise.resolve(),
@@ -188,6 +221,31 @@ export default function CelebrityAdminPage() {
               referralUsername: referralAttach.referralUsername,
             });
             setReferralAttach({ celebrityUsername: "", referralUsername: "" });
+          })
+        }
+      />
+
+      <CelebrityPaymentsSection
+        commissionPercent={commissionPercent}
+        data={paymentsQuery.data}
+        loading={paymentsQuery.isLoading}
+        setCommissionPercent={setCommissionPercent}
+        setSplitDraft={setSplitDraft}
+        splitDraft={splitDraft}
+        onSaveCommission={() =>
+          runAction("Celebrity commission updated.", () =>
+            updateCelebrityPaymentSettings({ commissionPercent, clearanceDays })
+          )
+        }
+        onSaveSplit={() =>
+          runAction("Celebrity referral commission split saved.", async () => {
+            await upsertCelebrityReferralCommissionSplit(splitDraft);
+            setSplitDraft({
+              celebrityUsername: "",
+              referrerUsername: "",
+              systemSharePercent: 50,
+              referralSharePercent: 50,
+            });
           })
         }
       />
@@ -510,6 +568,166 @@ function AttachReferralSection({
         </div>
       </div>
     </Card>
+  );
+}
+
+function CelebrityPaymentsSection({
+  commissionPercent,
+  data,
+  loading,
+  setCommissionPercent,
+  setSplitDraft,
+  splitDraft,
+  onSaveCommission,
+  onSaveSplit,
+}: {
+  commissionPercent: number;
+  data?: CelebrityPaymentDashboard;
+  loading: boolean;
+  setCommissionPercent: (value: number) => void;
+  setSplitDraft: (value: {
+    celebrityUsername: string;
+    referrerUsername: string;
+    systemSharePercent: number;
+    referralSharePercent: number;
+  }) => void;
+  splitDraft: {
+    celebrityUsername: string;
+    referrerUsername: string;
+    systemSharePercent: number;
+    referralSharePercent: number;
+  };
+  onSaveCommission: () => void;
+  onSaveSplit: () => void;
+}) {
+  const totals = data?.totals;
+  const splitTotal = splitDraft.systemSharePercent + splitDraft.referralSharePercent;
+  return (
+    <Card className="overflow-hidden border-emerald-300/20 bg-zinc-950/80 p-5">
+      <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex items-center gap-3">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-300/10 text-emerald-200">
+            <Banknote className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="text-lg font-black text-zinc-50">Celebrity payment dashboard</h2>
+            <p className="mt-1 text-sm font-semibold text-zinc-500">
+              Backend-calculated gross, seller net, system commission, referral commission, and buyer returns.
+            </p>
+          </div>
+        </div>
+        <Badge variant="success">{loading ? "loading" : `${data?.pagination.total || 0} ledger rows`}</Badge>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <MoneyTile label="Gross paid" value={totals?.grossAmount || 0} />
+        <MoneyTile label="Celebrity net" value={totals?.celebrityAmount || 0} />
+        <MoneyTile label="System" value={totals?.systemAmount || 0} />
+        <MoneyTile label="Referral" value={totals?.referralAmount || 0} />
+        <MoneyTile label="Buyer returned" value={totals?.refundedToWallet || 0} />
+        <MoneyTile label="Held amount" value={totals?.heldAmount || 0} />
+      </div>
+
+      <div className="mt-5 grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/70 p-4">
+          <div className="flex items-center gap-2">
+            <Percent className="h-4 w-4 text-emerald-300" />
+            <h3 className="text-sm font-black uppercase tracking-wider text-zinc-200">Platform commission</h3>
+          </div>
+          <div className="mt-4 flex items-end gap-3">
+            <Input
+              label="Percent"
+              max={100}
+              min={0}
+              onChange={(event) => setCommissionPercent(Number(event.target.value))}
+              type="number"
+              value={String(commissionPercent)}
+            />
+            <Button disabled={commissionPercent < 0 || commissionPercent > 100} onClick={onSaveCommission}>
+              Save
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/70 p-4">
+          <h3 className="text-sm font-black uppercase tracking-wider text-zinc-200">Special referral split</h3>
+          <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_120px_120px_auto]">
+            <Input
+              label="Celebrity"
+              onChange={(event) => setSplitDraft({ ...splitDraft, celebrityUsername: event.target.value })}
+              placeholder="celebrity username"
+              value={splitDraft.celebrityUsername}
+            />
+            <Input
+              label="Referrer"
+              onChange={(event) => setSplitDraft({ ...splitDraft, referrerUsername: event.target.value })}
+              placeholder="referrer username"
+              value={splitDraft.referrerUsername}
+            />
+            <Input
+              label="System %"
+              max={100}
+              min={0}
+              onChange={(event) => setSplitDraft({ ...splitDraft, systemSharePercent: Number(event.target.value) })}
+              type="number"
+              value={String(splitDraft.systemSharePercent)}
+            />
+            <Input
+              label="Referral %"
+              max={100}
+              min={0}
+              onChange={(event) => setSplitDraft({ ...splitDraft, referralSharePercent: Number(event.target.value) })}
+              type="number"
+              value={String(splitDraft.referralSharePercent)}
+            />
+            <Button
+              className="self-end"
+              disabled={
+                !splitDraft.celebrityUsername.trim() ||
+                !splitDraft.referrerUsername.trim() ||
+                splitTotal > 100 ||
+                splitDraft.systemSharePercent < 0 ||
+                splitDraft.referralSharePercent < 0
+              }
+              onClick={onSaveSplit}
+            >
+              Save
+            </Button>
+          </div>
+          <p className={`mt-2 text-xs font-semibold ${splitTotal > 100 ? "text-red-300" : "text-zinc-500"}`}>
+            System and referral share total: {splitTotal}%
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 divide-y divide-zinc-800">
+        {(data?.items || []).slice(0, 6).map((item) => (
+          <div className="grid gap-3 py-3 text-sm md:grid-cols-[120px_1fr_1fr_1fr]" key={item.id}>
+            <span className="font-bold text-zinc-400">Order #{item.orderId}</span>
+            <span className="text-zinc-300">
+              @{item.buyerUsername} → @{item.celebrityUsername}
+            </span>
+            <span className="text-zinc-400">
+              Seller {currencyFormatter.format(item.celebrityAmount)} · Buyer{" "}
+              {currencyFormatter.format(item.refundAmount)}
+            </span>
+            <span className="text-zinc-500">
+              System {currencyFormatter.format(item.systemAmount)} · Referral{" "}
+              {currencyFormatter.format(item.referralAmount)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function MoneyTile({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-950/70 p-3">
+      <p className="text-xs font-bold uppercase tracking-wider text-zinc-500">{label}</p>
+      <p className="mt-2 text-lg font-black text-zinc-100">{currencyFormatter.format(value)}</p>
+    </div>
   );
 }
 

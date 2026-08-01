@@ -77,6 +77,64 @@ export type CelebrityOrder = {
   createdAt: string;
 };
 
+export type CelebrityPaymentDashboard = {
+  settings: { commissionPercent: number; clearanceDays: number; updatedBy?: string | null; updatedAt?: string | null };
+  totals: {
+    grossAmount: number;
+    celebrityAmount: number;
+    commissionAmount: number;
+    systemAmount: number;
+    referralAmount: number;
+    refundAmount: number;
+    heldAmount: number;
+    refundedToWallet: number;
+    completedPayments: number;
+    refundedPayments: number;
+    taskPaidInAmount: number;
+    taskerPayoutAmount: number;
+    taskReturnedAmount: number;
+    taskSystemAmount: number;
+    taskCount: number;
+  };
+  items: Array<{
+    id: number;
+    orderId: number;
+    serviceId: number;
+    buyerUsername: string;
+    celebrityUsername: string;
+    referrerUsername?: string | null;
+    entryType: string;
+    status: string;
+    grossAmount: number;
+    celebrityAmount: number;
+    commissionAmount: number;
+    systemAmount: number;
+    referralAmount: number;
+    refundAmount: number;
+    commissionPercent: number;
+    systemSharePercent: number;
+    referralSharePercent: number;
+    paymentReference?: string | null;
+    createdAt: string;
+  }>;
+  taskItems: Array<{
+    taskId: number;
+    title: string;
+    createdBy: string;
+    status: string;
+    paidInAmount: number;
+    taskerPayoutAmount: number;
+    returnedAmount: number;
+    systemAmount: number;
+    approvedCount: number;
+    capacity: number;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  pagination: PaginatedResponse<unknown>["pagination"];
+  taskPagination: PaginatedResponse<unknown>["pagination"];
+};
+
 type PaginatedResponse<T> = {
   items: T[];
   pagination: {
@@ -153,6 +211,43 @@ export async function listCelebrityDisputes() {
   >;
 }
 
-export async function resolveCelebrityDispute(id: number, action: "complete" | "reject") {
-  return apiClient.post(`/admin/celebrity/orders/${id}/resolve/${action}`, {}) as Promise<ApiResponse<CelebrityOrder>>;
+export async function resolveCelebrityDispute(
+  id: number,
+  action: "complete" | "reject" | "split",
+  data?: { sellerPercent?: number; buyerPercent?: number; message?: string }
+) {
+  return apiClient.post(`/admin/celebrity/orders/${id}/resolve/${action}`, data || {}) as Promise<
+    ApiResponse<CelebrityOrder>
+  >;
+}
+
+export async function getCelebrityPaymentDashboard(
+  params: {
+    page?: number;
+    limit?: number;
+    days?: number;
+    from?: string;
+    to?: string;
+    sort?: "newest" | "oldest" | "biggest";
+  } = {}
+) {
+  const { page = 1, limit = 50, ...filters } = params;
+  return apiClient.get("/admin/celebrity/payments", { params: { page, limit, ...filters } }) as Promise<
+    ApiResponse<CelebrityPaymentDashboard>
+  >;
+}
+
+export async function updateCelebrityPaymentSettings(data: { commissionPercent: number; clearanceDays: number }) {
+  return apiClient.post("/admin/celebrity/payment-settings", data) as Promise<
+    ApiResponse<CelebrityPaymentDashboard["settings"]>
+  >;
+}
+
+export async function upsertCelebrityReferralCommissionSplit(data: {
+  celebrityUsername: string;
+  referrerUsername: string;
+  systemSharePercent: number;
+  referralSharePercent: number;
+}) {
+  return apiClient.post("/admin/celebrity/referral-commission-splits", data) as Promise<ApiResponse<unknown>>;
 }

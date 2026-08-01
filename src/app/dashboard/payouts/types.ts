@@ -103,9 +103,17 @@ export interface PayoutClaim {
   username: string;
   amount: number;
   status: string;
+  scope?: "task" | "business";
+  sellerAmount?: number;
+  refundAmount?: number;
+  referralAmount?: number;
+  unusedTaskAmount?: number;
   paidBy: string | null;
   paidByRole: string | null;
   paidAt: string | null;
+  rejectedBy?: string | null;
+  rejectedByRole?: string | null;
+  rejectedAt?: string | null;
   createdAt: string;
   bankDetail: BankDetail | null;
 }

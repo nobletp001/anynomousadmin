@@ -59,6 +59,7 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     mutationFn: (payload: {
       action: "confirm_payment" | "approve_task" | "reject_task" | "reject_payment";
       reason?: string;
+      amountReceived?: number;
     }) => apiClient.post(`/admin/tasks/${taskId}/business-payment-review`, payload) as any,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
   });

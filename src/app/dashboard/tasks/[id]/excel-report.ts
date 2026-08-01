@@ -1,5 +1,33 @@
-import * as XLSX from "xlsx";
 import { Task, Submission } from "./types";
+
+function escapeCell(value: unknown) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function tableHtml(rows: unknown[][]) {
+  return `<table>${rows
+    .map((row) => `<tr>${row.map((cell) => `<td>${escapeCell(cell)}</td>`).join("")}</tr>`)
+    .join("")}</table>`;
+}
+
+function downloadWorkbook(filename: string, sheets: { name: string; rows: unknown[][] }[]) {
+  const html = `<!doctype html><html><head><meta charset="utf-8" /></head><body>${sheets
+    .map((sheet) => `<h2>${escapeCell(sheet.name)}</h2>${tableHtml(sheet.rows)}`)
+    .join("<br />")}</body></html>`;
+  const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
 
 export function downloadExcelReport(task: Task, submissions: Submission[]) {
   const approvedCount = submissions.filter((s) => s.status === "approved").length;
@@ -30,9 +58,6 @@ export function downloadExcelReport(task: Task, submissions: Submission[]) {
     ["Needs Correction", correctionCount],
     ["Approval Rate", `${approvalRate}%`],
   ];
-
-  const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
-  summarySheet["!cols"] = [{ wch: 24 }, { wch: 60 }];
 
   // ── Sheet 2: Participants ─────────────────────────────────────
   const headers = [
@@ -70,29 +95,13 @@ export function downloadExcelReport(task: Task, submissions: Submission[]) {
     ];
   });
 
-  const participantSheet = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
-  participantSheet["!cols"] = [
-    { wch: 5 }, // S/N
-    { wch: 24 }, // Full Name
-    { wch: 18 }, // Username
-    { wch: 16 }, // Status
-    { wch: 12 }, // Proof Type
-    { wch: 50 }, // Proof / URL
-    { wch: 30 }, // Text Response
-    { wch: 16 }, // Number Response
-    { wch: 8 }, // Rating
-    { wch: 22 }, // Date
-  ];
-
-  // ── Workbook ──────────────────────────────────────────────────
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, summarySheet, "Summary");
-  XLSX.utils.book_append_sheet(wb, participantSheet, "Participants");
-
   const safeTitle = task.title
     .replace(/[^\w\s-]/g, "")
     .trim()
     .replace(/\s+/g, "_")
     .slice(0, 40);
-  XLSX.writeFile(wb, `TASK-${task.id}_${safeTitle}.xlsx`);
+  downloadWorkbook(`TASK-${task.id}_${safeTitle}.xls`, [
+    { name: "Summary", rows: summaryRows },
+    { name: "Participants", rows: [headers, ...dataRows] },
+  ]);
 }
