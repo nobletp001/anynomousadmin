@@ -5,6 +5,10 @@ import Providers from "./providers";
 export const metadata: Metadata = {
   title: "PayFluence Admin",
   description: "PayFluence Admin Dashboard",
+  icons: {
+    icon: "/pay.png",
+    apple: "/pay.png",
+  },
 };
 
 export default function RootLayout({
