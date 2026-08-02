@@ -11,6 +11,7 @@ import { Targeting } from "./EditTaskForm/Targeting";
 import { RewardTimeline } from "./EditTaskForm/RewardTimeline";
 import { AllowedSubmissions } from "./EditTaskForm/AllowedSubmissions";
 import { ClientRequestReview } from "./EditTaskForm/ClientRequestReview";
+import { ClientAssignment } from "./EditTaskForm/ClientAssignment";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
 import { toast } from "sonner";
@@ -51,6 +52,10 @@ export function EditTaskModal({
       toast.error(`Capacity must be at least ${task.approvedCount}`);
       return;
     }
+    if (editState.editIsForClient && !editState.editClientUsername.trim()) {
+      toast.error("Client username is required");
+      return;
+    }
 
     let uploadedUrls: string[] = [];
     if (editState.editImages.length > 0) {
@@ -79,6 +84,8 @@ export function EditTaskModal({
         : null;
 
     updateTaskMutation.mutate({
+      isForClient: editState.editIsForClient,
+      clientUsername: editState.editIsForClient ? editState.editClientUsername.trim().replace(/^@/, "") : null,
       hasClientRequestReview: editState.editHasClientRequestReview,
       clientRequestReviews: editState.editHasClientRequestReview
         ? editState.editClientRequestReviews.map((r) => r.trim()).filter(Boolean)
@@ -238,6 +245,12 @@ export function EditTaskModal({
           <Instructions
             editInstructions={editState.editInstructions}
             setEditInstructions={editState.setEditInstructions}
+          />
+          <ClientAssignment
+            editIsForClient={editState.editIsForClient}
+            setEditIsForClient={editState.setEditIsForClient}
+            editClientUsername={editState.editClientUsername}
+            setEditClientUsername={editState.setEditClientUsername}
           />
           <ClientRequestReview
             editHasClientRequestReview={editState.editHasClientRequestReview}

@@ -199,6 +199,8 @@ export default function TaskSubmissionsPage() {
     editState.setEditAmount(String(task.amount));
     editState.setEditLink(task.link || "");
     editState.setEditAssignedOfficer(task.assignedOfficer || "");
+    editState.setEditIsForClient(!!(task.isForClient || task.creatorType === "business"));
+    editState.setEditClientUsername(task.clientUsername || (task.creatorType === "business" ? task.createdBy : ""));
     editState.setEditInstructions(task.instructions ? JSON.parse(task.instructions) : []);
     editState.setEditCaption(task.caption || "");
     editState.setEditTaskType(task.taskType || "follow");
