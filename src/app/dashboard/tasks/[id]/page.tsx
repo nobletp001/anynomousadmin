@@ -37,7 +37,7 @@ export default function TaskSubmissionsPage() {
   const [slotSelectedUsers, setSlotSelectedUsers] = React.useState<string[]>([]);
   const [slotBulkUsers, setSlotBulkUsers] = React.useState("");
   const [businessPaymentAction, setBusinessPaymentAction] = React.useState<
-    "confirm_payment" | "approve_task" | "reject_payment" | null
+    "confirm_payment" | "approve_task" | "reject_task" | "reject_payment" | null
   >(null);
 
   const { submissionsQuery, officersQuery, securedSpotsQuery } = useTaskQueries(
@@ -288,7 +288,7 @@ export default function TaskSubmissionsPage() {
         onToggleStatusClick={() => mutations.toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}
         businessPaymentAction={businessPaymentAction}
         onBusinessPaymentAction={(action) => {
-          const needsReason = action === "reject_payment";
+          const needsReason = action === "reject_payment" || action === "reject_task";
           const reason = needsReason ? window.prompt("Enter reason for this decision.") : undefined;
           if (needsReason && !reason?.trim()) return;
           const expectedAmount = Number(task.amount || 0) * Number(task.numberOfUsersNeeded || 0);
@@ -314,6 +314,7 @@ export default function TaskSubmissionsPage() {
                 if (action === "confirm_payment") toast.success("Money confirmed. You can now accept the task.");
                 if (action === "approve_task") toast.success("Task accepted and activated.");
                 if (action === "reject_payment") toast.success("Money rejected and task marked rejected.");
+                if (action === "reject_task") toast.success("Task rejected and unused client funds refunded.");
               },
               onError: (error) => {
                 toast.error(error instanceof Error ? error.message : "Failed to review business payment.");

@@ -24,11 +24,11 @@ interface TaskDetailHeaderProps {
   onDownloadExcel: () => void;
   onEditClick: () => void;
   onToggleStatusClick: () => void;
-  onBusinessPaymentAction: (action: "confirm_payment" | "approve_task" | "reject_payment") => void;
+  onBusinessPaymentAction: (action: "confirm_payment" | "approve_task" | "reject_task" | "reject_payment") => void;
   onSendReminderClick: () => void;
   toggleStatusPending: boolean;
   businessPaymentPending: boolean;
-  businessPaymentAction: "confirm_payment" | "approve_task" | "reject_payment" | null;
+  businessPaymentAction: "confirm_payment" | "approve_task" | "reject_task" | "reject_payment" | null;
   reminderPending: boolean;
 }
 
@@ -56,8 +56,15 @@ export function TaskDetailHeader({
   const businessInfo = parseBusinessRequestInfo(task);
   const clientUsername = task.clientUsername || (task.creatorType === "business" ? task.createdBy : "");
   const isForClient = task.isForClient || task.creatorType === "business";
-  const isBusinessPaymentRequest = task.creatorType === "business" && !!businessInfo.receiptName;
-  const moneyConfirmed = isBusinessPaymentRequest && task.status !== "rejected" && !!task.verifiedBy;
+  const isBusinessPaymentRequest = task.creatorType === "business" && businessInfo.paymentMethod !== "";
+  const isManualPaymentRequest = isBusinessPaymentRequest && businessInfo.paymentMethod !== "paystack";
+  const isPaystackPaymentRequest = isBusinessPaymentRequest && businessInfo.paymentMethod === "paystack";
+  const hasConfirmedReviewer =
+    !!task.verifiedBy && !["pending", "payment_pending"].includes(task.verifiedBy.toLowerCase());
+  const moneyConfirmed =
+    isBusinessPaymentRequest &&
+    task.status !== "rejected" &&
+    (hasConfirmedReviewer || (isPaystackPaymentRequest && task.status !== "payment_pending"));
   const taskFinalized = task.status === "active" || task.status === "rejected";
 
   const handleCopyTargetUsername = () => {
@@ -141,14 +148,24 @@ export function TaskDetailHeader({
                 </div>
                 <div className="mt-3 grid gap-2 text-xs text-zinc-300 sm:grid-cols-2 xl:grid-cols-3">
                   <BusinessInfo label="Created by" value={`@${task.createdBy}`} />
+                  <BusinessInfo label="Payment method" value={businessInfo.paymentMethod || "manual"} />
                   <BusinessInfo label="Verified by" value={task.verifiedBy || "pending"} />
-                  <BusinessInfo label="Phone" value={businessInfo.phone || "Not provided"} />
-                  <BusinessInfo label="Bank" value={businessInfo.bank || "FCMB"} />
-                  <BusinessInfo label="Account number" value={businessInfo.accountNumber || "1049708347"} />
-                  <BusinessInfo label="Account name" value={businessInfo.accountName || "fluence social network ltd"} />
+                  {isManualPaymentRequest ? (
+                    <>
+                      <BusinessInfo label="Phone" value={businessInfo.phone || "Not provided"} />
+                      <BusinessInfo label="Bank" value={businessInfo.bank || "FCMB"} />
+                      <BusinessInfo label="Account number" value={businessInfo.accountNumber || "1049708347"} />
+                      <BusinessInfo
+                        label="Account name"
+                        value={businessInfo.accountName || "fluence social network ltd"}
+                      />
+                    </>
+                  ) : null}
                   <BusinessInfo label="Client price/user" value={businessInfo.clientPricePerUser || "—"} />
-                  <BusinessInfo label="Receipt file" value={businessInfo.receiptName || "—"} />
-                  {businessInfo.receiptUpload ? (
+                  {isManualPaymentRequest ? (
+                    <BusinessInfo label="Receipt file" value={businessInfo.receiptName || "—"} />
+                  ) : null}
+                  {isManualPaymentRequest && businessInfo.receiptUpload ? (
                     <a
                       className="font-bold text-sky-300 underline decoration-sky-300/30 underline-offset-4"
                       href={businessInfo.receiptUpload}
@@ -161,7 +178,7 @@ export function TaskDetailHeader({
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                {!taskFinalized && !moneyConfirmed ? (
+                {!taskFinalized && isManualPaymentRequest && !moneyConfirmed ? (
                   <>
                     <button
                       className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/20 disabled:opacity-60"
@@ -169,7 +186,7 @@ export function TaskDetailHeader({
                       onClick={() => onBusinessPaymentAction("confirm_payment")}
                       type="button"
                     >
-                      {businessPaymentAction === "confirm_payment" ? "Confirming..." : "Confirm money"}
+                      {businessPaymentAction === "confirm_payment" ? "Accepting fund..." : "Accept fund"}
                     </button>
                     <button
                       className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-zinc-800 disabled:opacity-60"
@@ -177,19 +194,34 @@ export function TaskDetailHeader({
                       onClick={() => onBusinessPaymentAction("reject_payment")}
                       type="button"
                     >
-                      {businessPaymentAction === "reject_payment" ? "Rejecting..." : "Reject money"}
+                      {businessPaymentAction === "reject_payment" ? "Rejecting fund..." : "Reject fund"}
                     </button>
                   </>
                 ) : null}
+                {!taskFinalized && isPaystackPaymentRequest && task.status === "payment_pending" ? (
+                  <span className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-bold text-sky-200">
+                    Waiting for Paystack payment
+                  </span>
+                ) : null}
                 {!taskFinalized && moneyConfirmed ? (
-                  <button
-                    className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60"
-                    disabled={businessPaymentPending}
-                    onClick={() => onBusinessPaymentAction("approve_task")}
-                    type="button"
-                  >
-                    {businessPaymentAction === "approve_task" ? "Accepting..." : "Accept task"}
-                  </button>
+                  <>
+                    <button
+                      className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60"
+                      disabled={businessPaymentPending}
+                      onClick={() => onBusinessPaymentAction("approve_task")}
+                      type="button"
+                    >
+                      {businessPaymentAction === "approve_task" ? "Accepting..." : "Accept task"}
+                    </button>
+                    <button
+                      className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200 hover:bg-red-500/20 disabled:opacity-60"
+                      disabled={businessPaymentPending}
+                      onClick={() => onBusinessPaymentAction("reject_task")}
+                      type="button"
+                    >
+                      {businessPaymentAction === "reject_task" ? "Rejecting..." : "Reject task"}
+                    </button>
+                  </>
                 ) : null}
                 {task.status === "active" ? (
                   <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-200">
@@ -351,6 +383,7 @@ function parseBusinessRequestInfo(task: Task) {
     return row ? row.slice(prefix.length).trim() : "";
   };
   return {
+    paymentMethod: find("Payment method:").toLowerCase(),
     bank: find("Manual payment bank:"),
     accountNumber: find("Manual payment account number:"),
     accountName: find("Manual payment account name:"),
