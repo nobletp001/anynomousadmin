@@ -15,6 +15,7 @@ import { SecuredSpotsPanel } from "./components/SecuredSpotsPanel";
 import { AssistSubmissionPanel } from "./components/AssistSubmissionPanel";
 import { BulkActionPanel } from "./components/BulkActionPanel";
 import { TaskDetailModals } from "./components/TaskDetailModals";
+import { BusinessPaymentConfirmModal } from "./components/BusinessPaymentConfirmModal";
 import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
@@ -37,6 +38,9 @@ export default function TaskSubmissionsPage() {
   const [slotSelectedUsers, setSlotSelectedUsers] = React.useState<string[]>([]);
   const [slotBulkUsers, setSlotBulkUsers] = React.useState("");
   const [businessPaymentAction, setBusinessPaymentAction] = React.useState<
+    "confirm_payment" | "approve_task" | "reject_task" | "reject_payment" | null
+  >(null);
+  const [businessPaymentModal, setBusinessPaymentModal] = React.useState<
     "confirm_payment" | "approve_task" | "reject_task" | "reject_payment" | null
   >(null);
 
@@ -275,6 +279,26 @@ export default function TaskSubmissionsPage() {
     editState.setUploadError("");
   };
 
+  const runBusinessPaymentAction = (action: "confirm_payment" | "approve_task" | "reject_task" | "reject_payment") => {
+    setBusinessPaymentAction(action);
+    mutations.businessPaymentReview.mutate(
+      { action },
+      {
+        onSuccess: () => {
+          if (action === "confirm_payment") toast.success("Money confirmed. You can now accept the task.");
+          if (action === "approve_task") toast.success("Task accepted and activated.");
+          if (action === "reject_payment") toast.success("Money rejected and task marked rejected.");
+          if (action === "reject_task") toast.success("Task rejected and unused client funds refunded.");
+          setBusinessPaymentModal(null);
+        },
+        onError: (error) => {
+          toast.error(error instanceof Error ? error.message : "Failed to review business payment.");
+        },
+        onSettled: () => setBusinessPaymentAction(null),
+      }
+    );
+  };
+
   return (
     <div className="space-y-6">
       <TaskDetailHeader
@@ -287,42 +311,7 @@ export default function TaskSubmissionsPage() {
         onEditClick={handleEditClick}
         onToggleStatusClick={() => mutations.toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}
         businessPaymentAction={businessPaymentAction}
-        onBusinessPaymentAction={(action) => {
-          const needsReason = action === "reject_payment" || action === "reject_task";
-          const reason = needsReason ? window.prompt("Enter reason for this decision.") : undefined;
-          if (needsReason && !reason?.trim()) return;
-          const expectedAmount = Number(task.amount || 0) * Number(task.numberOfUsersNeeded || 0);
-          let amountReceived: number | undefined;
-          if (action === "confirm_payment") {
-            const rawAmount = window.prompt(`Enter amount received. Expected: ₦${expectedAmount.toLocaleString()}`);
-            if (!rawAmount?.trim()) return;
-            amountReceived = Number(rawAmount.replace(/[^\d]/g, ""));
-            if (!Number.isSafeInteger(amountReceived) || amountReceived <= 0) {
-              toast.error("Enter a valid whole-naira amount received.");
-              return;
-            }
-            if (amountReceived !== expectedAmount) {
-              toast.error(`Amount received must match expected amount: ₦${expectedAmount.toLocaleString()}.`);
-              return;
-            }
-          }
-          setBusinessPaymentAction(action);
-          mutations.businessPaymentReview.mutate(
-            { action, reason: reason?.trim(), amountReceived },
-            {
-              onSuccess: () => {
-                if (action === "confirm_payment") toast.success("Money confirmed. You can now accept the task.");
-                if (action === "approve_task") toast.success("Task accepted and activated.");
-                if (action === "reject_payment") toast.success("Money rejected and task marked rejected.");
-                if (action === "reject_task") toast.success("Task rejected and unused client funds refunded.");
-              },
-              onError: (error) => {
-                toast.error(error instanceof Error ? error.message : "Failed to review business payment.");
-              },
-              onSettled: () => setBusinessPaymentAction(null),
-            }
-          );
-        }}
+        onBusinessPaymentAction={(action) => setBusinessPaymentModal(action)}
         onSendReminderClick={() => {
           mutations.sendOpenWindowReminders.mutate(undefined, {
             onSuccess: (res: any) => {
@@ -341,6 +330,16 @@ export default function TaskSubmissionsPage() {
         businessPaymentPending={mutations.businessPaymentReview.isPending}
         reminderPending={mutations.sendOpenWindowReminders.isPending}
       />
+
+      {businessPaymentModal && (
+        <BusinessPaymentConfirmModal
+          action={businessPaymentModal}
+          isPending={mutations.businessPaymentReview.isPending}
+          error={mutations.businessPaymentReview.error}
+          onClose={() => setBusinessPaymentModal(null)}
+          onConfirm={() => runBusinessPaymentAction(businessPaymentModal)}
+        />
+      )}
 
       {task.isSecureSpotTask && (
         <div className="space-y-4">
