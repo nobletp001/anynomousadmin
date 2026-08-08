@@ -1,7 +1,7 @@
 import React from "react";
 import { CheckCircle, ChevronLeft, ChevronRight, Copy, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import { Badge, Button } from "@/components/ui";
-import { NewUser } from "../types";
+import { NewUser, SignupPurpose } from "../types";
 import { formatDateTime, formatRelativeTime } from "../utils";
 import { toast } from "sonner";
 
@@ -13,6 +13,8 @@ interface NewUsersTableProps {
   totalUsers: number;
   resendingUsername?: string | null;
   verifyingUsername?: string | null;
+  purposeFilter: SignupPurpose | "all";
+  onPurposeFilterChange: (value: SignupPurpose | "all") => void;
   onResendOtp: (username: string) => void;
   onManualVerify: (username: string) => void;
 }
@@ -25,6 +27,8 @@ export function NewUsersTable({
   totalUsers,
   resendingUsername,
   verifyingUsername,
+  purposeFilter,
+  onPurposeFilterChange,
   onResendOtp,
   onManualVerify,
 }: NewUsersTableProps) {
@@ -38,10 +42,24 @@ export function NewUsersTable({
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/30 shadow-xl backdrop-blur-md">
       <div className="border-b border-zinc-800 px-6 py-4">
-        <div className="flex items-center gap-2">
-          <UserPlus className="h-4 w-4 text-purple-300" />
-          <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-200">New Users</h2>
-          <Badge variant="purple">Last 24 hours</Badge>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4 text-purple-300" />
+            <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-200">New Users</h2>
+            <Badge variant="purple">Last 24 hours</Badge>
+          </div>
+          <label className="flex items-center gap-2 text-xs font-bold text-zinc-500">
+            Purpose
+            <select
+              value={purposeFilter}
+              onChange={(e) => onPurposeFilterChange(e.target.value as SignupPurpose | "all")}
+              className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-bold text-zinc-200 outline-none transition focus:border-purple-500/60"
+            >
+              <option value="all">All signups</option>
+              <option value="task_creation">Task/Celebrity creation</option>
+              <option value="perform_tasks">Perform tasks & earn</option>
+            </select>
+          </label>
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -50,6 +68,7 @@ export function NewUsersTable({
             <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
               <th className="px-6 py-4 font-semibold">User</th>
               <th className="px-6 py-4 font-semibold">Email</th>
+              <th className="px-6 py-4 font-semibold">Purpose</th>
               <th className="px-6 py-4 font-semibold">Email Status</th>
               <th className="px-6 py-4 font-semibold">WhatsApp</th>
               <th className="px-6 py-4 font-semibold">Joined</th>
@@ -81,6 +100,11 @@ export function NewUsersTable({
                           </button>
                         )}
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge variant={user.signupPurpose === "task_creation" ? "purple" : "default"}>
+                        {user.signupPurpose === "task_creation" ? "task/celebrity" : "earn"}
+                      </Badge>
                     </td>
                     <td className="px-6 py-4">
                       <Badge variant={user.emailVerified ? "success" : "warning"} dot>
@@ -140,7 +164,7 @@ export function NewUsersTable({
               })
             ) : (
               <tr>
-                <td colSpan={6} className="px-6 py-16 text-center text-zinc-500">
+                <td colSpan={7} className="px-6 py-16 text-center text-zinc-500">
                   <UserPlus className="mx-auto mb-2 h-8 w-8 opacity-40" />
                   No new users in the last 24 hours
                 </td>

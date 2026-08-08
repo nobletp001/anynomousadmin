@@ -1,5 +1,6 @@
 import React from "react";
 import { CheckCircle2, WalletCards, X, XCircle } from "lucide-react";
+import { formatAmount } from "../utils";
 
 type BusinessPaymentAction = "confirm_payment" | "approve_task" | "reject_task" | "reject_payment";
 
@@ -7,8 +8,10 @@ interface BusinessPaymentConfirmModalProps {
   action: BusinessPaymentAction;
   isPending: boolean;
   error: Error | null;
+  expectedAmount?: number | null;
+  paymentMethod?: string;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (payload?: { amountReceived?: number; reason?: string }) => void;
 }
 
 const COPY: Record<
@@ -49,11 +52,31 @@ export function BusinessPaymentConfirmModal({
   action,
   isPending,
   error,
+  expectedAmount,
+  paymentMethod,
   onClose,
   onConfirm,
 }: BusinessPaymentConfirmModalProps) {
   const copy = COPY[action];
   const isAccept = copy.tone === "accept";
+  const isConfirmPayment = action === "confirm_payment";
+  const needsReason = action === "reject_payment" || action === "reject_task";
+  const [amountReceived, setAmountReceived] = React.useState(expectedAmount ? String(expectedAmount) : "");
+  const [reason, setReason] = React.useState("");
+  const amountNumber = Number(amountReceived);
+  const expected = Number(expectedAmount || 0);
+  const amountIsValid =
+    !isConfirmPayment || (Number.isFinite(amountNumber) && amountNumber > 0 && (!expected || amountNumber >= expected));
+  const reasonIsValid = !needsReason || reason.trim().length > 0;
+  const canConfirm = !isPending && amountIsValid && reasonIsValid;
+
+  const handleConfirm = () => {
+    if (!canConfirm) return;
+    onConfirm({
+      ...(isConfirmPayment ? { amountReceived: Math.round(amountNumber) } : {}),
+      ...(needsReason ? { reason: reason.trim() } : {}),
+    });
+  };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -76,6 +99,57 @@ export function BusinessPaymentConfirmModal({
           <p className="text-sm text-zinc-300">Are you sure you want to {isAccept ? "accept" : "reject"}?</p>
           <p className="text-xs text-zinc-500">{copy.body}</p>
 
+          {isConfirmPayment && (
+            <div className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3">
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Expected total</p>
+                  <p className="mt-1 font-extrabold text-emerald-300">
+                    {expected > 0 ? formatAmount(expected) : "Not detected"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Payment method</p>
+                  <p className="mt-1 font-extrabold capitalize text-zinc-200">{paymentMethod || "manual"}</p>
+                </div>
+              </div>
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-bold text-zinc-300">Amount received</span>
+                <input
+                  type="number"
+                  min={expected > 0 ? expected : 1}
+                  step="1"
+                  value={amountReceived}
+                  onChange={(event) => setAmountReceived(event.target.value)}
+                  disabled={isPending}
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm font-bold text-zinc-100 outline-none focus:border-emerald-500 disabled:opacity-60"
+                  placeholder={expected > 0 ? String(expected) : "Enter total paid"}
+                />
+              </label>
+              {!amountIsValid && (
+                <p className="text-xs text-amber-300">
+                  Enter the full client payment total. For example, if the client should pay {formatAmount(30000)}, do
+                  not confirm {formatAmount(20000)}.
+                </p>
+              )}
+            </div>
+          )}
+
+          {needsReason && (
+            <label className="block">
+              <span className="mb-1.5 block text-[11px] font-bold text-zinc-300">Reason</span>
+              <textarea
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                disabled={isPending}
+                rows={3}
+                className="w-full resize-none rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-red-500 disabled:opacity-60"
+                placeholder="Tell the client what needs to be fixed."
+              />
+              {!reasonIsValid && <span className="mt-1 block text-xs text-red-300">A reason is required.</span>}
+            </label>
+          )}
+
           {error && (
             <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
               {(error as Error & { response?: { data?: { error?: string } } })?.response?.data?.error || error.message}
@@ -92,8 +166,8 @@ export function BusinessPaymentConfirmModal({
             Cancel
           </button>
           <button
-            onClick={onConfirm}
-            disabled={isPending}
+            onClick={handleConfirm}
+            disabled={!canConfirm}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold border transition-colors disabled:opacity-50 ${
               isAccept
                 ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30"

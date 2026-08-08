@@ -15,18 +15,21 @@ import { UserDetailModal } from "./components/UserDetailModal";
 import { UserTrackingTab } from "./components/UserTrackingTab";
 import { ShieldOff, CreditCard, ClipboardX } from "lucide-react";
 import { toast } from "sonner";
+import type { SignupPurpose } from "./types";
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const state = useUsersState();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"all" | "new" | "tracking" | "gw">("all");
+  const [newUsersPurposeFilter, setNewUsersPurposeFilter] = useState<SignupPurpose | "all">("all");
 
   const { usersQuery, gwQuery, newUsersQuery, detailQuery, topUsersQuery } = useUsersQueries(
     state.page,
     state.debouncedSearch,
     state.selectedUser,
-    activeTab
+    activeTab,
+    newUsersPurposeFilter
   );
   const { updateFlags, resendEmailOtp, manualVerifyEmail } = useUsersMutations(state.page);
 
@@ -175,6 +178,11 @@ export default function UsersPage() {
           totalUsers={newUsersQuery.data?.total || 0}
           resendingUsername={(resendEmailOtp.variables as string | undefined) ?? null}
           verifyingUsername={(manualVerifyEmail.variables as string | undefined) ?? null}
+          purposeFilter={newUsersPurposeFilter}
+          onPurposeFilterChange={(value) => {
+            setNewUsersPurposeFilter(value);
+            state.setPage(1);
+          }}
           onResendOtp={(username) => {
             resendEmailOtp.mutate(username, {
               onSuccess: () => toast.success("Email OTP queued."),

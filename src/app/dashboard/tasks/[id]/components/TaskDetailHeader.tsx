@@ -162,6 +162,7 @@ export function TaskDetailHeader({
                     </>
                   ) : null}
                   <BusinessInfo label="Client price/user" value={businessInfo.clientPricePerUser || "—"} />
+                  <BusinessInfo label="Expected total" value={businessInfo.expectedTotalLabel || "—"} />
                   {isManualPaymentRequest ? (
                     <BusinessInfo label="Receipt file" value={businessInfo.receiptName || "—"} />
                   ) : null}
@@ -290,17 +291,19 @@ export function TaskDetailHeader({
                 {reminderPending ? "Sending..." : "Reminder"}
               </button>
             )}
-            <button
-              onClick={onToggleStatusClick}
-              disabled={toggleStatusPending}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                task.status === "active"
-                  ? "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20 hover:text-red-300"
-                  : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300"
-              }`}
-            >
-              {toggleStatusPending ? "Updating..." : task.status === "active" ? "Close Task" : "Re-open Task"}
-            </button>
+            {(!isBusinessPaymentRequest || task.status === "active") && (
+              <button
+                onClick={onToggleStatusClick}
+                disabled={toggleStatusPending}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                  task.status === "active"
+                    ? "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20 hover:text-red-300"
+                    : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300"
+                }`}
+              >
+                {toggleStatusPending ? "Updating..." : task.status === "active" ? "Close Task" : "Re-open Task"}
+              </button>
+            )}
             {task.link && (
               <a
                 href={task.link}
@@ -382,6 +385,10 @@ function parseBusinessRequestInfo(task: Task) {
     const row = notes.find((note) => note.toLowerCase().startsWith(prefix.toLowerCase()));
     return row ? row.slice(prefix.length).trim() : "";
   };
+  const clientPricePerUser = find("Client price per user:");
+  const clientPricePerUserAmount = parseMoneyNumber(clientPricePerUser);
+  const expectedTotalAmount =
+    clientPricePerUserAmount && task.numberOfUsersNeeded > 0 ? clientPricePerUserAmount * task.numberOfUsersNeeded : 0;
   return {
     paymentMethod: find("Payment method:").toLowerCase(),
     bank: find("Manual payment bank:"),
@@ -390,8 +397,15 @@ function parseBusinessRequestInfo(task: Task) {
     phone: find("Payment phone:"),
     receiptName: find("Payment receipt file:"),
     receiptUpload: find("Payment receipt upload:"),
-    clientPricePerUser: find("Client price per user:"),
+    clientPricePerUser,
+    expectedTotalAmount,
+    expectedTotalLabel: expectedTotalAmount > 0 ? formatAmount(expectedTotalAmount) : "",
   };
+}
+
+function parseMoneyNumber(value: string) {
+  const parsed = Number(String(value || "").replace(/[^\d.]/g, ""));
+  return Number.isFinite(parsed) ? Math.round(parsed) : 0;
 }
 
 function parseReviewNotes(raw: Task["clientRequestReviews"]) {

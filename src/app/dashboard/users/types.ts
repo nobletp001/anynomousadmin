@@ -14,11 +14,15 @@ export interface User {
   whatsappVerified?: boolean;
 }
 
+export type SignupPurpose = "task_creation" | "perform_tasks";
+
 export interface NewUser {
   id: number;
   name: string;
   username: string;
   email: string | null;
+  accountType: "task" | "business" | string;
+  signupPurpose: SignupPurpose;
   emailVerified: boolean;
   emailVerificationExpiresAt: string | null;
   whatsappVerified: boolean;

@@ -20,7 +20,7 @@ import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
 import { downloadClientTaskBrief } from "./client-brief";
-import { Submission, SubmissionsResponse } from "./types";
+import { Submission, SubmissionsResponse, Task } from "./types";
 import { isActionableSubmissionStatus } from "./utils";
 import { apiClient } from "@/services/api-client";
 import { toast } from "sonner";
@@ -279,10 +279,13 @@ export default function TaskSubmissionsPage() {
     editState.setUploadError("");
   };
 
-  const runBusinessPaymentAction = (action: "confirm_payment" | "approve_task" | "reject_task" | "reject_payment") => {
+  const runBusinessPaymentAction = (
+    action: "confirm_payment" | "approve_task" | "reject_task" | "reject_payment",
+    payload?: { amountReceived?: number; reason?: string }
+  ) => {
     setBusinessPaymentAction(action);
     mutations.businessPaymentReview.mutate(
-      { action },
+      { action, ...payload },
       {
         onSuccess: () => {
           if (action === "confirm_payment") toast.success("Money confirmed. You can now accept the task.");
@@ -336,8 +339,10 @@ export default function TaskSubmissionsPage() {
           action={businessPaymentModal}
           isPending={mutations.businessPaymentReview.isPending}
           error={mutations.businessPaymentReview.error}
+          expectedAmount={getBusinessExpectedTotal(task)}
+          paymentMethod={getBusinessPaymentMethod(task)}
           onClose={() => setBusinessPaymentModal(null)}
-          onConfirm={() => runBusinessPaymentAction(businessPaymentModal)}
+          onConfirm={(payload) => runBusinessPaymentAction(businessPaymentModal, payload)}
         />
       )}
 
@@ -474,4 +479,32 @@ export default function TaskSubmissionsPage() {
       />
     </div>
   );
+}
+
+function getBusinessExpectedTotal(task: Task) {
+  const pricePerUser = getBusinessReviewValue(task.clientRequestReviews, "Client price per user:");
+  const price = Number(String(pricePerUser || "").replace(/[^\d.]/g, ""));
+  if (!Number.isFinite(price) || price <= 0 || task.numberOfUsersNeeded <= 0) return null;
+  return Math.round(price * task.numberOfUsersNeeded);
+}
+
+function getBusinessPaymentMethod(task: Task) {
+  return getBusinessReviewValue(task.clientRequestReviews, "Payment method:") || "manual";
+}
+
+function getBusinessReviewValue(raw: Task["clientRequestReviews"], prefix: string) {
+  const notes = parseBusinessReviewNotes(raw);
+  const row = notes.find((note) => note.toLowerCase().startsWith(prefix.toLowerCase()));
+  return row ? row.slice(prefix.length).trim() : "";
+}
+
+function parseBusinessReviewNotes(raw: Task["clientRequestReviews"]) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.map(String);
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
 }

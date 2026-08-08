@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
-import { NewUser, UsersResponse } from "../types";
+import { NewUser, SignupPurpose, UsersResponse } from "../types";
 
 interface TopPerformer {
   username: string;
@@ -13,7 +13,8 @@ export function useUsersQueries(
   page: number,
   search: string,
   selectedUser: string | null,
-  activeTab: "all" | "new" | "tracking" | "gw"
+  activeTab: "all" | "new" | "tracking" | "gw",
+  newUsersPurposeFilter: SignupPurpose | "all" = "all"
 ) {
   const usersQuery = useQuery<UsersResponse>({
     queryKey: ["admin-users", page, search],
@@ -35,9 +36,14 @@ export function useUsersQueries(
     page: number;
     limit: number;
     windowHours: number;
+    signupPurpose: SignupPurpose | "all";
   }>({
-    queryKey: ["admin-new-users", page],
-    queryFn: () => apiClient.get(`/admin/users/new?page=${page}&limit=20`) as any,
+    queryKey: ["admin-new-users", page, newUsersPurposeFilter],
+    queryFn: () => {
+      const params = new URLSearchParams({ page: String(page), limit: "20" });
+      if (newUsersPurposeFilter !== "all") params.set("signupPurpose", newUsersPurposeFilter);
+      return apiClient.get(`/admin/users/new?${params.toString()}`) as any;
+    },
     enabled: activeTab === "new",
     refetchInterval: activeTab === "new" ? 15000 : false,
   });
