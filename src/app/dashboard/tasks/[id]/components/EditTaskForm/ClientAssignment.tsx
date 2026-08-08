@@ -9,6 +9,10 @@ interface ClientAssignmentProps {
   setEditIsForClient: (v: boolean) => void;
   editClientUsername: string;
   setEditClientUsername: (v: string) => void;
+  editClientAmountPaid: string;
+  setEditClientAmountPaid: (v: string) => void;
+  editClientPricePerUser: string;
+  setEditClientPricePerUser: (v: string) => void;
 }
 
 type UserSuggestion = {
@@ -22,6 +26,10 @@ export function ClientAssignment({
   setEditIsForClient,
   editClientUsername,
   setEditClientUsername,
+  editClientAmountPaid,
+  setEditClientAmountPaid,
+  editClientPricePerUser,
+  setEditClientPricePerUser,
 }: ClientAssignmentProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -107,57 +115,81 @@ export function ClientAssignment({
       </label>
 
       {editIsForClient && (
-        <div ref={containerRef} className="relative space-y-1.5">
-          <FieldLabel required>Client username</FieldLabel>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-            <input
-              value={editClientUsername}
-              onChange={(event) => {
-                setEditClientUsername(event.target.value);
-                setShowSuggestions(true);
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              onKeyDown={handleKeyDown}
-              placeholder="Search username, name, or email"
-              className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl pl-10 pr-10 py-2.5 text-sm font-bold text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/20 transition-colors"
-            />
-            {editClientUsername && (
-              <button
-                type="button"
-                onClick={detachClient}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-zinc-500 hover:bg-zinc-700/80 hover:text-zinc-100"
-                title="Remove client"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          {showSuggestions && (
-            <div className="absolute top-[calc(100%+4px)] left-0 z-50 max-h-56 w-full overflow-y-auto rounded-xl border border-zinc-700/80 bg-zinc-900 shadow-2xl divide-y divide-zinc-800">
-              {search.length < 2 ? (
-                <div className="px-4 py-3 text-xs italic text-zinc-400">Type 2 or more characters...</div>
-              ) : isFetching ? (
-                <div className="px-4 py-3 text-xs italic text-zinc-400">Searching...</div>
-              ) : suggestions.length === 0 ? (
-                <div className="px-4 py-3 text-xs italic text-zinc-500">No users found</div>
-              ) : (
-                suggestions.map((user, index) => (
-                  <button
-                    key={user.username}
-                    type="button"
-                    onClick={() => selectUsername(user.username)}
-                    className={`flex w-full flex-col px-4 py-2 text-left text-xs transition-colors ${
-                      index === activeIndex ? "bg-sky-600/30 text-white" : "text-zinc-200 hover:bg-zinc-800"
-                    }`}
-                  >
-                    <span className="font-bold">@{user.username}</span>
-                    <span className="text-[10px] text-zinc-400">{user.name || user.email || "PayFluence user"}</span>
-                  </button>
-                ))
+        <div className="space-y-4">
+          <div ref={containerRef} className="relative space-y-1.5">
+            <FieldLabel required>Client username</FieldLabel>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+              <input
+                value={editClientUsername}
+                onChange={(event) => {
+                  setEditClientUsername(event.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={handleKeyDown}
+                placeholder="Search username, name, or email"
+                className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl pl-10 pr-10 py-2.5 text-sm font-bold text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/20 transition-colors"
+              />
+              {editClientUsername && (
+                <button
+                  type="button"
+                  onClick={detachClient}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-zinc-500 hover:bg-zinc-700/80 hover:text-zinc-100"
+                  title="Remove client"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               )}
             </div>
-          )}
+            {showSuggestions && (
+              <div className="absolute top-[calc(100%+4px)] left-0 z-50 max-h-56 w-full overflow-y-auto rounded-xl border border-zinc-700/80 bg-zinc-900 shadow-2xl divide-y divide-zinc-800">
+                {search.length < 2 ? (
+                  <div className="px-4 py-3 text-xs italic text-zinc-400">Type 2 or more characters...</div>
+                ) : isFetching ? (
+                  <div className="px-4 py-3 text-xs italic text-zinc-400">Searching...</div>
+                ) : suggestions.length === 0 ? (
+                  <div className="px-4 py-3 text-xs italic text-zinc-500">No users found</div>
+                ) : (
+                  suggestions.map((user, index) => (
+                    <button
+                      key={user.username}
+                      type="button"
+                      onClick={() => selectUsername(user.username)}
+                      className={`flex w-full flex-col px-4 py-2 text-left text-xs transition-colors ${
+                        index === activeIndex ? "bg-sky-600/30 text-white" : "text-zinc-200 hover:bg-zinc-800"
+                      }`}
+                    >
+                      <span className="font-bold">@{user.username}</span>
+                      <span className="text-[10px] text-zinc-400">{user.name || user.email || "PayFluence user"}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <FieldLabel required>Client amount paid</FieldLabel>
+              <input
+                value={editClientAmountPaid}
+                onChange={(e) => setEditClientAmountPaid(e.target.value)}
+                inputMode="numeric"
+                placeholder="30000"
+                className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm font-bold text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/20 transition-colors"
+              />
+            </div>
+            <div>
+              <FieldLabel required>Client price per user</FieldLabel>
+              <input
+                value={editClientPricePerUser}
+                onChange={(e) => setEditClientPricePerUser(e.target.value)}
+                inputMode="numeric"
+                placeholder="300"
+                className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm font-bold text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/20 transition-colors"
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>

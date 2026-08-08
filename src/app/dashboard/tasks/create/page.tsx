@@ -60,6 +60,10 @@ export default function CreateTaskPage() {
           setIsForClient={state.setIsForClient}
           clientUsername={state.clientUsername}
           setClientUsername={state.setClientUsername}
+          clientAmountPaid={state.clientAmountPaid}
+          setClientAmountPaid={state.setClientAmountPaid}
+          clientPricePerUser={state.clientPricePerUser}
+          setClientPricePerUser={state.setClientPricePerUser}
           officers={officers}
         />
 

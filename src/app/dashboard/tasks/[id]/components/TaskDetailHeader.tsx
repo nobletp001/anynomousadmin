@@ -162,6 +162,7 @@ export function TaskDetailHeader({
                     </>
                   ) : null}
                   <BusinessInfo label="Client price/user" value={businessInfo.clientPricePerUser || "—"} />
+                  <BusinessInfo label="Client amount paid" value={businessInfo.clientAmountPaid || "—"} />
                   <BusinessInfo label="Expected total" value={businessInfo.expectedTotalLabel || "—"} />
                   {isManualPaymentRequest ? (
                     <BusinessInfo label="Receipt file" value={businessInfo.receiptName || "—"} />
@@ -387,8 +388,13 @@ function parseBusinessRequestInfo(task: Task) {
   };
   const clientPricePerUser = find("Client price per user:");
   const clientPricePerUserAmount = parseMoneyNumber(clientPricePerUser);
+  const clientAmountPaid = find("Client amount paid:");
+  const clientAmountPaidValue = parseMoneyNumber(clientAmountPaid);
   const expectedTotalAmount =
-    clientPricePerUserAmount && task.numberOfUsersNeeded > 0 ? clientPricePerUserAmount * task.numberOfUsersNeeded : 0;
+    clientAmountPaidValue ||
+    (clientPricePerUserAmount && task.numberOfUsersNeeded > 0
+      ? clientPricePerUserAmount * task.numberOfUsersNeeded
+      : 0);
   return {
     paymentMethod: find("Payment method:").toLowerCase(),
     bank: find("Manual payment bank:"),
@@ -398,6 +404,7 @@ function parseBusinessRequestInfo(task: Task) {
     receiptName: find("Payment receipt file:"),
     receiptUpload: find("Payment receipt upload:"),
     clientPricePerUser,
+    clientAmountPaid,
     expectedTotalAmount,
     expectedTotalLabel: expectedTotalAmount > 0 ? formatAmount(expectedTotalAmount) : "",
   };

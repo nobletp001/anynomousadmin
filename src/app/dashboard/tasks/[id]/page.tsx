@@ -205,6 +205,12 @@ export default function TaskSubmissionsPage() {
     editState.setEditAssignedOfficer(task.assignedOfficer || "");
     editState.setEditIsForClient(!!(task.isForClient || task.creatorType === "business"));
     editState.setEditClientUsername(task.clientUsername || (task.creatorType === "business" ? task.createdBy : ""));
+    editState.setEditClientAmountPaid(
+      getBusinessReviewValue(task.clientRequestReviews, "Client amount paid:").replace(/[^\d]/g, "")
+    );
+    editState.setEditClientPricePerUser(
+      getBusinessReviewValue(task.clientRequestReviews, "Client price per user:").replace(/[^\d]/g, "")
+    );
     editState.setEditInstructions(task.instructions ? JSON.parse(task.instructions) : []);
     editState.setEditCaption(task.caption || "");
     editState.setEditTaskType(task.taskType || "follow");
@@ -482,6 +488,9 @@ export default function TaskSubmissionsPage() {
 }
 
 function getBusinessExpectedTotal(task: Task) {
+  const amountPaid = getBusinessReviewValue(task.clientRequestReviews, "Client amount paid:");
+  const paid = Number(String(amountPaid || "").replace(/[^\d.]/g, ""));
+  if (Number.isFinite(paid) && paid > 0) return Math.round(paid);
   const pricePerUser = getBusinessReviewValue(task.clientRequestReviews, "Client price per user:");
   const price = Number(String(pricePerUser || "").replace(/[^\d.]/g, ""));
   if (!Number.isFinite(price) || price <= 0 || task.numberOfUsersNeeded <= 0) return null;

@@ -9,6 +9,8 @@ export function useCreateTaskState() {
   const [assignedOfficer, setAssignedOfficer] = useState("");
   const [isForClient, setIsForClient] = useState(false);
   const [clientUsername, setClientUsername] = useState("");
+  const [clientAmountPaid, setClientAmountPaid] = useState("");
+  const [clientPricePerUser, setClientPricePerUser] = useState("");
   const [instructions, setInstructions] = useState<string[]>([""]);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [taskType, setTaskType] = useState("follow");
@@ -89,6 +91,10 @@ export function useCreateTaskState() {
     setIsForClient,
     clientUsername,
     setClientUsername,
+    clientAmountPaid,
+    setClientAmountPaid,
+    clientPricePerUser,
+    setClientPricePerUser,
     instructions,
     setInstructions,
     draggedIdx,

@@ -56,7 +56,20 @@ export function EditTaskModal({
       toast.error("Client username is required");
       return;
     }
-
+    if (
+      editState.editIsForClient &&
+      (!Number(editState.editClientAmountPaid) || Number(editState.editClientAmountPaid) <= 0)
+    ) {
+      toast.error("Client amount paid is required");
+      return;
+    }
+    if (
+      editState.editIsForClient &&
+      (!Number(editState.editClientPricePerUser) || Number(editState.editClientPricePerUser) <= 0)
+    ) {
+      toast.error("Client price per user is required");
+      return;
+    }
     let uploadedUrls: string[] = [];
     if (editState.editImages.length > 0) {
       try {
@@ -82,10 +95,24 @@ export function EditTaskModal({
       : editState.editTimeline
         ? new Date(`${editState.editTimeline}T23:59:59.999`).toISOString()
         : null;
+    const audience = {
+      gender: Array.isArray(editState.editAudience?.gender) ? editState.editAudience.gender : [],
+      employmentStatus: Array.isArray(editState.editAudience?.employmentStatus)
+        ? editState.editAudience.employmentStatus
+        : [],
+      educationLevel: Array.isArray(editState.editAudience?.educationLevel)
+        ? editState.editAudience.educationLevel
+        : [],
+      state: Array.isArray(editState.editAudience?.state) ? editState.editAudience.state : [],
+      minAge: editState.editAudience?.minAge ?? "",
+      maxAge: editState.editAudience?.maxAge ?? "",
+    };
 
     updateTaskMutation.mutate({
       isForClient: editState.editIsForClient,
       clientUsername: editState.editIsForClient ? editState.editClientUsername.trim().replace(/^@/, "") : null,
+      clientAmountPaid: editState.editIsForClient ? Number(editState.editClientAmountPaid) : undefined,
+      clientPricePerUser: editState.editIsForClient ? Number(editState.editClientPricePerUser) : undefined,
       hasClientRequestReview: editState.editHasClientRequestReview,
       clientRequestReviews: editState.editHasClientRequestReview
         ? editState.editClientRequestReviews.map((r) => r.trim()).filter(Boolean)
@@ -119,16 +146,12 @@ export function EditTaskModal({
       adminContact: editState.editAdminContact.trim() || null,
       targetAudience: editState.editEnableTargeting
         ? {
-            ...(editState.editAudience.gender.length ? { gender: editState.editAudience.gender } : {}),
-            ...(editState.editAudience.employmentStatus.length
-              ? { employmentStatus: editState.editAudience.employmentStatus }
-              : {}),
-            ...(editState.editAudience.educationLevel.length
-              ? { educationLevel: editState.editAudience.educationLevel }
-              : {}),
-            ...(editState.editAudience.state.length ? { state: editState.editAudience.state } : {}),
-            ...(editState.editAudience.minAge ? { minAge: parseInt(editState.editAudience.minAge) } : {}),
-            ...(editState.editAudience.maxAge ? { maxAge: parseInt(editState.editAudience.maxAge) } : {}),
+            ...(audience.gender.length ? { gender: audience.gender } : {}),
+            ...(audience.employmentStatus.length ? { employmentStatus: audience.employmentStatus } : {}),
+            ...(audience.educationLevel.length ? { educationLevel: audience.educationLevel } : {}),
+            ...(audience.state.length ? { state: audience.state } : {}),
+            ...(audience.minAge ? { minAge: parseInt(audience.minAge) } : {}),
+            ...(audience.maxAge ? { maxAge: parseInt(audience.maxAge) } : {}),
           }
         : null,
       allowedSubmissions: editState.editAllowedSubmissions,
@@ -251,6 +274,10 @@ export function EditTaskModal({
             setEditIsForClient={editState.setEditIsForClient}
             editClientUsername={editState.editClientUsername}
             setEditClientUsername={editState.setEditClientUsername}
+            editClientAmountPaid={editState.editClientAmountPaid}
+            setEditClientAmountPaid={editState.setEditClientAmountPaid}
+            editClientPricePerUser={editState.editClientPricePerUser}
+            setEditClientPricePerUser={editState.setEditClientPricePerUser}
           />
           <ClientRequestReview
             editHasClientRequestReview={editState.editHasClientRequestReview}

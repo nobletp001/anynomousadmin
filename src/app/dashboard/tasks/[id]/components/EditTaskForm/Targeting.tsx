@@ -19,12 +19,21 @@ export function Targeting({
   editAudience,
   setEditAudience,
 }: TargetingProps) {
+  const audience: AudienceFilter = {
+    gender: Array.isArray(editAudience?.gender) ? editAudience.gender : [],
+    employmentStatus: Array.isArray(editAudience?.employmentStatus) ? editAudience.employmentStatus : [],
+    educationLevel: Array.isArray(editAudience?.educationLevel) ? editAudience.educationLevel : [],
+    state: Array.isArray(editAudience?.state) ? editAudience.state : [],
+    minAge: editAudience?.minAge ?? "",
+    maxAge: editAudience?.maxAge ?? "",
+  };
+
   const updateAudience = (key: keyof AudienceFilter, val: any) => {
     setEditAudience((prev) => ({ ...prev, [key]: val }));
   };
 
   const handleToggle = (key: keyof AudienceFilter, val: string) => {
-    const current = editAudience[key] as string[];
+    const current = audience[key] as string[];
     updateAudience(key, toggle(current, val));
   };
 
@@ -33,17 +42,23 @@ export function Targeting({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold text-zinc-300">Target Audience</h2>
-          <p className="text-[11px] text-zinc-500 mt-0.5">Restrict this task to specific users based on their profile</p>
+          <p className="text-[11px] text-zinc-500 mt-0.5">
+            Restrict this task to specific users based on their profile
+          </p>
         </div>
         <label className="flex items-center gap-2.5 cursor-pointer select-none">
-          <span className={`text-xs font-semibold transition-colors ${editEnableTargeting ? "text-purple-400" : "text-zinc-500"}`}>
+          <span
+            className={`text-xs font-semibold transition-colors ${editEnableTargeting ? "text-purple-400" : "text-zinc-500"}`}
+          >
             {editEnableTargeting ? "Enabled" : "Disabled"}
           </span>
           <div
             onClick={() => setEditEnableTargeting(!editEnableTargeting)}
             className={`relative w-10 h-5 rounded-full transition-all ${editEnableTargeting ? "bg-purple-500" : "bg-zinc-700"}`}
           >
-            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editEnableTargeting ? "translate-x-5" : "translate-x-0"}`} />
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editEnableTargeting ? "translate-x-5" : "translate-x-0"}`}
+            />
           </div>
         </label>
       </div>
@@ -57,7 +72,7 @@ export function Targeting({
                 type="number"
                 min="1"
                 max="100"
-                value={editAudience.minAge}
+                value={audience.minAge}
                 onChange={(e) => updateAudience("minAge", e.target.value)}
                 placeholder="Min age"
                 className={`${inputCls} flex-1`}
@@ -67,7 +82,7 @@ export function Targeting({
                 type="number"
                 min="1"
                 max="100"
-                value={editAudience.maxAge}
+                value={audience.maxAge}
                 onChange={(e) => updateAudience("maxAge", e.target.value)}
                 placeholder="Max age"
                 className={`${inputCls} flex-1`}
@@ -88,7 +103,7 @@ export function Targeting({
                   type="button"
                   onClick={() => handleToggle("gender", val)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-                    editAudience.gender.includes(val)
+                    audience.gender.includes(val)
                       ? "bg-purple-500/15 border-purple-500/50 text-purple-300"
                       : "bg-zinc-800/50 border-zinc-700/50 text-zinc-450 hover:text-zinc-300"
                   }`}
@@ -113,7 +128,7 @@ export function Targeting({
                   type="button"
                   onClick={() => handleToggle("employmentStatus", val)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-                    editAudience.employmentStatus.includes(val)
+                    audience.employmentStatus.includes(val)
                       ? "bg-blue-500/15 border-blue-500/50 text-blue-300"
                       : "bg-zinc-800/50 border-zinc-700/50 text-zinc-455 hover:text-zinc-300"
                   }`}
@@ -138,7 +153,7 @@ export function Targeting({
                   type="button"
                   onClick={() => handleToggle("educationLevel", val)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-                    editAudience.educationLevel.includes(val)
+                    audience.educationLevel.includes(val)
                       ? "bg-amber-500/15 border-amber-500/50 text-amber-300"
                       : "bg-zinc-800/50 border-zinc-700/50 text-zinc-455 hover:text-zinc-300"
                   }`}
@@ -158,7 +173,7 @@ export function Targeting({
                   type="button"
                   onClick={() => handleToggle("state", state)}
                   className={`px-2 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
-                    editAudience.state.includes(state)
+                    audience.state.includes(state)
                       ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-300"
                       : "bg-zinc-800/50 border-zinc-700/40 text-zinc-550 hover:text-zinc-300"
                   }`}

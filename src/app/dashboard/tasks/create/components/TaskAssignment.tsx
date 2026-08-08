@@ -8,6 +8,10 @@ interface TaskAssignmentProps {
   setIsForClient: (v: boolean) => void;
   clientUsername: string;
   setClientUsername: (v: string) => void;
+  clientAmountPaid: string;
+  setClientAmountPaid: (v: string) => void;
+  clientPricePerUser: string;
+  setClientPricePerUser: (v: string) => void;
   officers: any[];
 }
 
@@ -18,6 +22,10 @@ export function TaskAssignment({
   setIsForClient,
   clientUsername,
   setClientUsername,
+  clientAmountPaid,
+  setClientAmountPaid,
+  clientPricePerUser,
+  setClientPricePerUser,
   officers,
 }: TaskAssignmentProps) {
   return (
@@ -40,7 +48,7 @@ export function TaskAssignment({
           </span>
         </label>
         {isForClient && (
-          <div className="mt-4">
+          <div className="mt-4 space-y-4">
             <FieldLabel required>Client username</FieldLabel>
             <input
               value={clientUsername}
@@ -51,6 +59,28 @@ export function TaskAssignment({
             <p className="text-[11px] text-zinc-550 mt-1.5 leading-relaxed">
               Use the client&apos;s PayFluence username. Admin remains the verifier on the task record.
             </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <FieldLabel required>Client amount paid</FieldLabel>
+                <input
+                  value={clientAmountPaid}
+                  onChange={(event) => setClientAmountPaid(event.target.value)}
+                  placeholder="30000"
+                  inputMode="numeric"
+                  className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm font-bold text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/20 transition-colors"
+                />
+              </div>
+              <div>
+                <FieldLabel required>Client price per user</FieldLabel>
+                <input
+                  value={clientPricePerUser}
+                  onChange={(event) => setClientPricePerUser(event.target.value)}
+                  placeholder="300"
+                  inputMode="numeric"
+                  className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm font-bold text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/20 transition-colors"
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>

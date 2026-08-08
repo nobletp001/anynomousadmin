@@ -12,6 +12,8 @@ export function useEditTaskState() {
   const [editAssignedOfficer, setEditAssignedOfficer] = useState("");
   const [editIsForClient, setEditIsForClient] = useState(false);
   const [editClientUsername, setEditClientUsername] = useState("");
+  const [editClientAmountPaid, setEditClientAmountPaid] = useState("");
+  const [editClientPricePerUser, setEditClientPricePerUser] = useState("");
   const [editCaption, setEditCaption] = useState("");
   const [editTaskType, setEditTaskType] = useState("follow");
   const [editTargetPlatform, setEditTargetPlatform] = useState("instagram");
@@ -87,6 +89,10 @@ export function useEditTaskState() {
     setEditIsForClient,
     editClientUsername,
     setEditClientUsername,
+    editClientAmountPaid,
+    setEditClientAmountPaid,
+    editClientPricePerUser,
+    setEditClientPricePerUser,
     editCaption,
     setEditCaption,
     editTaskType,
