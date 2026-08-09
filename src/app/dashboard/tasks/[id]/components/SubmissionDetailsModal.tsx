@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FileText, Move, X, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui";
 import { ImageCollisionMatch, Submission, Task } from "../types";
-import { formatDate } from "../utils";
+import { formatDate, getImagesList } from "../utils";
 import { SubmissionUserInfoPanel } from "./SubmissionUserInfoPanel";
 import { SubmissionProofPanel } from "./SubmissionProofPanel";
 import { SideBySideCompareBody } from "./SideBySideCompareBody";
@@ -129,15 +129,27 @@ export function SubmissionDetailsModal({
   };
 
   const handleCompareSubmission = async (submissionId: number) => {
+    if (!hasComparableImageProof(sub)) {
+      toast.info("Current submission has no image proof to compare.");
+      return;
+    }
     const match = submissions.find((s) => s.id === submissionId);
     if (match) {
+      if (match.taskId !== sub.taskId) {
+        toast.info("Image comparison is limited to submissions on this task.");
+        return;
+      }
+      if (!hasComparableImageProof(match)) {
+        toast.info(`@${match.username} has no image proof to compare.`);
+        return;
+      }
       setComparisonSub(match);
       return;
     }
     try {
       const res = (await apiClient.get(`/admin/fraud/image-collision/${sub.id}`)) as any;
       const remoteMatch = ((res?.matches ?? []) as ImageCollisionMatch[]).find(
-        (item) => item.submissionId === submissionId
+        (item) => item.submissionId === submissionId && item.taskId === sub.taskId && hasComparableImageMatch(item)
       );
       if (remoteMatch) {
         setComparisonSub(imageMatchToSubmission(remoteMatch));
@@ -294,6 +306,18 @@ export function SubmissionDetailsModal({
       </div>
     </div>
   );
+}
+
+function hasComparableImageProof(submission: Submission) {
+  const proofType = (submission.proofType || "").toLowerCase();
+  return (
+    proofType !== "text" && proofType !== "link" && proofType !== "url" && getImagesList(submission.proof).length > 0
+  );
+}
+
+function hasComparableImageMatch(match: ImageCollisionMatch) {
+  const proofType = (match.proofType || "").toLowerCase();
+  return proofType !== "text" && proofType !== "link" && proofType !== "url" && getImagesList(match.proof).length > 0;
 }
 
 function imageMatchToSubmission(match: ImageCollisionMatch): Submission {

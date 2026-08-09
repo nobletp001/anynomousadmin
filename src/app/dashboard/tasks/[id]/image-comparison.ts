@@ -31,10 +31,46 @@ export function parseImageComparison(imageMetadata?: string | null): ImageCompar
   if (!imageMetadata) return { status: "pending" };
   try {
     const parsed = JSON.parse(imageMetadata);
-    return parsed.comparison ?? { status: parsed.analysisStatus ?? "confirmed", bestMatchScore: 0 };
+    return normalizeImageComparison(
+      parsed.comparison ?? { status: parsed.analysisStatus ?? "confirmed", bestMatchScore: 0 }
+    );
   } catch {
     return { status: "failed" };
   }
+}
+
+function normalizeImageComparison(summary: ImageComparisonSummary): ImageComparisonSummary {
+  const matches = (summary.matches ?? [])
+    .map((match) => ({
+      ...match,
+      score: effectiveComparisonScore(match.score, match.details),
+    }))
+    .filter((match) => match.score >= 70)
+    .sort((a, b) => b.score - a.score);
+  const detailScore = effectiveComparisonScore(summary.bestMatchScore ?? 0, summary.details);
+  const bestFromMatches = matches[0];
+  const bestMatchScore = bestFromMatches?.score ?? detailScore;
+  return {
+    ...summary,
+    bestMatchScore,
+    bestMatchSubmission:
+      bestFromMatches?.submissionId ?? (bestMatchScore >= 70 ? summary.bestMatchSubmission : undefined),
+    bestMatchUsername: bestFromMatches?.username ?? (bestMatchScore >= 70 ? summary.bestMatchUsername : undefined),
+    bestMatchStatus: bestFromMatches?.status ?? (bestMatchScore >= 70 ? summary.bestMatchStatus : undefined),
+    matchCount: matches.length,
+    matches,
+  };
+}
+
+function effectiveComparisonScore(score: number, details?: ImageComparisonDetails) {
+  if (!details) return score;
+  if (score === 100 || details.phashSim === 100) return 100;
+  const weighted =
+    Math.round((details.phashSim ?? 0) * 0.45) +
+    Math.round((details.rawSim ?? details.phashSim ?? 0) * 0.15) +
+    Math.round((details.ocrSim ?? 0) * 0.3) +
+    Math.round((details.metaSim ?? 0) * 0.1);
+  return Math.max(0, Math.min(100, weighted));
 }
 
 export function imageComparisonLabel(summary: ImageComparisonSummary) {
