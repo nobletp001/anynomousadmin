@@ -128,6 +128,16 @@ export function SubmissionDetailsModal({
     }
   };
 
+  const handleCompareSubmission = (submissionId: number) => {
+    const match = submissions.find((s) => s.id === submissionId);
+    if (match) {
+      setComparisonSub(match);
+      return;
+    }
+    toast.info("Matched submission is not in the current loaded page. Open Fraud image collisions for the full list.");
+    apiClient.post(`/admin/fraud/analyze/${sub.username}`).catch(console.error);
+  };
+
   const handleApproveClick = () => {
     onApprove();
   };
@@ -223,7 +233,7 @@ export function SubmissionDetailsModal({
                 isReportPending={isReportPending}
                 onCompareUser={handleCompareUser}
               />
-              <SubmissionProofPanel sub={sub} onZoomImage={onZoomImage} />
+              <SubmissionProofPanel sub={sub} onCompareSubmission={handleCompareSubmission} onZoomImage={onZoomImage} />
             </div>
           )}
         </div>

@@ -1,15 +1,23 @@
 import React from "react";
-import { Link as LinkIcon, ExternalLink, Eye, Download } from "lucide-react";
+import { Link as LinkIcon, ExternalLink, Eye, Download, ScanSearch } from "lucide-react";
 import { Submission } from "../types";
 import { getImagesList, getDownloadUrl } from "../utils";
+import {
+  imageComparisonDecisionLabel,
+  imageComparisonLabel,
+  imageComparisonTone,
+  parseImageComparison,
+} from "../image-comparison";
 
 interface SubmissionProofPanelProps {
   sub: Submission;
   onZoomImage: (images: string[], index: number) => void;
+  onCompareSubmission?: (submissionId: number) => void;
 }
 
-export function SubmissionProofPanel({ sub, onZoomImage }: SubmissionProofPanelProps) {
+export function SubmissionProofPanel({ sub, onZoomImage, onCompareSubmission }: SubmissionProofPanelProps) {
   const images = getImagesList(sub.proof);
+  const comparison = parseImageComparison(sub.imageMetadata);
 
   return (
     <div className="md:col-span-7 space-y-4">
@@ -17,6 +25,7 @@ export function SubmissionProofPanel({ sub, onZoomImage }: SubmissionProofPanelP
         <h4 className="text-[10px] font-bold text-zinc-550 uppercase tracking-widest border-b border-zinc-800 pb-1.5 mb-4 shrink-0">
           Submitted Proof
         </h4>
+        <ImageComparisonCard comparison={comparison} onCompareSubmission={onCompareSubmission} />
 
         {sub.proofType === "link" ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-6 border border-dashed border-zinc-800 rounded-xl bg-zinc-900/10">
@@ -86,6 +95,83 @@ export function SubmissionProofPanel({ sub, onZoomImage }: SubmissionProofPanelP
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function ImageComparisonCard({
+  comparison,
+  onCompareSubmission,
+}: {
+  comparison: ReturnType<typeof parseImageComparison>;
+  onCompareSubmission?: (submissionId: number) => void;
+}) {
+  const tone = imageComparisonTone(comparison);
+  const score = comparison.bestMatchScore ?? 0;
+  const details = comparison.details;
+  const canCompare = Boolean(comparison.bestMatchSubmission && onCompareSubmission);
+  return (
+    <div
+      className={`mb-4 rounded-xl border p-3 ${
+        tone === "danger"
+          ? "border-red-500/30 bg-red-500/10"
+          : tone === "warning"
+            ? "border-amber-500/30 bg-amber-500/10"
+            : tone === "pending"
+              ? "border-zinc-700 bg-zinc-900/60"
+              : "border-emerald-500/20 bg-emerald-500/10"
+      }`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-2 text-xs font-bold text-zinc-200">
+          <ScanSearch className="h-4 w-4" />
+          {imageComparisonLabel(comparison)}
+        </span>
+        <button
+          className={`rounded-full border border-current/20 px-2.5 py-1 text-xs font-black text-zinc-100 transition ${
+            canCompare ? "cursor-pointer hover:bg-white/10" : "cursor-default"
+          }`}
+          disabled={!canCompare}
+          onClick={() => {
+            if (comparison.bestMatchSubmission) onCompareSubmission?.(comparison.bestMatchSubmission);
+          }}
+          title={canCompare ? "Compare matched submission side by side" : imageComparisonDecisionLabel(comparison)}
+          type="button"
+        >
+          {score}% match
+        </button>
+      </div>
+      <p className="mt-2 text-[11px] font-black text-zinc-200">{imageComparisonDecisionLabel(comparison)}</p>
+      <div className="mt-2 grid grid-cols-2 gap-2 text-[10px] font-semibold text-zinc-400 sm:grid-cols-4">
+        <span>Perceptual {details?.phashSim ?? 0}%</span>
+        <span>Raw {details?.rawSim ?? 0}%</span>
+        <span>OCR {details?.ocrSim ?? 0}%</span>
+        <span>Meta {details?.metaSim ?? 0}%</span>
+      </div>
+      {comparison.bestMatchUsername ? (
+        <p className="mt-2 text-[11px] font-semibold text-zinc-400">
+          Best match: @{comparison.bestMatchUsername} · submission #{comparison.bestMatchSubmission} ·{" "}
+          {comparison.matchCount ?? 0} flagged of {comparison.checkedCount ?? 0} checked
+        </p>
+      ) : (
+        <p className="mt-2 text-[11px] font-semibold text-zinc-500">
+          {comparison.checkedCount ?? 0} image submissions checked for this task.
+        </p>
+      )}
+      {comparison.matches && comparison.matches.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {comparison.matches.map((match) => (
+            <button
+              className="rounded-lg border border-current/20 bg-black/20 px-2 py-1 text-[10px] font-black text-zinc-100 transition hover:bg-white/10"
+              key={match.submissionId}
+              onClick={() => onCompareSubmission?.(match.submissionId)}
+              type="button"
+            >
+              @{match.username} · {match.score}%
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { formatAmount, formatSubmissionStatus, getImagesList, isActionableSubmis
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
 import { toast } from "sonner";
+import { imageComparisonLabel, parseImageComparison } from "../image-comparison";
 
 interface SideBySideCompareBodyProps {
   sub: Submission;
@@ -58,6 +59,7 @@ export function SideBySideCompareBody({
     const status = localStatuses[s.id] || s.status;
     const canAction = isActionableSubmissionStatus(status);
     const imgs = s.proofType !== "link" ? getImagesList(s.proof) : [];
+    const comparison = parseImageComparison(s.imageMetadata);
 
     return (
       <div className="border border-zinc-800 bg-zinc-950/20 rounded-xl p-5 space-y-4 flex flex-col h-full">
@@ -81,6 +83,12 @@ export function SideBySideCompareBody({
           <p>
             <span className="text-zinc-500 font-medium">Balance:</span>{" "}
             <span className="font-semibold text-emerald-400">{formatAmount(s.userBalance)}</span>
+          </p>
+          <p>
+            <span className="text-zinc-500 font-medium">Image match:</span>{" "}
+            <span className="font-semibold text-purple-300">
+              {comparison.bestMatchScore ?? 0}% · {imageComparisonLabel(comparison)}
+            </span>
           </p>
           {s.user && (s.user as any).accountNumber && (
             <p className="font-mono mt-1 border-t border-zinc-850 pt-1.5">

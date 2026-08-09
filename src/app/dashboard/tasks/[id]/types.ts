@@ -211,6 +211,7 @@ export interface Submission {
   selectedPrompt?: string | null;
   deviceFingerprint?: string | null;
   imageHash?: string | null;
+  imageMetadata?: string | null;
   fraudAlerts?: FraudAlert[];
   userTaskStats?: {
     total: number;
