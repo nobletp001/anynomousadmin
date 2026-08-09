@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FileText, Move, X, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui";
-import { Submission, Task } from "../types";
+import { ImageCollisionMatch, Submission, Task } from "../types";
 import { formatDate } from "../utils";
 import { SubmissionUserInfoPanel } from "./SubmissionUserInfoPanel";
 import { SubmissionProofPanel } from "./SubmissionProofPanel";
@@ -128,14 +128,25 @@ export function SubmissionDetailsModal({
     }
   };
 
-  const handleCompareSubmission = (submissionId: number) => {
+  const handleCompareSubmission = async (submissionId: number) => {
     const match = submissions.find((s) => s.id === submissionId);
     if (match) {
       setComparisonSub(match);
       return;
     }
-    toast.info("Matched submission is not in the current loaded page. Open Fraud image collisions for the full list.");
-    apiClient.post(`/admin/fraud/analyze/${sub.username}`).catch(console.error);
+    try {
+      const res = (await apiClient.get(`/admin/fraud/image-collision/${sub.id}`)) as any;
+      const remoteMatch = ((res?.matches ?? []) as ImageCollisionMatch[]).find(
+        (item) => item.submissionId === submissionId
+      );
+      if (remoteMatch) {
+        setComparisonSub(imageMatchToSubmission(remoteMatch));
+        return;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    toast.info("Matched submission could not be loaded for comparison. Refresh and try again.");
   };
 
   const handleApproveClick = () => {
@@ -283,4 +294,24 @@ export function SubmissionDetailsModal({
       </div>
     </div>
   );
+}
+
+function imageMatchToSubmission(match: ImageCollisionMatch): Submission {
+  return {
+    id: match.submissionId,
+    taskId: match.taskId,
+    username: match.username,
+    proof: match.proof,
+    proofType: match.proofType,
+    textResponse: null,
+    numberResponse: null,
+    status: match.status,
+    rejectionReason: null,
+    deductedAmount: 0,
+    createdAt: match.createdAt,
+    user: null,
+    userBalance: 0,
+    ipAddress: match.ipAddress,
+    deviceFingerprint: match.deviceFingerprint,
+  };
 }
