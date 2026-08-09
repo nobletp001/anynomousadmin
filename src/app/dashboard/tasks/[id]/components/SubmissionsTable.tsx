@@ -45,6 +45,19 @@ export function SubmissionsTable({
   openReverseModal,
   onRemoveSubmission,
 }: SubmissionsTableProps) {
+  const sortedSubmissions = React.useMemo(
+    () =>
+      [...submissions].sort((a, b) => {
+        const correctionDelta = Number(a.status !== "needs_correction") - Number(b.status !== "needs_correction");
+        if (correctionDelta !== 0) return correctionDelta;
+
+        const penaltyDelta = Number((b.deductedAmount ?? 0) > 0) - Number((a.deductedAmount ?? 0) > 0);
+        if (penaltyDelta !== 0) return penaltyDelta;
+
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }),
+    [submissions]
+  );
   const selectableSubmissions = submissions.filter((s) => isActionableSubmissionStatus(s.status));
   const page = pagination?.page ?? 1;
   const limit = pagination?.limit ?? 50;
@@ -163,7 +176,7 @@ export function SubmissionsTable({
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/40">
-                {submissions.map((sub) => (
+                {sortedSubmissions.map((sub) => (
                   <SubmissionRow
                     key={sub.id}
                     sub={sub}
