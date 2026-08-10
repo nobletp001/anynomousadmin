@@ -40,6 +40,10 @@ interface RedeemersData {
   totalPendingReferrals: number;
   totalPaidPayouts: number;
   users: RedeemerUser[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore?: boolean;
 }
 
 export default function BalancesPage() {
@@ -48,18 +52,19 @@ export default function BalancesPage() {
   const itemsPerPage = 20;
 
   const { data, isLoading, error, refetch } = useQuery<{ success: boolean; data: RedeemersData }>({
-    queryKey: ["admin-redeemers"],
-    queryFn: () => apiClient.get("/admin/redeemers") as any,
+    queryKey: ["admin-redeemers", page, search],
+    queryFn: () => {
+      const params = new URLSearchParams({ page: String(page), limit: String(itemsPerPage) });
+      if (search.trim()) params.set("search", search.trim());
+      return apiClient.get(`/admin/redeemers?${params.toString()}`) as any;
+    },
   });
 
   const redeemersData = data?.data;
 
-  const filteredUsers = (redeemersData?.users ?? []).filter((u) =>
-    u.username.toLowerCase().includes(search.toLowerCase().trim())
-  );
-
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
-  const paginatedUsers = filteredUsers.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const users = redeemersData?.users ?? [];
+  const totalUsers = redeemersData?.total ?? 0;
+  const totalPages = Math.ceil(totalUsers / itemsPerPage) || 1;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -178,7 +183,7 @@ export default function BalancesPage() {
 
       {/* Main Table Panel */}
       <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
-        {filteredUsers.length === 0 ? (
+        {users.length === 0 ? (
           <div className="flex flex-col items-center gap-3.5 py-24 text-center text-zinc-500">
             <div className="h-12 w-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
               <Wallet className="w-5 h-5 opacity-40" />
@@ -218,7 +223,7 @@ export default function BalancesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/40">
-                {paginatedUsers.map((u) => (
+                {users.map((u) => (
                   <tr key={u.username} className="hover:bg-zinc-800/10 transition-colors">
                     {/* User */}
                     <td className="px-6 py-4.5 whitespace-nowrap">
@@ -323,8 +328,8 @@ export default function BalancesPage() {
           <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800/40 bg-zinc-900/10">
             <p className="text-xs text-zinc-500 font-semibold">
               Showing <span className="text-zinc-300">{(page - 1) * itemsPerPage + 1}</span> to{" "}
-              <span className="text-zinc-300">{Math.min(page * itemsPerPage, filteredUsers.length)}</span> of{" "}
-              <span className="text-zinc-300">{filteredUsers.length}</span> users
+              <span className="text-zinc-300">{Math.min(page * itemsPerPage, totalUsers)}</span> of{" "}
+              <span className="text-zinc-300">{totalUsers}</span> users
             </p>
             <div className="flex items-center gap-2">
               <Button

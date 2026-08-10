@@ -30,35 +30,33 @@ interface UserTrackingItem {
   referrer: ReferrerDetails | null;
 }
 
+interface UserTrackingResponse {
+  success: boolean;
+  data: UserTrackingItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export function UserTrackingTab() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
 
-  const { data, isLoading, error, refetch } = useQuery<{ success: boolean; data: UserTrackingItem[] }>({
-    queryKey: ["admin-users-tracking"],
-    queryFn: () => apiClient.get("/admin/users/tracking") as any,
+  const { data, isLoading, error, refetch } = useQuery<UserTrackingResponse>({
+    queryKey: ["admin-users-tracking", page, search, statusFilter],
+    queryFn: () => {
+      const params = new URLSearchParams({ page: String(page), limit: String(itemsPerPage) });
+      if (search.trim()) params.set("search", search.trim());
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      return apiClient.get(`/admin/users/tracking?${params.toString()}`) as any;
+    },
   });
 
   const trackingData = data?.data ?? [];
-
-  const filteredUsers = trackingData.filter((u) => {
-    const matchesSearch =
-      u.username.toLowerCase().includes(search.toLowerCase().trim()) ||
-      u.name.toLowerCase().includes(search.toLowerCase().trim()) ||
-      (u.referrer?.username ?? "").toLowerCase().includes(search.toLowerCase().trim());
-
-    const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "active" && u.isActive) ||
-      (statusFilter === "inactive" && !u.isActive);
-
-    return matchesSearch && matchesStatus;
-  });
-
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
-  const paginatedUsers = filteredUsers.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const totalUsers = data?.total ?? 0;
+  const totalPages = Math.ceil(totalUsers / itemsPerPage) || 1;
 
   const cleanPhoneForWhatsApp = (phone: string) => {
     let cleaned = phone.replace(/\D/g, "");
@@ -158,13 +156,7 @@ export function UserTrackingTab() {
                 statusFilter === f.val ? "bg-purple-600 text-white shadow-lg" : "text-zinc-405 hover:text-zinc-250"
               }`}
             >
-              {f.label} (
-              {
-                trackingData.filter(
-                  (u) => f.val === "all" || (f.val === "active" && u.isActive) || (f.val === "inactive" && !u.isActive)
-                ).length
-              }
-              )
+              {f.label}
             </button>
           ))}
         </div>
@@ -190,7 +182,7 @@ export function UserTrackingTab() {
 
       {/* Main Table */}
       <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
-        {filteredUsers.length === 0 ? (
+        {trackingData.length === 0 ? (
           <div className="flex flex-col items-center gap-3.5 py-24 text-center text-zinc-500">
             <div className="h-12 w-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
               <UserMinus className="w-5 h-5 opacity-40" />
@@ -224,7 +216,7 @@ export function UserTrackingTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/40">
-                {paginatedUsers.map((u) => {
+                {trackingData.map((u) => {
                   const userWaLink = getWhatsAppMessageAndLink(u, false);
                   const refWaLink = getWhatsAppMessageAndLink(u, true);
 
@@ -391,8 +383,8 @@ export function UserTrackingTab() {
           <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800/40 bg-zinc-900/10">
             <p className="text-xs text-zinc-500 font-semibold">
               Showing <span className="text-zinc-300">{(page - 1) * itemsPerPage + 1}</span> to{" "}
-              <span className="text-zinc-300">{Math.min(page * itemsPerPage, filteredUsers.length)}</span> of{" "}
-              <span className="text-zinc-300">{filteredUsers.length}</span> users
+              <span className="text-zinc-300">{Math.min(page * itemsPerPage, totalUsers)}</span> of{" "}
+              <span className="text-zinc-300">{totalUsers}</span> users
             </p>
             <div className="flex items-center gap-2">
               <Button
