@@ -50,8 +50,12 @@ export default function TasksPage() {
   const totalTasks = tasksQuery.data?.total ?? 0;
   const pageSize = tasksQuery.data?.limit ?? 1;
   const totalPages = Math.max(1, Math.ceil(totalTasks / pageSize));
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
-    (page) => page === 1 || page === totalPages || Math.abs(page - state.page) <= 2
+  const hasMore = Boolean(tasksQuery.data?.hasMore);
+  const displayTotalPages = Math.max(totalPages, state.page + (hasMore ? 1 : 0));
+  const canGoNext = hasMore || state.page < totalPages;
+  const showPagination = state.page > 1 || canGoNext || totalPages > 1;
+  const pageNumbers = Array.from({ length: displayTotalPages }, (_, i) => i + 1).filter(
+    (page) => page === 1 || page === displayTotalPages || Math.abs(page - state.page) <= 2
   );
   const groups = groupByDate(filtered);
   const emptyMessage = state.submittedSearch
@@ -280,10 +284,10 @@ export default function TasksPage() {
             </div>
           ))}
 
-          {totalPages > 1 && (
+          {showPagination && (
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-zinc-800 pt-5">
               <p className="text-xs font-semibold text-zinc-500">
-                Page {state.page} of {totalPages} · {totalTasks} total task{totalTasks !== 1 ? "s" : ""}
+                Page {state.page} of {displayTotalPages} · {totalTasks} total task{totalTasks !== 1 ? "s" : ""}
               </p>
               <div className="flex items-center gap-2 overflow-x-auto pb-1">
                 <Button
@@ -318,8 +322,8 @@ export default function TasksPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={state.page >= totalPages}
-                  onClick={() => state.setPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={!canGoNext}
+                  onClick={() => state.setPage((page) => page + 1)}
                   rightIcon={<ChevronRight className="w-3.5 h-3.5" />}
                 >
                   Next

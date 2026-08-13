@@ -82,18 +82,29 @@ export default function TaskSubmissionsPage() {
       return submissions;
     }
 
-    const pageLimit = 100;
-    const totalPages = Math.ceil(total / pageLimit);
+    const pageLimit = 250;
+    const maxExportRows = 10000;
     const all: Submission[] = [];
 
-    for (let page = 1; page <= totalPages; page++) {
+    for (let page = 1; ; page++) {
       const params = new URLSearchParams({ page: String(page), limit: String(pageLimit) });
       if (state.statusFilter) params.set("status", state.statusFilter);
       if (state.debouncedSearch) params.set("search", state.debouncedSearch);
       const res = (await apiClient.get(
         `/admin/tasks/${taskId}/submissions?${params.toString()}`
       )) as SubmissionsResponse;
-      all.push(...(res.data?.submissions ?? []));
+      const pageSubmissions = res.data?.submissions ?? [];
+      all.push(...pageSubmissions);
+
+      if (all.length > maxExportRows) {
+        throw new Error(
+          `Export is limited to ${maxExportRows.toLocaleString()} submissions. Narrow the filters and try again.`
+        );
+      }
+
+      if (!res.data?.pagination?.hasMore || pageSubmissions.length === 0) {
+        break;
+      }
     }
 
     return all;
@@ -308,15 +319,28 @@ export default function TaskSubmissionsPage() {
     );
   };
 
+  const downloadSubmissionExport = async (format: "pdf" | "excel") => {
+    try {
+      const exportSubmissions = await fetchAllSubmissionsForExport();
+      if (format === "pdf") {
+        downloadPDFReport(task, exportSubmissions);
+      } else {
+        downloadExcelReport(task, exportSubmissions);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to export submissions.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <TaskDetailHeader
         task={task}
         submissionsCount={submissionsPagination?.total ?? submissions.length}
         onBack={() => router.back()}
-        onDownloadPDF={async () => downloadPDFReport(task, await fetchAllSubmissionsForExport())}
+        onDownloadPDF={() => downloadSubmissionExport("pdf")}
         onDownloadClientBrief={() => downloadClientTaskBrief(task)}
-        onDownloadExcel={async () => downloadExcelReport(task, await fetchAllSubmissionsForExport())}
+        onDownloadExcel={() => downloadSubmissionExport("excel")}
         onEditClick={handleEditClick}
         onToggleStatusClick={() => mutations.toggleTaskStatus.mutate(task.status === "active" ? "closed" : "active")}
         businessPaymentAction={businessPaymentAction}

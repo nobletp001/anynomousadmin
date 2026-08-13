@@ -58,7 +58,7 @@
     "prettier": "^3.8.3",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "wrangler": "^4.114.0"
+    "wrangler": "^4.122.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
@@ -68,6 +68,7 @@
   },
   "overrides": {
     "postcss": "^8.5.18",
-    "sharp": "^0.35.0"
+    "sharp": "^0.35.0",
+    "nanoid": "3.3.17"
   }
 }

@@ -82,8 +82,15 @@ export default function UsersPage() {
   const showGW = activeTab === "gw";
 
   const activeQueryData = showAll ? usersQuery.data : showGW ? gwQuery.data : null;
-  const newUsersTotalPages = newUsersQuery.data ? Math.ceil(newUsersQuery.data.total / newUsersQuery.data.limit) : 1;
-  const totalPages = activeQueryData ? Math.ceil(activeQueryData.total / activeQueryData.limit) : 1;
+  const newUsersTotalPages = newUsersQuery.data
+    ? Math.max(
+        Math.ceil(newUsersQuery.data.total / newUsersQuery.data.limit),
+        state.page + (newUsersQuery.data.hasMore ? 1 : 0)
+      )
+    : 1;
+  const totalPages = activeQueryData
+    ? Math.max(Math.ceil(activeQueryData.total / activeQueryData.limit), state.page + (activeQueryData.hasMore ? 1 : 0))
+    : 1;
 
   return (
     <div className="space-y-6">
@@ -176,6 +183,7 @@ export default function UsersPage() {
           setPage={state.setPage}
           totalPages={newUsersTotalPages}
           totalUsers={newUsersQuery.data?.total || 0}
+          hasMore={Boolean(newUsersQuery.data?.hasMore)}
           resendingUsername={(resendEmailOtp.variables as string | undefined) ?? null}
           verifyingUsername={(manualVerifyEmail.variables as string | undefined) ?? null}
           purposeFilter={newUsersPurposeFilter}
@@ -214,6 +222,7 @@ export default function UsersPage() {
               setPage={state.setPage}
               totalPages={totalPages}
               totalUsers={usersQuery.data?.total || 0}
+              hasMore={Boolean(usersQuery.data?.hasMore)}
             />
           ) : (
             <GWVerifiedTable
@@ -224,6 +233,7 @@ export default function UsersPage() {
               setPage={state.setPage}
               totalPages={totalPages}
               totalUsers={gwQuery.data?.total || 0}
+              hasMore={Boolean(gwQuery.data?.hasMore)}
             />
           )}
 

@@ -13,6 +13,7 @@ interface GWVerifiedTableProps {
   setPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
   totalUsers: number;
+  hasMore?: boolean;
 }
 
 export function GWVerifiedTable({
@@ -23,7 +24,9 @@ export function GWVerifiedTable({
   setPage,
   totalPages,
   totalUsers,
+  hasMore = false,
 }: GWVerifiedTableProps) {
+  const canGoNext = hasMore || page < totalPages;
   return (
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
       <div className="overflow-x-auto">
@@ -154,7 +157,7 @@ export function GWVerifiedTable({
             variant="outline"
             size="sm"
             onClick={() => setPage((p) => p + 1)}
-            disabled={page >= totalPages}
+            disabled={!canGoNext}
             rightIcon={<ChevronRight className="w-3.5 h-3.5" />}
           >
             Next

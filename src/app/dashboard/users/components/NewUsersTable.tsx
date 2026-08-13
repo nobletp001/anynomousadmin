@@ -11,6 +11,7 @@ interface NewUsersTableProps {
   setPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
   totalUsers: number;
+  hasMore?: boolean;
   resendingUsername?: string | null;
   verifyingUsername?: string | null;
   purposeFilter: SignupPurpose | "all";
@@ -25,6 +26,7 @@ export function NewUsersTable({
   setPage,
   totalPages,
   totalUsers,
+  hasMore = false,
   resendingUsername,
   verifyingUsername,
   purposeFilter,
@@ -32,6 +34,7 @@ export function NewUsersTable({
   onResendOtp,
   onManualVerify,
 }: NewUsersTableProps) {
+  const canGoNext = hasMore || page < totalPages;
   const copyEmail = (email: string | null) => {
     if (!email) return;
     navigator.clipboard.writeText(email).then(() => {
@@ -191,7 +194,7 @@ export function NewUsersTable({
             variant="outline"
             size="sm"
             onClick={() => setPage((p) => p + 1)}
-            disabled={page >= totalPages}
+            disabled={!canGoNext}
             rightIcon={<ChevronRight className="h-3.5 w-3.5" />}
           >
             Next

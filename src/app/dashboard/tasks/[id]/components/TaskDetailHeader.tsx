@@ -19,9 +19,9 @@ interface TaskDetailHeaderProps {
   task: Task;
   submissionsCount: number;
   onBack: () => void;
-  onDownloadPDF: () => void;
+  onDownloadPDF: () => void | Promise<void>;
   onDownloadClientBrief: () => void;
-  onDownloadExcel: () => void;
+  onDownloadExcel: () => void | Promise<void>;
   onEditClick: () => void;
   onToggleStatusClick: () => void;
   onBusinessPaymentAction: (action: "confirm_payment" | "approve_task" | "reject_task" | "reject_payment") => void;

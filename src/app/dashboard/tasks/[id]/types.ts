@@ -253,6 +253,7 @@ export interface SubmissionsResponse {
       total: number;
       page: number;
       limit: number;
+      hasMore?: boolean;
     };
   };
 }

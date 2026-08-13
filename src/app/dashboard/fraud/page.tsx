@@ -37,6 +37,9 @@ export default function FraudPage() {
   const [monitored, setMonitored] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResolved, setShowResolved] = useState(false);
+  const [alertsPage, setAlertsPage] = useState(1);
+  const [alertsTotal, setAlertsTotal] = useState(0);
+  const [alertsHasMore, setAlertsHasMore] = useState(false);
   const [analyzingUser, setAnalyzingUser] = useState<string | null>(null);
   const [analyzeResult, setAnalyzeResult] = useState<any>(null);
   const [analyzeUsername, setAnalyzeUsername] = useState("");
@@ -54,9 +57,13 @@ export default function FraudPage() {
   }, []);
 
   const loadAlerts = useCallback(async () => {
-    const data = await apiFetch(`/api/admin/fraud/alerts?resolved=${showResolved}`);
-    if (data.success) setAlerts(data.data);
-  }, [showResolved]);
+    const data = await apiFetch(`/api/admin/fraud/alerts?resolved=${showResolved}&page=${alertsPage}`);
+    if (data.success) {
+      setAlerts(data.data?.alerts ?? []);
+      setAlertsTotal(Number(data.data?.total ?? 0));
+      setAlertsHasMore(Boolean(data.data?.hasMore));
+    }
+  }, [alertsPage, showResolved]);
 
   const loadBankCollisions = useCallback(async () => {
     const data = await apiFetch("/api/admin/fraud/account-collisions");
@@ -78,26 +85,29 @@ export default function FraudPage() {
     if (data.success) setMonitored(data.data);
   }, []);
 
-  const loadAll = useCallback(async () => {
+  const loadActiveTab = useCallback(async () => {
     setLoading(true);
-    await Promise.all([
-      loadSummary(),
-      loadAlerts(),
-      loadBankCollisions(),
-      loadIPCollisions(),
-      loadDeviceCollisions(),
-      loadMonitored(),
-    ]);
+    if (activeTab === "alerts") await loadAlerts();
+    if (activeTab === "bank") await loadBankCollisions();
+    if (activeTab === "ip") await loadIPCollisions();
+    if (activeTab === "device") await loadDeviceCollisions();
+    if (activeTab === "monitored") await loadMonitored();
     setLoading(false);
-  }, [loadSummary, loadAlerts, loadBankCollisions, loadIPCollisions, loadDeviceCollisions, loadMonitored]);
+  }, [activeTab, loadAlerts, loadBankCollisions, loadIPCollisions, loadDeviceCollisions, loadMonitored]);
+
+  const refreshCurrentView = useCallback(async () => {
+    setLoading(true);
+    await Promise.all([loadSummary(), loadActiveTab()]);
+    setLoading(false);
+  }, [loadSummary, loadActiveTab]);
 
   useEffect(() => {
-    loadAll();
-  }, [loadAll]);
+    loadSummary();
+  }, [loadSummary]);
 
   useEffect(() => {
-    loadAlerts();
-  }, [showResolved, loadAlerts]);
+    loadActiveTab();
+  }, [loadActiveTab]);
 
   const handleResolveAlert = async (id: number) => {
     const data = await apiFetch(`/api/admin/fraud/alerts/${id}/resolve`, { method: "PATCH" });
@@ -126,6 +136,7 @@ export default function FraudPage() {
     setAnalyzeResult(data.success ? { success: true, ...data.data } : data);
     setAnalyzingUser(null);
     loadSummary();
+    setAlertsPage(1);
     loadAlerts();
   };
 
@@ -266,7 +277,7 @@ export default function FraudPage() {
           </p>
         </div>
         <button
-          onClick={loadAll}
+          onClick={refreshCurrentView}
           disabled={loading}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-semibold hover:bg-zinc-700 transition-colors disabled:opacity-50 cursor-pointer"
         >
@@ -418,7 +429,14 @@ export default function FraudPage() {
           <AlertsTab
             alerts={alerts}
             showResolved={showResolved}
-            onToggleShowResolved={() => setShowResolved(!showResolved)}
+            page={alertsPage}
+            total={alertsTotal}
+            hasMore={alertsHasMore}
+            onPageChange={setAlertsPage}
+            onToggleShowResolved={() => {
+              setAlertsPage(1);
+              setShowResolved(!showResolved);
+            }}
             onWatchUser={handleWatchFromCollision}
             onResolveAlert={handleResolveAlert}
           />

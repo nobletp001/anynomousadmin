@@ -10,6 +10,7 @@ interface SubmissionsTableProps {
     total: number;
     page: number;
     limit: number;
+    hasMore?: boolean;
   };
   onPageChange: (page: number) => void;
   isFetching?: boolean;
@@ -63,6 +64,9 @@ export function SubmissionsTable({
   const limit = pagination?.limit ?? 50;
   const total = pagination?.total ?? submissions.length;
   const totalPages = Math.max(1, Math.ceil(total / limit));
+  const hasMore = Boolean(pagination?.hasMore);
+  const displayTotalPages = Math.max(totalPages, page + (hasMore ? 1 : 0));
+  const canGoNext = hasMore || page < totalPages;
   const firstItem = total === 0 ? 0 : (page - 1) * limit + 1;
   const lastItem = Math.min(total, (page - 1) * limit + submissions.length);
 
@@ -132,12 +136,12 @@ export function SubmissionsTable({
               Previous
             </button>
             <span className="min-w-20 text-center font-semibold text-zinc-400">
-              Page {page} of {totalPages}
+              Page {page} of {displayTotalPages}
             </span>
             <button
               type="button"
-              disabled={page >= totalPages}
-              onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+              disabled={!canGoNext}
+              onClick={() => onPageChange(page + 1)}
               className="rounded-lg border border-zinc-800 px-3 py-1.5 font-semibold text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next

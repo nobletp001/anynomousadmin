@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -12,12 +10,10 @@ import { authQueryKey, authQueryFn, ADMIN_ROLES } from "@/lib/auth";
 import { Button, Input } from "@/components/ui";
 import { Mail, Lock, Eye, EyeOff, ShieldAlert, AlertCircle } from "lucide-react";
 
-const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+type LoginFormValues = {
+  email: string;
+  password: string;
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,7 +55,6 @@ export default function LoginPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
@@ -114,7 +109,13 @@ export default function LoginPage() {
               autoComplete="email"
               leftIcon={<Mail className="w-4 h-4" />}
               error={errors.email?.message}
-              {...register("email")}
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Enter a valid email address",
+                },
+              })}
             />
 
             <Input
@@ -136,7 +137,13 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               }
-              {...register("password")}
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
+              })}
             />
 
             <Button type="submit" variant="primary" size="lg" fullWidth isLoading={isBusy} className="mt-2">

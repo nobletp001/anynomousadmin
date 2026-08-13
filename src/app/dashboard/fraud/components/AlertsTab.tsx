@@ -16,6 +16,10 @@ interface FraudAlert {
 interface AlertsTabProps {
   alerts: FraudAlert[];
   showResolved: boolean;
+  page: number;
+  total: number;
+  hasMore: boolean;
+  onPageChange: React.Dispatch<React.SetStateAction<number>>;
   onToggleShowResolved: () => void;
   onWatchUser: (username: string) => void;
   onResolveAlert: (id: number) => void;
@@ -49,16 +53,25 @@ function alertTypeLabel(type: string) {
 export function AlertsTab({
   alerts,
   showResolved,
+  page,
+  total,
+  hasMore,
+  onPageChange,
   onToggleShowResolved,
   onWatchUser,
   onResolveAlert,
 }: AlertsTabProps) {
   const [expandedAlert, setExpandedAlert] = useState<number | null>(null);
+  const limit = 30;
+  const totalPages = Math.max(Math.ceil(total / limit) || 1, page + (hasMore ? 1 : 0));
+  const canGoNext = hasMore || page < totalPages;
 
   return (
     <div>
       <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800/60">
-        <p className="text-xs text-zinc-500 font-semibold">{alerts.length} {showResolved ? "total" : "unresolved"} alert(s)</p>
+        <p className="text-xs text-zinc-500 font-semibold">
+          Page {page} of {totalPages} · {total} {showResolved ? "total" : "unresolved"} alert(s)
+        </p>
         <button
           onClick={onToggleShowResolved}
           className="text-[10px] font-semibold text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors cursor-pointer"
@@ -99,7 +112,11 @@ export function AlertsTab({
                       onClick={() => setExpandedAlert(expandedAlert === alert.id ? null : alert.id)}
                       className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer"
                     >
-                      {expandedAlert === alert.id ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                      {expandedAlert === alert.id ? (
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      )}
                     </button>
                   )}
                   {!alert.resolved && (
@@ -124,6 +141,31 @@ export function AlertsTab({
               </div>
             </div>
           ))}
+        </div>
+      )}
+      {(page > 1 || canGoNext || totalPages > 1) && (
+        <div className="flex items-center justify-between border-t border-zinc-800/60 px-5 py-3">
+          <span className="text-xs font-semibold text-zinc-550">
+            Showing {(page - 1) * limit + 1}-{Math.min((page - 1) * limit + alerts.length, total)}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => onPageChange((p) => Math.max(1, p - 1))}
+              className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-300 transition-colors hover:border-zinc-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              disabled={!canGoNext}
+              onClick={() => onPageChange((p) => p + 1)}
+              className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-300 transition-colors hover:border-zinc-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>

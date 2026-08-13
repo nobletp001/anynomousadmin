@@ -36,6 +36,7 @@ export interface UsersResponse {
   total: number;
   page: number;
   limit: number;
+  hasMore?: boolean;
 }
 
 export interface AdminAction {

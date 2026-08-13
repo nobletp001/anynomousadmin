@@ -35,6 +35,7 @@ export function useUsersQueries(
     total: number;
     page: number;
     limit: number;
+    hasMore?: boolean;
     windowHours: number;
     signupPurpose: SignupPurpose | "all";
   }>({
@@ -45,7 +46,7 @@ export function useUsersQueries(
       return apiClient.get(`/admin/users/new?${params.toString()}`) as any;
     },
     enabled: activeTab === "new",
-    refetchInterval: activeTab === "new" ? 15000 : false,
+    refetchInterval: activeTab === "new" && typeof document !== "undefined" && !document.hidden ? 60000 : false,
   });
 
   const detailQuery = useQuery({

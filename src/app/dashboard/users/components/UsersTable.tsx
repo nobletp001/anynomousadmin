@@ -13,6 +13,7 @@ interface UsersTableProps {
   setPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
   totalUsers: number;
+  hasMore?: boolean;
 }
 
 export function UsersTable({
@@ -23,7 +24,9 @@ export function UsersTable({
   setPage,
   totalPages,
   totalUsers,
+  hasMore = false,
 }: UsersTableProps) {
+  const canGoNext = hasMore || page < totalPages;
   return (
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
       <div className="overflow-x-auto">
@@ -63,9 +66,7 @@ export function UsersTable({
                     </div>
                   </td>
                   <td className="px-6 py-4 text-zinc-400">@{user.username}</td>
-                  <td className="px-6 py-4 text-zinc-400">
-                    {user.email ?? <span className="text-zinc-600">—</span>}
-                  </td>
+                  <td className="px-6 py-4 text-zinc-400">{user.email ?? <span className="text-zinc-600">—</span>}</td>
                   <td className="px-6 py-4">
                     <Badge variant={roleBadgeVariant(user.role) as any} dot>
                       {user.role}
@@ -96,7 +97,9 @@ export function UsersTable({
                           color="amber"
                           label="Disable withdrawal"
                         />
-                        <CreditCard className={`w-3.5 h-3.5 ${user.withdrawalDisabled ? "text-amber-400" : "text-zinc-600"}`} />
+                        <CreditCard
+                          className={`w-3.5 h-3.5 ${user.withdrawalDisabled ? "text-amber-400" : "text-zinc-600"}`}
+                        />
                       </div>
 
                       <div className="w-px h-4 bg-zinc-800 shrink-0" />
@@ -110,7 +113,9 @@ export function UsersTable({
                           color="orange"
                           label="Disable tasks"
                         />
-                        <ClipboardX className={`w-3.5 h-3.5 ${user.taskDisabled ? "text-orange-400" : "text-zinc-600"}`} />
+                        <ClipboardX
+                          className={`w-3.5 h-3.5 ${user.taskDisabled ? "text-orange-400" : "text-zinc-600"}`}
+                        />
                       </div>
                     </div>
                   </td>
@@ -146,7 +151,7 @@ export function UsersTable({
             variant="outline"
             size="sm"
             onClick={() => setPage((p) => p + 1)}
-            disabled={page >= totalPages}
+            disabled={!canGoNext}
             rightIcon={<ChevronRight className="w-3.5 h-3.5" />}
           >
             Next

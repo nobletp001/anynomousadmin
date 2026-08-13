@@ -36,6 +36,7 @@ interface UserTrackingResponse {
   total: number;
   page: number;
   limit: number;
+  hasMore?: boolean;
 }
 
 export function UserTrackingTab() {
@@ -56,7 +57,9 @@ export function UserTrackingTab() {
 
   const trackingData = data?.data ?? [];
   const totalUsers = data?.total ?? 0;
-  const totalPages = Math.ceil(totalUsers / itemsPerPage) || 1;
+  const hasMore = Boolean(data?.hasMore);
+  const totalPages = Math.max(Math.ceil(totalUsers / itemsPerPage) || 1, page + (hasMore ? 1 : 0));
+  const canGoNext = hasMore || page < totalPages;
 
   const cleanPhoneForWhatsApp = (phone: string) => {
     let cleaned = phone.replace(/\D/g, "");
@@ -379,7 +382,7 @@ export function UserTrackingTab() {
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {(page > 1 || canGoNext || totalPages > 1) && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800/40 bg-zinc-900/10">
             <p className="text-xs text-zinc-500 font-semibold">
               Showing <span className="text-zinc-300">{(page - 1) * itemsPerPage + 1}</span> to{" "}
@@ -399,8 +402,8 @@ export function UserTrackingTab() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                disabled={!canGoNext}
                 className="text-xs"
               >
                 Next
