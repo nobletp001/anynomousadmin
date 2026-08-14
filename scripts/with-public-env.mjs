@@ -28,7 +28,6 @@ if (!command) {
 
 const child = spawn(command, args, {
   env: process.env,
-  shell: true,
   stdio: "inherit",
 });
 
