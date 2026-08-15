@@ -158,17 +158,21 @@ export function SubmissionUserInfoPanel({
         </div>
       )}
 
-      {sub.status === "approved" && typeof sub.rating === "number" && (
+      {sub.status === "approved" && (
         <div className="rounded-xl border border-emerald-500/10 bg-emerald-500/[0.02] p-4 space-y-3">
           <h4 className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest border-b border-emerald-950 pb-1.5">
             Approved Verdict
           </h4>
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] text-zinc-500 uppercase font-semibold">Rating:</span>
-            <div className="flex text-amber-400 text-xs">
-              {"★".repeat(sub.rating)}
-              {"☆".repeat(5 - sub.rating)}
-            </div>
+            {typeof sub.rating === "number" ? (
+              <div className="flex text-amber-400 text-xs">
+                {"★".repeat(sub.rating)}
+                {"☆".repeat(5 - sub.rating)}
+              </div>
+            ) : (
+              <span className="text-xs font-semibold italic text-zinc-500">No rating recorded</span>
+            )}
           </div>
           {sub.feedback && (
             <p className="text-xs text-zinc-300 italic bg-zinc-955/20 p-2.5 rounded-lg border border-zinc-900/60 font-medium">
