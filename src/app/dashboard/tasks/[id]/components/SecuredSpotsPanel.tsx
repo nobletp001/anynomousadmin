@@ -19,9 +19,16 @@ interface SecuredSpotsPanelProps {
   isLoading: boolean;
   onRemoveSpot: (spot: SecuredSpot) => void;
   removingUsername?: string | null;
+  onViewSubmission?: (spot: SecuredSpot) => void;
 }
 
-export function SecuredSpotsPanel({ spots, isLoading, onRemoveSpot, removingUsername }: SecuredSpotsPanelProps) {
+export function SecuredSpotsPanel({
+  spots,
+  isLoading,
+  onRemoveSpot,
+  removingUsername,
+  onViewSubmission,
+}: SecuredSpotsPanelProps) {
   return (
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
       <div className="p-4 border-b border-zinc-800 flex items-center justify-between gap-3 bg-zinc-950/20">
@@ -67,15 +74,33 @@ export function SecuredSpotsPanel({ spots, isLoading, onRemoveSpot, removingUser
                     </Badge>
                   </td>
                   <td className="px-5 py-4">
-                    <button
-                      type="button"
-                      disabled={removingUsername?.toLowerCase() === spot.username.toLowerCase()}
-                      onClick={() => onRemoveSpot(spot)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 disabled:opacity-60 transition-colors"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Remove Slot
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {spot.status === "submitted" && onViewSubmission && (
+                        <button
+                          type="button"
+                          onClick={() => onViewSubmission(spot)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors"
+                        >
+                          View Submission
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        disabled={
+                          spot.status === "submitted" || removingUsername?.toLowerCase() === spot.username.toLowerCase()
+                        }
+                        onClick={() => onRemoveSpot(spot)}
+                        title={
+                          spot.status === "submitted"
+                            ? "Already submitted — reject or reverse the submission first to free this slot."
+                            : undefined
+                        }
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 disabled:opacity-40 disabled:hover:bg-zinc-800 disabled:hover:text-zinc-300 disabled:hover:border-zinc-700 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Remove Slot
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

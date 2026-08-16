@@ -336,7 +336,7 @@ export default function TaskSubmissionsPage() {
     <div className="space-y-6">
       <TaskDetailHeader
         task={task}
-        submissionsCount={submissionsPagination?.total ?? submissions.length}
+        submissionsCount={task.submissionCount ?? submissionsPagination?.total ?? submissions.length}
         onBack={() => router.back()}
         onDownloadPDF={() => downloadSubmissionExport("pdf")}
         onDownloadClientBrief={() => downloadClientTaskBrief(task)}
@@ -421,6 +421,10 @@ export default function TaskSubmissionsPage() {
                 mutations.removeSecuredSpot.mutate(spot.username);
               }
             }}
+            onViewSubmission={(spot) => {
+              state.setSearchFilter(spot.username);
+              document.getElementById("submissions-table")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
           />
         </div>
       )}
@@ -431,7 +435,7 @@ export default function TaskSubmissionsPage() {
         onSubmit={(payload) => mutations.assistSubmission.mutate(payload)}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div id="submissions-table" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <SubmissionsTable
           submissions={submissions}
           pagination={submissionsPagination}
