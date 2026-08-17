@@ -101,17 +101,6 @@ export function TaskCard({
         >
           <Share2 className="w-4 h-4" />
         </button>
-        {canManage && onPinClick && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onPinClick();
-            }}
-            className={`p-1.5 rounded-lg transition-colors ${task.isPinned ? "text-amber-400 bg-amber-500/10 opacity-100" : "text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10 opacity-0 group-hover:opacity-100"}`}
-          >
-            <Pin className="w-4 h-4" />
-          </button>
-        )}
         {canManage && task.isSecureSpotTask && onReminderClick && (
           <button
             onClick={(e) => {
@@ -155,11 +144,30 @@ export function TaskCard({
             {isClientOwned ? "CLIENT-OWNED" : "ADMIN-CREATED"}
           </span>
         </div>
-        {task.isPinned && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 w-fit">
-            <Pin className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-pulse" />
-            <span className="text-[9px] font-extrabold text-amber-300 tracking-wider">PINNED</span>
-          </div>
+        {canManage && onPinClick ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPinClick();
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border w-fit transition-colors ${
+              task.isPinned
+                ? "bg-amber-500/10 border-amber-500/20 text-amber-300 hover:bg-amber-500/20"
+                : "bg-zinc-800/50 border-zinc-700/40 text-zinc-400 hover:bg-amber-500/10 hover:border-amber-500/20 hover:text-amber-300"
+            }`}
+            title={task.isPinned ? "Unpin task" : "Pin task"}
+          >
+            <Pin className={`w-3.5 h-3.5 shrink-0 ${task.isPinned ? "animate-pulse" : ""}`} />
+            <span className="text-[9px] font-extrabold tracking-wider">{task.isPinned ? "PINNED" : "PIN"}</span>
+          </button>
+        ) : (
+          task.isPinned && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 w-fit">
+              <Pin className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-pulse" />
+              <span className="text-[9px] font-extrabold text-amber-300 tracking-wider">PINNED</span>
+            </div>
+          )
         )}
       </div>
 
