@@ -94,10 +94,11 @@ export function TaskCard({
       onClick={onClick}
       className="group relative backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 shadow-xl hover:border-purple-500/30 hover:bg-zinc-900/50 transition-all duration-200 cursor-pointer"
     >
-      <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10">
+      <div className="flex items-center justify-end gap-1.5 mb-3">
         <button
           onClick={handleShareClick}
-          className="p-1.5 rounded-lg text-zinc-500 hover:text-purple-400 hover:bg-purple-500/10 transition-colors opacity-0 group-hover:opacity-100"
+          className="p-1.5 rounded-lg text-zinc-500 hover:text-purple-400 hover:bg-purple-500/10 transition-colors"
+          title="Share task"
         >
           <Share2 className="w-4 h-4" />
         </button>
@@ -108,7 +109,7 @@ export function TaskCard({
               onReminderClick();
             }}
             disabled={reminderPending}
-            className="p-1.5 rounded-lg text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+            className="p-1.5 rounded-lg text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-50"
             title="Send open-window reminder"
           >
             <Bell className="w-4 h-4" />
@@ -120,7 +121,8 @@ export function TaskCard({
               e.stopPropagation();
               onDeleteClick();
             }}
-            className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
+            className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            title="Delete task"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -171,7 +173,7 @@ export function TaskCard({
         )}
       </div>
 
-      <div className="flex items-start gap-3 mb-3 pr-8">
+      <div className="flex items-start gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span
