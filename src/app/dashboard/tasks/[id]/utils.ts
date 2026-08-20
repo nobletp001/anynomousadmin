@@ -16,6 +16,7 @@ export function formatDate(d: string) {
 
 export function statusVariant(s: string) {
   if (s === "approved") return "success";
+  if (s === "qualified") return "info";
   if (s === "rejected") return "danger";
   if (s === "fraud" || s === "fraud_detect") return "danger";
   if (s === "removed") return "default";
@@ -30,6 +31,7 @@ export function formatSubmissionStatus(status: string) {
   if (status === "needs_correction") return "correction requested";
   if (status === "fraud" || status === "fraud_detect") return "fraud alert";
   if (status === "removed") return "removed";
+  if (status === "qualified") return "qualified";
   return status;
 }
 

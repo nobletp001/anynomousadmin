@@ -6,6 +6,7 @@ const toInteger = (value: string) => parseInt(value, 10);
 
 export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnType<typeof useCreateTaskMutations>) {
   const { uploadImage, createTask } = mutations;
+  const isAppTesting = state.taskType === "app_testing" || state.targetPlatform === "app_testing";
 
   const canSubmit =
     state.title.trim() &&
@@ -14,7 +15,11 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
     (!state.isForClient || state.clientUsername.trim()) &&
     (!state.isForClient || Number(state.clientAmountPaid) > 0) &&
     (!state.isForClient || Number(state.clientPricePerUser) > 0) &&
-    (state.isPayFluenceTask ? state.amount === "" || Number(state.amount) >= 0 : Number(state.amount) > 0) &&
+    (isAppTesting
+      ? state.amount === "" || Number(state.amount) >= 0
+      : state.isPayFluenceTask
+        ? state.amount === "" || Number(state.amount) >= 0
+        : Number(state.amount) > 0) &&
     (!state.isAddedNewReferral || Number(state.amountAddedFortheReeferral) > 0) &&
     Number(state.numberOfUsersNeeded) > 0 &&
     (state.taskType !== "views" || Number(state.targetCount) > 0);
@@ -64,7 +69,7 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       numberLabel: state.acceptNumber ? state.numberLabel.trim() : undefined,
       acceptMultipleImages: state.acceptMultipleImages,
       lifeline: state.noExpiry,
-      amount: state.isPayFluenceTask && !state.amount ? 0 : toInteger(state.amount),
+      amount: (state.isPayFluenceTask || isAppTesting) && !state.amount ? 0 : toInteger(state.amount),
       numberOfUsersNeeded: toInteger(state.numberOfUsersNeeded),
       timeline,
       targetCount: state.targetCount.trim() ? toInteger(state.targetCount) : undefined,

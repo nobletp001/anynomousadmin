@@ -63,13 +63,17 @@ export function RejectModal({
   }, [isDragging, dragStart]);
 
   const isRejectMode = rejectModal.mode === "reject";
+  const isAppTestingRejectMode = rejectModal.mode === "app_testing_reject";
+  const isAnyRejectMode = isRejectMode || isAppTestingRejectMode;
   const tags = [
-    "Screenshot is blurry/unreadable",
-    "Wrong account/handle shown",
-    isRejectMode
-      ? "No proof of follow/comment action"
-      : "Please upload a full screenshot showing follow action",
-    "Already completed this task",
+    isAppTestingRejectMode ? "Portfolio is not strong enough" : "Screenshot is blurry/unreadable",
+    isAppTestingRejectMode ? "No relevant app testing experience" : "Wrong account/handle shown",
+    isAppTestingRejectMode
+      ? "Does not match this app testing brief"
+      : isAnyRejectMode
+        ? "No proof of follow/comment action"
+        : "Please upload a full screenshot showing follow action",
+    isAppTestingRejectMode ? "Application not selected" : "Already completed this task",
   ];
 
   return (
@@ -84,7 +88,13 @@ export function RejectModal({
         >
           <div>
             <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
-              <span>{isRejectMode ? "Reject Submission" : "Request Correction"}</span>
+              <span>
+                {isAppTestingRejectMode
+                  ? "Reject Portfolio"
+                  : isRejectMode
+                    ? "Reject Submission"
+                    : "Request Correction"}
+              </span>
               <span className="inline-flex items-center gap-1 text-[10px] text-zinc-550 bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 font-normal select-none">
                 <Move className="w-2.5 h-2.5" /> Drag
               </span>
@@ -139,12 +149,18 @@ export function RejectModal({
 
           <div>
             <label className="block text-xs text-zinc-400 mb-1.5 font-medium">
-              {isRejectMode ? "Rejection reason" : "Correction instructions"} <span className="text-red-400">*</span>
+              {isAnyRejectMode ? "Rejection reason" : "Correction instructions"} <span className="text-red-400">*</span>
             </label>
             <textarea
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              placeholder={isRejectMode ? "Explain why this submission is being rejected..." : "Explain what the user needs to correct..."}
+              placeholder={
+                isAppTestingRejectMode
+                  ? "Explain why this portfolio was not selected..."
+                  : isRejectMode
+                    ? "Explain why this submission is being rejected..."
+                    : "Explain what the user needs to correct..."
+              }
               rows={3}
               className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-red-500/50 transition-colors resize-none"
             />
@@ -154,10 +170,18 @@ export function RejectModal({
         </div>
 
         <div className="flex items-center justify-end gap-2.5 px-6 pb-6">
-          <Button variant="outline" size="md" onClick={onClose} disabled={isPending}>Cancel</Button>
-          {isRejectMode ? (
-            <Button variant="danger" size="md" onClick={onSubmitReject} isLoading={isPending} disabled={!rejectReason.trim()}>
-              Confirm Rejection
+          <Button variant="outline" size="md" onClick={onClose} disabled={isPending}>
+            Cancel
+          </Button>
+          {isAnyRejectMode ? (
+            <Button
+              variant="danger"
+              size="md"
+              onClick={onSubmitReject}
+              isLoading={isPending}
+              disabled={!rejectReason.trim()}
+            >
+              {isAppTestingRejectMode ? "Reject Portfolio" : "Confirm Rejection"}
             </Button>
           ) : (
             <button

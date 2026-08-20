@@ -1,11 +1,13 @@
 import React from "react";
 import { Users } from "lucide-react";
-import { Submission } from "../types";
+import { BusinessReviewRequest, Submission, Task } from "../types";
 import { SubmissionRow } from "./SubmissionRow";
 import { isActionableSubmissionStatus } from "../utils";
 
 interface SubmissionsTableProps {
   submissions: Submission[];
+  task: Task;
+  reviewRequests: BusinessReviewRequest[];
   pagination?: {
     total: number;
     page: number;
@@ -26,10 +28,15 @@ interface SubmissionsTableProps {
   openRejectModal: (sub: Submission) => void;
   openReverseModal: (sub: Submission) => void;
   onRemoveSubmission: (sub: Submission) => void;
+  onRequestAppReview: (sub: Submission) => void;
+  onQualifyAppTesting: (sub: Submission) => void;
+  onFinalizeAppTesting: (sub: Submission) => void;
 }
 
 export function SubmissionsTable({
   submissions,
+  task,
+  reviewRequests,
   pagination,
   onPageChange,
   isFetching = false,
@@ -45,7 +52,22 @@ export function SubmissionsTable({
   openRejectModal,
   openReverseModal,
   onRemoveSubmission,
+  onRequestAppReview,
+  onQualifyAppTesting,
+  onFinalizeAppTesting,
 }: SubmissionsTableProps) {
+  const reviewRequestsBySubmission = React.useMemo(() => {
+    const map = new Map<number, BusinessReviewRequest>();
+    for (const request of reviewRequests) {
+      if (request.status === "requested" || request.status === "submitted") {
+        map.set(request.submissionId, request);
+      }
+    }
+    return map;
+  }, [reviewRequests]);
+  const isAppDownloadTask =
+    task.taskType === "app_download" || task.targetPlatform === "app_download" || task.taskType === "download";
+  const isAppTestingTask = task.taskType === "app_testing" || task.targetPlatform === "app_testing";
   const sortedSubmissions = React.useMemo(
     () =>
       [...submissions].sort((a, b) => {
@@ -114,6 +136,7 @@ export function SubmissionsTable({
               <option value="pending">Pending</option>
               <option value="fraud_detect">Fraud Alert</option>
               <option value="approved">Approved</option>
+              <option value="qualified">Qualified</option>
               <option value="rejected">Rejected</option>
               <option value="needs_correction">Correction Requested</option>
               <option value="removed">Removed</option>
@@ -193,6 +216,12 @@ export function SubmissionsTable({
                     onReject={() => openRejectModal(sub)}
                     onReverseReject={() => openReverseModal(sub)}
                     onRemove={() => onRemoveSubmission(sub)}
+                    appReviewRequest={reviewRequestsBySubmission.get(sub.id) ?? null}
+                    canRequestAppReview={isAppDownloadTask && sub.status === "approved"}
+                    onRequestAppReview={() => onRequestAppReview(sub)}
+                    isAppTestingTask={isAppTestingTask}
+                    onQualifyAppTesting={() => onQualifyAppTesting(sub)}
+                    onFinalizeAppTesting={() => onFinalizeAppTesting(sub)}
                   />
                 ))}
               </tbody>

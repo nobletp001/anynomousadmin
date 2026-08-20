@@ -102,7 +102,7 @@ export function TaskDetailModals({
             mutations.rejectSubmission.mutate({
               subId: state.rejectModal!.subId,
               reason: state.rejectReason,
-              deducted: Number(state.deductAmount) || 0,
+              deducted: state.rejectModal!.mode === "app_testing_reject" ? 0 : Number(state.deductAmount) || 0,
             })
           }
           onSubmitCorrection={() =>

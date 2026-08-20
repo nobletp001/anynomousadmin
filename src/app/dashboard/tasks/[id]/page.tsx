@@ -20,8 +20,8 @@ import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
 import { downloadClientTaskBrief } from "./client-brief";
-import { Submission, SubmissionsResponse, Task } from "./types";
-import { isActionableSubmissionStatus } from "./utils";
+import { AppTestingSettings, BusinessReviewRequest, Submission, SubmissionsResponse, Task } from "./types";
+import { formatAmount, formatDate, getImagesList, isActionableSubmissionStatus } from "./utils";
 import { apiClient } from "@/services/api-client";
 import { toast } from "sonner";
 
@@ -53,6 +53,8 @@ export default function TaskSubmissionsPage() {
   );
   const task = submissionsQuery.data?.data?.task;
   const submissions = submissionsQuery.data?.data?.submissions ?? [];
+  const reviewRequests = submissionsQuery.data?.data?.reviewRequests ?? [];
+  const appTesting = submissionsQuery.data?.data?.appTesting ?? null;
   const submissionsPagination = submissionsQuery.data?.data?.pagination;
   const officers = officersQuery.data?.data ?? [];
   const securedSpots = securedSpotsQuery.data?.data ?? [];
@@ -137,7 +139,13 @@ export default function TaskSubmissionsPage() {
   }, [state.submissionsPage]);
 
   const openRejectModal = (sub: Submission) => {
-    state.setRejectModal({ subId: sub.id, username: sub.username, balance: sub.userBalance, mode: "reject" });
+    const isAppTestingTask = task?.taskType === "app_testing" || task?.targetPlatform === "app_testing";
+    state.setRejectModal({
+      subId: sub.id,
+      username: sub.username,
+      balance: isAppTestingTask ? 0 : sub.userBalance,
+      mode: isAppTestingTask ? "app_testing_reject" : "reject",
+    });
     state.setDeductAmount("");
     state.setRejectReason("");
   };
@@ -332,6 +340,57 @@ export default function TaskSubmissionsPage() {
     }
   };
 
+  const requestAppReview = (sub: Submission) => {
+    const reviewText = window.prompt(
+      `Ask @${sub.username} for an app review. User reward is ₦100. Enter the review instruction:`,
+      "Register on the app, use one or two features, and submit a review about your experience."
+    );
+    if (!reviewText?.trim()) return;
+    mutations.requestBusinessReview.mutate(
+      { submissionId: sub.id, reviewText: reviewText.trim() },
+      {
+        onSuccess: () => toast.success("App review request sent to the user."),
+        onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to request app review."),
+      }
+    );
+  };
+
+  const qualifyAppTester = (sub: Submission) => {
+    if (
+      !window.confirm(`Approve @${sub.username}'s portfolio for the app testing stage? This does not pay the user yet.`)
+    )
+      return;
+    mutations.qualifyAppTestingSubmission.mutate(sub.id, {
+      onSuccess: () => toast.success(`@${sub.username}'s portfolio was approved for app testing.`),
+      onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to approve portfolio."),
+    });
+  };
+
+  const finalizeAppTester = (sub: Submission) => {
+    const defaultReward = appTesting?.userRewardAmount || task.amount || 0;
+    const rewardText = window.prompt(`Final reward for @${sub.username}:`, defaultReward ? String(defaultReward) : "");
+    if (!rewardText) return;
+    const rewardAmount = Number.parseInt(rewardText.replace(/[^\d]/g, ""), 10);
+    if (!Number.isFinite(rewardAmount) || rewardAmount <= 0) {
+      toast.error("Enter a valid reward amount.");
+      return;
+    }
+    const ratingText = window.prompt(`Rating for @${sub.username} (1-5):`, "5");
+    const rating = Number.parseInt(ratingText || "5", 10);
+    if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+      toast.error("Rating must be between 1 and 5.");
+      return;
+    }
+    const feedback = window.prompt("Optional feedback:", "App testing completed.");
+    mutations.finalizeAppTestingSubmission.mutate(
+      { subId: sub.id, rewardAmount, rating, feedback: feedback?.trim() || undefined },
+      {
+        onSuccess: () => toast.success(`Final reward ${formatAmount(rewardAmount)} credited to @${sub.username}.`),
+        onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to finalize reward."),
+      }
+    );
+  };
+
   return (
     <div className="space-y-6">
       <TaskDetailHeader
@@ -435,9 +494,59 @@ export default function TaskSubmissionsPage() {
         onSubmit={(payload) => mutations.assistSubmission.mutate(payload)}
       />
 
+      {(task.taskType === "app_testing" || task.targetPlatform === "app_testing") && (
+        <AppTestingPanel
+          settings={appTesting}
+          taskSlots={task.numberOfUsersNeeded}
+          isPending={mutations.updateAppTestingSettings.isPending}
+          onSave={(payload) =>
+            mutations.updateAppTestingSettings.mutate(payload, {
+              onSuccess: () => toast.success("App testing settings saved."),
+              onError: (error) =>
+                toast.error(error instanceof Error ? error.message : "Failed to save app testing settings."),
+            })
+          }
+        />
+      )}
+
+      <AppReviewRequestsPanel
+        requests={reviewRequests}
+        isPending={mutations.withdrawBusinessReview.isPending || mutations.decideBusinessReview.isPending}
+        onWithdraw={(request) => {
+          if (window.confirm(`Withdraw app review request for @${request.username}?`)) {
+            mutations.withdrawBusinessReview.mutate(request.id, {
+              onSuccess: () => toast.success("App review request withdrawn."),
+              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to withdraw request."),
+            });
+          }
+        }}
+        onApprove={(request) =>
+          mutations.decideBusinessReview.mutate(
+            { requestId: request.id, action: "approve" },
+            {
+              onSuccess: () => toast.success("Review approved. ₦100 moved to the user wallet."),
+              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to approve review."),
+            }
+          )
+        }
+        onDispute={(request) => {
+          const reason = window.prompt(`Dispute app review from @${request.username}. Add a reason:`);
+          if (!reason?.trim()) return;
+          mutations.decideBusinessReview.mutate(
+            { requestId: request.id, action: "dispute", reason: reason.trim() },
+            {
+              onSuccess: () => toast.success("Review disputed. Client-funded holds were returned where applicable."),
+              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to dispute review."),
+            }
+          );
+        }}
+      />
+
       <div id="submissions-table" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <SubmissionsTable
           submissions={submissions}
+          task={task}
+          reviewRequests={reviewRequests}
           pagination={submissionsPagination}
           onPageChange={state.setSubmissionsPage}
           isFetching={submissionsQuery.isFetching}
@@ -463,6 +572,9 @@ export default function TaskSubmissionsPage() {
               mutations.removeSubmission.mutate(sub.id);
             }
           }}
+          onRequestAppReview={requestAppReview}
+          onQualifyAppTesting={qualifyAppTester}
+          onFinalizeAppTesting={finalizeAppTester}
         />
       </div>
 
@@ -512,6 +624,254 @@ export default function TaskSubmissionsPage() {
         handleWatchUser={handleWatchUser}
       />
     </div>
+  );
+}
+
+function AppReviewRequestsPanel({
+  requests,
+  isPending,
+  onWithdraw,
+  onApprove,
+  onDispute,
+}: {
+  requests: BusinessReviewRequest[];
+  isPending: boolean;
+  onWithdraw: (request: BusinessReviewRequest) => void;
+  onApprove: (request: BusinessReviewRequest) => void;
+  onDispute: (request: BusinessReviewRequest) => void;
+}) {
+  if (requests.length === 0) return null;
+  return (
+    <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-4 shadow-xl">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-200">App review requests</h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            Admin-created requests do not charge wallet. Client requests hold ₦200 until completion or refund.
+          </p>
+        </div>
+        <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-bold text-blue-300">
+          {requests.length} total
+        </span>
+      </div>
+      <div className="grid gap-3">
+        {requests.map((request) => {
+          const proofImages = getImagesList(request.reviewProof || "");
+          return (
+            <article key={request.id} className="rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-bold text-zinc-100">@{request.username}</p>
+                    <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-400">
+                      {request.status}
+                    </span>
+                    <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-300">
+                      {request.sourceType}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-zinc-400">{request.reviewText}</p>
+                  {request.reviewProof ? (
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                      {proofImages.map((proof, index) => (
+                        <a
+                          key={`${proof}-${index}`}
+                          href={proof}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-300 hover:text-blue-200"
+                        >
+                          Proof {index + 1}
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                  <p className="mt-2 text-[11px] text-zinc-550">
+                    {formatAmount(request.amount)} total · user {formatAmount(request.workerAmount)} · requested{" "}
+                    {formatDate(request.createdAt)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {request.status === "requested" ? (
+                    <button
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => onWithdraw(request)}
+                      className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-200 hover:bg-zinc-700 disabled:opacity-50"
+                    >
+                      Withdraw
+                    </button>
+                  ) : null}
+                  {request.status === "submitted" ? (
+                    <>
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={() => onApprove(request)}
+                        className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
+                      >
+                        Approve review
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={() => onDispute(request)}
+                        className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-500/20 disabled:opacity-50"
+                      >
+                        Dispute
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function AppTestingPanel({
+  settings,
+  taskSlots,
+  isPending,
+  onSave,
+}: {
+  settings: AppTestingSettings | null;
+  taskSlots: number;
+  isPending: boolean;
+  onSave: (payload: {
+    testingLink?: string | null;
+    testingDays?: number | null;
+    userRewardAmount?: number | null;
+    clientUsername?: string | null;
+    clientAmount?: number | null;
+    clientPricePerUser?: number | null;
+  }) => void;
+}) {
+  const [testingLink, setTestingLink] = React.useState(settings?.testingLink ?? "");
+  const [testingDays, setTestingDays] = React.useState(settings?.testingDays ? String(settings.testingDays) : "");
+  const [userRewardAmount, setUserRewardAmount] = React.useState(
+    settings?.userRewardAmount ? String(settings.userRewardAmount) : ""
+  );
+  const [clientUsername, setClientUsername] = React.useState(settings?.clientUsername ?? "");
+  const [clientAmount, setClientAmount] = React.useState(settings?.clientAmount ? String(settings.clientAmount) : "");
+  const [clientPricePerUser, setClientPricePerUser] = React.useState(
+    settings?.clientPricePerUser ? String(settings.clientPricePerUser) : ""
+  );
+
+  React.useEffect(() => {
+    setTestingLink(settings?.testingLink ?? "");
+    setTestingDays(settings?.testingDays ? String(settings.testingDays) : "");
+    setUserRewardAmount(settings?.userRewardAmount ? String(settings.userRewardAmount) : "");
+    setClientUsername(settings?.clientUsername ?? "");
+    setClientAmount(settings?.clientAmount ? String(settings.clientAmount) : "");
+    setClientPricePerUser(settings?.clientPricePerUser ? String(settings.clientPricePerUser) : "");
+  }, [settings]);
+
+  const numberOrNull = (value: string) => {
+    const cleaned = value.replace(/[^\d]/g, "");
+    return cleaned ? Number.parseInt(cleaned, 10) : null;
+  };
+  const clientTotalAmount = numberOrNull(clientAmount);
+  const clientPerUserAmount = numberOrNull(clientPricePerUser);
+  const expectedClientTotal = clientPerUserAmount && taskSlots > 0 ? clientPerUserAmount * taskSlots : null;
+
+  return (
+    <section className="rounded-2xl border border-sky-500/20 bg-sky-950/10 p-4 shadow-xl">
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-sm font-extrabold uppercase tracking-wider text-sky-200">App testing setup</h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            Qualify applicants first. Link, days, reward, and client oversight can be changed before final reward.
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() =>
+            onSave({
+              testingLink: testingLink.trim() || null,
+              testingDays: numberOrNull(testingDays),
+              userRewardAmount: numberOrNull(userRewardAmount),
+              clientUsername: clientUsername.trim().replace(/^@/, "") || null,
+              clientAmount: numberOrNull(clientAmount),
+              clientPricePerUser: numberOrNull(clientPricePerUser),
+            })
+          }
+          className="rounded-xl bg-sky-400 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-zinc-950 hover:bg-sky-300 disabled:opacity-50"
+        >
+          {isPending ? "Saving..." : "Save setup"}
+        </button>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-6">
+        <AppTestingInput
+          label="Testing link"
+          value={testingLink}
+          onChange={setTestingLink}
+          placeholder="Optional app link"
+        />
+        <AppTestingInput label="Testing days" value={testingDays} onChange={setTestingDays} placeholder="e.g. 7" />
+        <AppTestingInput
+          label="User reward"
+          value={userRewardAmount}
+          onChange={setUserRewardAmount}
+          placeholder="e.g. 5000"
+        />
+        <AppTestingInput
+          label="Client username"
+          value={clientUsername}
+          onChange={setClientUsername}
+          placeholder="@client"
+        />
+        <AppTestingInput
+          label="Client amount paid"
+          value={clientAmount}
+          onChange={setClientAmount}
+          placeholder="30000"
+        />
+        <AppTestingInput
+          label="Client price per user"
+          value={clientPricePerUser}
+          onChange={setClientPricePerUser}
+          placeholder="300"
+        />
+      </div>
+      {(clientTotalAmount !== null || expectedClientTotal !== null) && (
+        <p className="mt-3 text-[11px] font-semibold text-sky-300">
+          {clientTotalAmount !== null ? `Client amount paid: ₦${clientTotalAmount.toLocaleString()}` : ""}
+          {clientTotalAmount !== null && expectedClientTotal !== null ? " · " : ""}
+          {expectedClientTotal !== null
+            ? `Expected total from client price per user: ₦${expectedClientTotal.toLocaleString()}`
+            : ""}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function AppTestingInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <label className="block">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">{label}</span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-950/50 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-sky-500/60 focus:outline-none"
+      />
+    </label>
   );
 }
 

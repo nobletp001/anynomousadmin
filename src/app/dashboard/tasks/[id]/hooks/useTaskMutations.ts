@@ -64,6 +64,68 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
   });
 
+  const requestBusinessReview = useMutation({
+    mutationFn: ({ submissionId, reviewText }: { submissionId: number; reviewText: string }) =>
+      apiClient.post(`/admin/tasks/${taskId}/review-requests`, { submissionId, reviewText }) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
+  const withdrawBusinessReview = useMutation({
+    mutationFn: (requestId: number) => apiClient.delete(`/admin/tasks/${taskId}/review-requests/${requestId}`) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
+  const decideBusinessReview = useMutation({
+    mutationFn: ({
+      requestId,
+      action,
+      reason,
+    }: {
+      requestId: number;
+      action: "approve" | "dispute";
+      reason?: string;
+    }) => apiClient.patch(`/admin/tasks/${taskId}/review-requests/${requestId}`, { action, reason }) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
+  const updateAppTestingSettings = useMutation({
+    mutationFn: (payload: {
+      testingLink?: string | null;
+      testingDays?: number | null;
+      userRewardAmount?: number | null;
+      clientUsername?: string | null;
+      clientAmount?: number | null;
+      clientPricePerUser?: number | null;
+    }) => apiClient.patch(`/admin/tasks/${taskId}/app-testing`, payload) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
+  const qualifyAppTestingSubmission = useMutation({
+    mutationFn: (subId: number) =>
+      apiClient.post(`/admin/tasks/${taskId}/submissions/${subId}/app-testing/qualify`, {}) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
+  const finalizeAppTestingSubmission = useMutation({
+    mutationFn: ({
+      subId,
+      rewardAmount,
+      rating,
+      feedback,
+    }: {
+      subId: number;
+      rewardAmount: number;
+      rating: number;
+      feedback?: string;
+    }) =>
+      apiClient.post(`/admin/tasks/${taskId}/submissions/${subId}/app-testing/finalize`, {
+        rewardAmount,
+        rating,
+        feedback,
+      }) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
   const bulkAction = useMutation({
     mutationFn: (payload: {
       ids: number[];
@@ -178,6 +240,12 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     requestCorrection,
     toggleTaskStatus,
     businessPaymentReview,
+    requestBusinessReview,
+    withdrawBusinessReview,
+    decideBusinessReview,
+    updateAppTestingSettings,
+    qualifyAppTestingSubmission,
+    finalizeAppTestingSubmission,
     bulkAction,
     reportSubmission,
     updateTask,

@@ -9,7 +9,7 @@ import {
   Image as ImageIcon,
   Trash2,
 } from "lucide-react";
-import { Submission } from "../types";
+import { BusinessReviewRequest, Submission } from "../types";
 import {
   formatAmount,
   formatDate,
@@ -33,6 +33,12 @@ interface SubmissionRowProps {
   onReject: () => void;
   onReverseReject?: () => void;
   onRemove: () => void;
+  appReviewRequest?: BusinessReviewRequest | null;
+  canRequestAppReview?: boolean;
+  onRequestAppReview?: () => void;
+  isAppTestingTask?: boolean;
+  onQualifyAppTesting?: () => void;
+  onFinalizeAppTesting?: () => void;
 }
 
 export function SubmissionRow({
@@ -46,6 +52,12 @@ export function SubmissionRow({
   onReject,
   onReverseReject,
   onRemove,
+  appReviewRequest,
+  canRequestAppReview = false,
+  onRequestAppReview,
+  isAppTestingTask = false,
+  onQualifyAppTesting,
+  onFinalizeAppTesting,
 }: SubmissionRowProps) {
   const isSelectable = isActionableSubmissionStatus(sub.status);
 
@@ -171,11 +183,43 @@ export function SubmissionRow({
           {sub.status === "rejected" && sub.deductedAmount > 0 && (
             <p className="text-[10px] text-red-400 mt-0.5">−{formatAmount(sub.deductedAmount)}</p>
           )}
+          {appReviewRequest && (
+            <p className="text-[10px] text-blue-300 mt-1">
+              App review: {appReviewRequest.status} · {appReviewRequest.sourceType}
+            </p>
+          )}
+          {isAppTestingTask && sub.status === "qualified" && (
+            <p className="mt-1 text-[10px] font-semibold text-sky-300">Qualified for testing</p>
+          )}
         </div>
       </td>
       <td className="px-6 py-4 text-zinc-500 text-xs whitespace-nowrap">{formatDate(sub.createdAt)}</td>
       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-        {isSelectable && (
+        {isSelectable && isAppTestingTask ? (
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={onQualifyAppTesting}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500/10 text-sky-300 border border-sky-500/20 hover:bg-sky-500/20 transition-colors"
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+              Approve portfolio
+            </button>
+            <button
+              onClick={onCorrection}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+            >
+              <AlertCircle className="w-3.5 h-3.5" />
+              Correction
+            </button>
+            <button
+              onClick={onReject}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+            >
+              <XCircle className="w-3.5 h-3.5" />
+              Reject portfolio
+            </button>
+          </div>
+        ) : isSelectable ? (
           <div className="flex items-center gap-2">
             <button
               onClick={onReview}
@@ -199,7 +243,7 @@ export function SubmissionRow({
               Reject
             </button>
           </div>
-        )}
+        ) : null}
         {sub.status === "rejected" && onReverseReject && (
           <button
             onClick={onReverseReject}
@@ -216,6 +260,24 @@ export function SubmissionRow({
           >
             <Trash2 className="w-3.5 h-3.5" />
             Remove
+          </button>
+        )}
+        {canRequestAppReview && !appReviewRequest && (
+          <button
+            onClick={onRequestAppReview}
+            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+          >
+            <CheckCircle className="w-3.5 h-3.5" />
+            Ask review
+          </button>
+        )}
+        {isAppTestingTask && sub.status === "qualified" && (
+          <button
+            onClick={onFinalizeAppTesting}
+            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+          >
+            <CheckCircle className="w-3.5 h-3.5" />
+            Final reward
           </button>
         )}
       </td>

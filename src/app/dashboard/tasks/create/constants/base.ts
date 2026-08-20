@@ -12,6 +12,7 @@ export const TASK_TYPES = [
   { value: "message", label: "Message (Chat or DM someone)" },
   { value: "watch", label: "Watch (Watch a video to completion)" },
   { value: "use-app", label: "Use App (Use a feature or service)" },
+  { value: "app_testing", label: "App Testing (Admin special)" },
   { value: "jetpot", label: "Jetpot (Bring buyers / sales referral)" },
 ];
 
@@ -23,6 +24,7 @@ export const PLATFORMS = [
   { value: "instagram", label: "Instagram" },
   { value: "youtube", label: "YouTube" },
   { value: "other", label: "Other" },
+  { value: "app_testing", label: "App Testing" },
 ];
 
 export const PRESETS = [
@@ -49,9 +51,41 @@ export const TIMELINE_OPTIONS = [
 ];
 
 export const NIGERIAN_STATES = [
-  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno",
-  "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT - Abuja", "Gombe",
-  "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", "Kwara", "Lagos",
-  "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo", "Plateau", "Rivers", "Sokoto",
-  "Taraba", "Yobe", "Zamfara",
+  "Abia",
+  "Adamawa",
+  "Akwa Ibom",
+  "Anambra",
+  "Bauchi",
+  "Bayelsa",
+  "Benue",
+  "Borno",
+  "Cross River",
+  "Delta",
+  "Ebonyi",
+  "Edo",
+  "Ekiti",
+  "Enugu",
+  "FCT - Abuja",
+  "Gombe",
+  "Imo",
+  "Jigawa",
+  "Kaduna",
+  "Kano",
+  "Katsina",
+  "Kebbi",
+  "Kogi",
+  "Kwara",
+  "Lagos",
+  "Nasarawa",
+  "Niger",
+  "Ogun",
+  "Ondo",
+  "Osun",
+  "Oyo",
+  "Plateau",
+  "Rivers",
+  "Sokoto",
+  "Taraba",
+  "Yobe",
+  "Zamfara",
 ];

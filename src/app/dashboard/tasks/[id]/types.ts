@@ -229,6 +229,43 @@ export interface Submission {
   assignedReview?: string | null;
 }
 
+export interface BusinessReviewRequest {
+  id: number;
+  taskId: number;
+  submissionId: number;
+  username: string;
+  sourceType: "business" | "admin" | string;
+  reviewText: string;
+  reviewProof: string | null;
+  reviewProofType: string | null;
+  textResponse: string | null;
+  numberResponse: string | null;
+  amount: number;
+  workerAmount: number;
+  platformAmount: number;
+  status: string;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  withdrawnAt: string | null;
+  createdBy: string | null;
+  reviewedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AppTestingSettings {
+  taskId: number;
+  testingLink: string | null;
+  testingDays: number | null;
+  userRewardAmount: number | null;
+  clientUsername: string | null;
+  clientAmount: number | null;
+  clientPricePerUser: number | null;
+  updatedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SecuredSpot {
   id: number;
   taskId: number;
@@ -249,6 +286,8 @@ export interface SubmissionsResponse {
   data: {
     task: Task;
     submissions: Submission[];
+    reviewRequests?: BusinessReviewRequest[];
+    appTesting?: AppTestingSettings | null;
     pagination?: {
       total: number;
       page: number;
@@ -262,5 +301,5 @@ export interface RejectModal {
   subId: number;
   username: string;
   balance: number;
-  mode: "reject" | "correction";
+  mode: "reject" | "correction" | "app_testing_reject";
 }
