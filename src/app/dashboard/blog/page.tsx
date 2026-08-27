@@ -26,9 +26,12 @@ interface BlogArticle {
   slug: string;
   content: string;
   banner: string | null;
+  targetAudience?: BlogAudience;
   createdAt: string;
   updatedAt: string;
 }
+
+type BlogAudience = "user" | "business";
 
 const SAVED_BANNER_STORAGE_KEY = "payfluence_blog_saved_banner";
 
@@ -46,6 +49,7 @@ export default function BlogManagementPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [banner, setBanner] = useState("");
+  const [audience, setAudience] = useState<BlogAudience>("user");
   const [saveBannerImage, setSaveBannerImage] = useState(false);
   const [generatingSingle, setGeneratingSingle] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -131,11 +135,13 @@ export default function BlogManagementPage() {
 
   // Bulk Generation State
   const [bulkTitles, setBulkTitles] = useState("");
+  const [bulkAudience, setBulkAudience] = useState<BlogAudience>("user");
   const [generatingBulk, setGeneratingBulk] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<string[]>([]);
 
   // Auto Generation State
   const [autoCount, setAutoCount] = useState(10);
+  const [autoAudience, setAutoAudience] = useState<BlogAudience | "mixed">("mixed");
   const [generatingAuto, setGeneratingAuto] = useState(false);
   const [autoProgress, setAutoProgress] = useState<string[]>([]);
 
@@ -144,6 +150,7 @@ export default function BlogManagementPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [editBanner, setEditBanner] = useState("");
+  const [editAudience, setEditAudience] = useState<BlogAudience>("user");
   const [updating, setUpdating] = useState(false);
 
   // Preview Modal State
@@ -200,6 +207,7 @@ export default function BlogManagementPage() {
         title,
         content,
         banner: banner.trim() || null,
+        audience,
       });
 
       if (res && res.success) {
@@ -234,6 +242,7 @@ export default function BlogManagementPage() {
         {
           title: title.trim(),
           banner: banner.trim() || undefined,
+          audience,
         }
       );
 
@@ -266,6 +275,7 @@ export default function BlogManagementPage() {
         title: editTitle,
         content: editContent,
         banner: editBanner.trim() || null,
+        audience: editAudience,
       });
 
       if (res && res.success) {
@@ -314,7 +324,7 @@ export default function BlogManagementPage() {
       const res = await apiClient.post<
         any,
         { success: boolean; count: number; data: any[]; errors: { title: string; error: string }[] }
-      >("/blogs/admin/generate-bulk", { titles: list });
+      >("/blogs/admin/generate-bulk", { titles: list, audience: bulkAudience });
 
       if (res && res.success) {
         const progress = [
@@ -354,7 +364,7 @@ export default function BlogManagementPage() {
       const res = await apiClient.post<
         any,
         { success: boolean; count: number; data: any[]; errors: { title: string; error: string }[] }
-      >("/blogs/admin/auto-generate", { count: autoCount });
+      >("/blogs/admin/auto-generate", { count: autoCount, audience: autoAudience });
 
       if (res && res.success) {
         const progress = [
@@ -478,6 +488,7 @@ export default function BlogManagementPage() {
                     <thead>
                       <tr className="border-b border-zinc-800/80 bg-zinc-900/30 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
                         <th className="px-6 py-4">Article</th>
+                        <th className="px-6 py-4">Type</th>
                         <th className="px-6 py-4">Slug</th>
                         <th className="px-6 py-4">Published Date</th>
                         <th className="px-6 py-4 text-right">Actions</th>
@@ -497,6 +508,17 @@ export default function BlogManagementPage() {
                               </div>
                               <span className="font-bold text-zinc-200 line-clamp-1 max-w-sm">{b.title}</span>
                             </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${
+                                b.targetAudience === "business"
+                                  ? "bg-amber-500/10 text-amber-300 border border-amber-500/20"
+                                  : "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                              }`}
+                            >
+                              {b.targetAudience === "business" ? "Business" : "User"}
+                            </span>
                           </td>
                           <td className="px-6 py-4">
                             <code className="text-[10px] text-zinc-400 bg-zinc-900/60 px-1.5 py-0.5 rounded border border-zinc-800/40">
@@ -524,6 +546,7 @@ export default function BlogManagementPage() {
                                   setEditTitle(b.title);
                                   setEditContent(b.content);
                                   setEditBanner(b.banner || "");
+                                  setEditAudience(b.targetAudience === "business" ? "business" : "user");
                                 }}
                                 className="p-1.5 rounded-lg hover:bg-zinc-800 hover:text-emerald-400 text-zinc-550 transition cursor-pointer"
                                 title="Edit Article"
@@ -634,6 +657,18 @@ export default function BlogManagementPage() {
               </div>
 
               <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Article Type</label>
+                <select
+                  value={audience}
+                  onChange={(e) => setAudience(e.target.value as BlogAudience)}
+                  className="w-full px-4 py-2.5 bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-purple-500 transition"
+                >
+                  <option value="user">User article — frontend earners</option>
+                  <option value="business">Business article — business blog</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Banner Image</label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
@@ -740,6 +775,19 @@ export default function BlogManagementPage() {
             </div>
 
             <form onSubmit={handleBulkGenerate} className="space-y-4 flex-1 flex flex-col justify-between">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Article Type</label>
+                <select
+                  value={bulkAudience}
+                  onChange={(e) => setBulkAudience(e.target.value as BlogAudience)}
+                  disabled={generatingBulk}
+                  className="w-full px-4 py-2.5 bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-purple-500 transition"
+                >
+                  <option value="user">User articles — frontend earners</option>
+                  <option value="business">Business articles — business blog</option>
+                </select>
+              </div>
+
               <div className="space-y-1.5 flex-1 flex flex-col">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
                   Article Titles List (One per line)
@@ -832,6 +880,20 @@ export default function BlogManagementPage() {
                   />
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Article Type</label>
+                  <select
+                    value={autoAudience}
+                    onChange={(e) => setAutoAudience(e.target.value as BlogAudience | "mixed")}
+                    disabled={generatingAuto}
+                    className="w-full px-4 py-2.5 bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-purple-500 transition"
+                  >
+                    <option value="mixed">Mixed — user and business</option>
+                    <option value="user">User articles only</option>
+                    <option value="business">Business articles only</option>
+                  </select>
+                </div>
+
                 <button
                   type="submit"
                   disabled={generatingAuto}
@@ -898,6 +960,18 @@ export default function BlogManagementPage() {
                   className="w-full px-4 py-2.5 bg-zinc-90/50 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-purple-500 transition"
                   required
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Article Type</label>
+                <select
+                  value={editAudience}
+                  onChange={(e) => setEditAudience(e.target.value as BlogAudience)}
+                  className="w-full px-4 py-2.5 bg-zinc-90/50 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-purple-500 transition"
+                >
+                  <option value="user">User article — frontend earners</option>
+                  <option value="business">Business article — business blog</option>
+                </select>
               </div>
 
               <div className="space-y-1.5">
@@ -979,6 +1053,8 @@ export default function BlogManagementPage() {
               <h2 className="text-xl font-extrabold text-zinc-100">{previewArticle.title}</h2>
               <div className="flex items-center gap-3 text-[10px] text-zinc-500 font-bold uppercase">
                 <span>By PayFluence Admin</span>
+                <span>•</span>
+                <span>{previewArticle.targetAudience === "business" ? "Business" : "User"} article</span>
                 <span>•</span>
                 <span>{new Date(previewArticle.createdAt).toLocaleDateString()}</span>
               </div>
