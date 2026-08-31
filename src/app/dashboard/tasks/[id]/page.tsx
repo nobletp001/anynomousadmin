@@ -57,6 +57,7 @@ export default function TaskSubmissionsPage() {
   const submissions = submissionsQuery.data?.data?.submissions ?? [];
   const reviewRequests = submissionsQuery.data?.data?.reviewRequests ?? [];
   const appTesting = submissionsQuery.data?.data?.appTesting ?? null;
+  const appTestingApprovedPortfolioCount = submissionsQuery.data?.data?.appTestingApprovedPortfolioCount ?? 0;
   const submissionsPagination = submissionsQuery.data?.data?.pagination;
   const officers = officersQuery.data?.data ?? [];
   const securedSpots = securedSpotsQuery.data?.data ?? [];
@@ -517,7 +518,7 @@ export default function TaskSubmissionsPage() {
       {(task.taskType === "app_testing" || task.targetPlatform === "app_testing") && (
         <AppTestingPanel
           settings={appTesting}
-          taskSlots={task.numberOfUsersNeeded}
+          approvedPortfolioCount={appTestingApprovedPortfolioCount}
           isPending={mutations.updateAppTestingSettings.isPending}
           onSave={(payload) =>
             mutations.updateAppTestingSettings.mutate(payload, {
@@ -585,9 +586,11 @@ export default function TaskSubmissionsPage() {
           }
           onRemoveSubmission={(sub) => {
             const message =
-              sub.status === "approved"
-                ? `Remove @${sub.username}'s approved submission? This will reverse the task earning from their wallet/ledger.`
-                : `Remove @${sub.username}'s submission from this task?`;
+              (task.taskType === "app_testing" || task.targetPlatform === "app_testing") && sub.status === "qualified"
+                ? `Remove @${sub.username}'s approved app-testing portfolio? They will no longer count as qualified.`
+                : sub.status === "approved"
+                  ? `Remove @${sub.username}'s approved submission? This will reverse the task earning from their wallet/ledger.`
+                  : `Remove @${sub.username}'s submission from this task?`;
             if (window.confirm(message)) {
               mutations.removeSubmission.mutate(sub.id);
             }
@@ -754,12 +757,12 @@ function AppReviewRequestsPanel({
 
 function AppTestingPanel({
   settings,
-  taskSlots,
+  approvedPortfolioCount,
   isPending,
   onSave,
 }: {
   settings: AppTestingSettings | null;
-  taskSlots: number;
+  approvedPortfolioCount: number;
   isPending: boolean;
   onSave: (payload: {
     testingLink?: string | null;
@@ -796,7 +799,8 @@ function AppTestingPanel({
   };
   const clientTotalAmount = numberOrNull(clientAmount);
   const clientPerUserAmount = numberOrNull(clientPricePerUser);
-  const expectedClientTotal = clientPerUserAmount && taskSlots > 0 ? clientPerUserAmount * taskSlots : null;
+  const expectedClientTotal =
+    clientPerUserAmount !== null && approvedPortfolioCount > 0 ? clientPerUserAmount * approvedPortfolioCount : null;
 
   return (
     <section className="rounded-2xl border border-sky-500/20 bg-sky-950/10 p-4 shadow-xl">
@@ -863,8 +867,10 @@ function AppTestingPanel({
           {clientTotalAmount !== null ? `Client amount paid: ₦${clientTotalAmount.toLocaleString()}` : ""}
           {clientTotalAmount !== null && expectedClientTotal !== null ? " · " : ""}
           {expectedClientTotal !== null
-            ? `Expected total from client price per user: ₦${expectedClientTotal.toLocaleString()}`
-            : ""}
+            ? `Expected total from approved portfolios (${approvedPortfolioCount}): ₦${expectedClientTotal.toLocaleString()}`
+            : clientPerUserAmount !== null
+              ? `Approved portfolios: ${approvedPortfolioCount}`
+              : ""}
         </p>
       )}
     </section>

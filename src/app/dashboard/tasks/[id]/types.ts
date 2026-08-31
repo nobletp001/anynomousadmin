@@ -288,6 +288,7 @@ export interface SubmissionsResponse {
     submissions: Submission[];
     reviewRequests?: BusinessReviewRequest[];
     appTesting?: AppTestingSettings | null;
+    appTestingApprovedPortfolioCount?: number;
     pagination?: {
       total: number;
       page: number;

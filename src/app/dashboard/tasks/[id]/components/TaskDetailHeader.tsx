@@ -56,6 +56,11 @@ export function TaskDetailHeader({
   const businessInfo = parseBusinessRequestInfo(task);
   const clientUsername = task.clientUsername || (task.creatorType === "business" ? task.createdBy : "");
   const isForClient = task.isForClient || task.creatorType === "business";
+  const isAppTestingTask =
+    task.taskType === "app_testing" ||
+    task.taskType === "app-testing" ||
+    task.targetPlatform === "app_testing" ||
+    task.targetPlatform === "app-testing";
   const isBusinessPaymentRequest = task.creatorType === "business" && businessInfo.paymentMethod !== "";
   const isManualPaymentRequest = isBusinessPaymentRequest && businessInfo.paymentMethod !== "paystack";
   const isPaystackPaymentRequest = isBusinessPaymentRequest && businessInfo.paymentMethod === "paystack";
@@ -292,7 +297,7 @@ export function TaskDetailHeader({
                 {reminderPending ? "Sending..." : "Reminder"}
               </button>
             )}
-            {(!isBusinessPaymentRequest || task.status === "active") && (
+            {(!isBusinessPaymentRequest || task.status === "active" || isAppTestingTask) && (
               <button
                 onClick={onToggleStatusClick}
                 disabled={toggleStatusPending}
@@ -302,7 +307,15 @@ export function TaskDetailHeader({
                     : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300"
                 }`}
               >
-                {toggleStatusPending ? "Updating..." : task.status === "active" ? "Close Task" : "Re-open Task"}
+                {toggleStatusPending
+                  ? "Updating..."
+                  : task.status === "active"
+                    ? isAppTestingTask
+                      ? "Close Applications"
+                      : "Close Task"
+                    : isAppTestingTask
+                      ? "Re-open Applications"
+                      : "Re-open Task"}
               </button>
             )}
             {task.link && (
