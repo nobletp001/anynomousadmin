@@ -18,6 +18,7 @@ import { getBookedSlotCount, getTargetUsername } from "../../utils";
 interface TaskDetailHeaderProps {
   task: Task;
   appTestingSettings?: AppTestingSettings | null;
+  approvedPortfolioCount?: number;
   submissionsCount: number;
   onBack: () => void;
   onDownloadPDF: () => void | Promise<void>;
@@ -36,6 +37,7 @@ interface TaskDetailHeaderProps {
 export function TaskDetailHeader({
   task,
   appTestingSettings,
+  approvedPortfolioCount = 0,
   submissionsCount,
   onBack,
   onDownloadPDF,
@@ -340,7 +342,7 @@ export function TaskDetailHeader({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-6 gap-4 pt-4 border-t border-zinc-800/60">
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-7 gap-4 pt-4 border-t border-zinc-800/60">
           <div>
             <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Reward</p>
             <p className="text-sm font-bold text-emerald-400">{formatAmount(displayedReward)}</p>
@@ -361,6 +363,14 @@ export function TaskDetailHeader({
             <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Submissions</p>
             <p className="text-sm font-bold text-zinc-200">{submissionsCount}</p>
           </div>
+          {isAppTestingTask && (
+            <div>
+              <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">
+                Approved portfolios
+              </p>
+              <p className="text-sm font-bold text-sky-300">{approvedPortfolioCount}</p>
+            </div>
+          )}
           <div>
             <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Slots Booked</p>
             <p className="text-sm font-bold text-zinc-200">{bookedSlotCount ?? "—"}</p>

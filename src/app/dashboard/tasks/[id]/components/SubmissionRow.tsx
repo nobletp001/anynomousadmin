@@ -188,8 +188,12 @@ export function SubmissionRow({
               App review: {appReviewRequest.status} · {appReviewRequest.sourceType}
             </p>
           )}
-          {isAppTestingTask && sub.status === "qualified" && (
-            <p className="mt-1 text-[10px] font-semibold text-sky-300">Qualified for testing</p>
+          {isAppTestingTask && (sub.status === "qualified" || sub.status === "testing_joined") && (
+            <p className="mt-1 text-[10px] font-semibold text-sky-300">
+              {sub.appTestingJoinedLink || sub.status === "testing_joined"
+                ? "User joined testing link"
+                : "Qualified for testing"}
+            </p>
           )}
         </div>
       </td>
@@ -259,7 +263,9 @@ export function SubmissionRow({
             className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            {isAppTestingTask && sub.status === "qualified" ? "Remove approved portfolio" : "Remove"}
+            {isAppTestingTask && (sub.status === "qualified" || sub.status === "testing_joined")
+              ? "Remove approved portfolio"
+              : "Remove"}
           </button>
         )}
         {canRequestAppReview && !appReviewRequest && (
@@ -271,7 +277,7 @@ export function SubmissionRow({
             Ask review
           </button>
         )}
-        {isAppTestingTask && sub.status === "qualified" && (
+        {isAppTestingTask && (sub.status === "qualified" || sub.status === "testing_joined") && (
           <button
             onClick={onFinalizeAppTesting}
             className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"

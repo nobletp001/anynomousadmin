@@ -201,6 +201,7 @@ export interface Submission {
   status: string;
   rejectionReason: string | null;
   deductedAmount: number;
+  appTestingJoinedLink?: boolean;
   createdAt: string;
   user: UserInfo | null;
   userBalance: number;

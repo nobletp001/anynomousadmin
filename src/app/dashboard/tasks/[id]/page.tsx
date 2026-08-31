@@ -404,6 +404,7 @@ export default function TaskSubmissionsPage() {
       <TaskDetailHeader
         task={task}
         appTestingSettings={appTesting}
+        approvedPortfolioCount={appTestingApprovedPortfolioCount}
         submissionsCount={task.submissionCount ?? submissionsPagination?.total ?? submissions.length}
         onBack={() => router.back()}
         onDownloadPDF={() => downloadSubmissionExport("pdf")}
