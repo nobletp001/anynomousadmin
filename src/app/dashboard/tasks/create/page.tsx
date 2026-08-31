@@ -26,6 +26,7 @@ export default function CreateTaskPage() {
   const state = useCreateTaskState();
   const mutations = useCreateTaskMutations();
   const { handleSubmit, isPending, canSubmit } = useCreateTaskSubmit(state, mutations);
+  const isAppTesting = state.taskType === "app_testing" || state.targetPlatform === "app_testing";
 
   const { data: officersData } = useQuery<any>({
     queryKey: ["task-officers"],
@@ -182,6 +183,7 @@ export default function CreateTaskPage() {
           setCustomTimelineDate={state.setCustomTimelineDate}
           isPayFluenceTask={state.isPayFluenceTask}
           setIsPayFluenceTask={state.setIsPayFluenceTask}
+          isAppTesting={isAppTesting}
           volutterPayFluenceTaskPerformNumber={state.volutterPayFluenceTaskPerformNumber}
           setVolutterPayFluenceTaskPerformNumber={state.setVolutterPayFluenceTaskPerformNumber}
           scheduledAt={state.scheduledAt}

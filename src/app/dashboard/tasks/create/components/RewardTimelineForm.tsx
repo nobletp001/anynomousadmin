@@ -16,6 +16,7 @@ interface RewardTimelineFormProps {
   setCustomTimelineDate: (v: string) => void;
   isPayFluenceTask: boolean;
   setIsPayFluenceTask: (v: boolean) => void;
+  isAppTesting: boolean;
   volutterPayFluenceTaskPerformNumber: string;
   setVolutterPayFluenceTaskPerformNumber: (v: string) => void;
   scheduledAt: string;
@@ -37,6 +38,7 @@ export function RewardTimelineForm({
   setCustomTimelineDate,
   isPayFluenceTask,
   setIsPayFluenceTask,
+  isAppTesting,
   volutterPayFluenceTaskPerformNumber,
   setVolutterPayFluenceTaskPerformNumber,
   scheduledAt,
@@ -143,10 +145,10 @@ export function RewardTimelineForm({
           <FieldLabel required>Amount per User (₦)</FieldLabel>
           <input
             type="number"
-            min={isPayFluenceTask ? "0" : "1"}
+            min={isPayFluenceTask || isAppTesting ? "0" : "1"}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder={isPayFluenceTask ? "0 (Volunteer Task)" : "500"}
+            placeholder={isPayFluenceTask || isAppTesting ? "0" : "500"}
             className={inputCls}
           />
         </div>
