@@ -16,6 +16,7 @@ import { AssistSubmissionPanel } from "./components/AssistSubmissionPanel";
 import { BulkActionPanel } from "./components/BulkActionPanel";
 import { TaskDetailModals } from "./components/TaskDetailModals";
 import { BusinessPaymentConfirmModal } from "./components/BusinessPaymentConfirmModal";
+import { AppTestingQualifyModal } from "./components/AppTestingQualifyModal";
 import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
@@ -43,6 +44,7 @@ export default function TaskSubmissionsPage() {
   const [businessPaymentModal, setBusinessPaymentModal] = React.useState<
     "confirm_payment" | "approve_task" | "reject_task" | "reject_payment" | null
   >(null);
+  const [appTestingQualifyModal, setAppTestingQualifyModal] = React.useState<Submission | null>(null);
 
   const { submissionsQuery, officersQuery, securedSpotsQuery } = useTaskQueries(
     taskId,
@@ -356,12 +358,17 @@ export default function TaskSubmissionsPage() {
   };
 
   const qualifyAppTester = (sub: Submission) => {
-    if (
-      !window.confirm(`Approve @${sub.username}'s portfolio for the app testing stage? This does not pay the user yet.`)
-    )
-      return;
-    mutations.qualifyAppTestingSubmission.mutate(sub.id, {
-      onSuccess: () => toast.success(`@${sub.username}'s portfolio was approved for app testing.`),
+    mutations.qualifyAppTestingSubmission.reset();
+    setAppTestingQualifyModal(sub);
+  };
+
+  const confirmQualifyAppTester = () => {
+    if (!appTestingQualifyModal) return;
+    mutations.qualifyAppTestingSubmission.mutate(appTestingQualifyModal.id, {
+      onSuccess: () => {
+        toast.success(`@${appTestingQualifyModal.username}'s portfolio was approved for app testing.`);
+        setAppTestingQualifyModal(null);
+      },
       onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to approve portfolio."),
     });
   };
@@ -432,6 +439,19 @@ export default function TaskSubmissionsPage() {
           paymentMethod={getBusinessPaymentMethod(task)}
           onClose={() => setBusinessPaymentModal(null)}
           onConfirm={(payload) => runBusinessPaymentAction(businessPaymentModal, payload)}
+        />
+      )}
+
+      {appTestingQualifyModal && (
+        <AppTestingQualifyModal
+          username={appTestingQualifyModal.username}
+          isPending={mutations.qualifyAppTestingSubmission.isPending}
+          error={mutations.qualifyAppTestingSubmission.error}
+          onClose={() => {
+            mutations.qualifyAppTestingSubmission.reset();
+            setAppTestingQualifyModal(null);
+          }}
+          onConfirm={confirmQualifyAppTester}
         />
       )}
 
