@@ -403,6 +403,7 @@ export default function TaskSubmissionsPage() {
     <div className="space-y-6">
       <TaskDetailHeader
         task={task}
+        appTestingSettings={appTesting}
         submissionsCount={task.submissionCount ?? submissionsPagination?.total ?? submissions.length}
         onBack={() => router.back()}
         onDownloadPDF={() => downloadSubmissionExport("pdf")}
@@ -793,12 +794,18 @@ function AppTestingPanel({
     setClientPricePerUser(settings?.clientPricePerUser ? String(settings.clientPricePerUser) : "");
   }, [settings]);
 
-  const numberOrNull = (value: string) => {
+  const integerOrNull = (value: string) => {
     const cleaned = value.replace(/[^\d]/g, "");
     return cleaned ? Number.parseInt(cleaned, 10) : null;
   };
-  const clientTotalAmount = numberOrNull(clientAmount);
-  const clientPerUserAmount = numberOrNull(clientPricePerUser);
+  const decimalOrNull = (value: string) => {
+    const cleaned = value.replace(/[^\d.]/g, "");
+    if (!cleaned || cleaned === ".") return null;
+    const parsed = Number.parseFloat(cleaned);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+  const clientTotalAmount = integerOrNull(clientAmount);
+  const clientPerUserAmount = decimalOrNull(clientPricePerUser);
   const expectedClientTotal =
     clientPerUserAmount !== null && approvedPortfolioCount > 0 ? clientPerUserAmount * approvedPortfolioCount : null;
 
@@ -817,11 +824,11 @@ function AppTestingPanel({
           onClick={() =>
             onSave({
               testingLink: testingLink.trim() || null,
-              testingDays: numberOrNull(testingDays),
-              userRewardAmount: numberOrNull(userRewardAmount),
+              testingDays: integerOrNull(testingDays),
+              userRewardAmount: integerOrNull(userRewardAmount),
               clientUsername: clientUsername.trim().replace(/^@/, "") || null,
-              clientAmount: numberOrNull(clientAmount),
-              clientPricePerUser: numberOrNull(clientPricePerUser),
+              clientAmount: integerOrNull(clientAmount),
+              clientPricePerUser: decimalOrNull(clientPricePerUser),
             })
           }
           className="rounded-xl bg-sky-400 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-zinc-950 hover:bg-sky-300 disabled:opacity-50"

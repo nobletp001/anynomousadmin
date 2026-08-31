@@ -11,12 +11,13 @@ import {
   FileSpreadsheet,
   WalletCards,
 } from "lucide-react";
-import { Task } from "../types";
+import { AppTestingSettings, Task } from "../types";
 import { formatAmount } from "../utils";
 import { getBookedSlotCount, getTargetUsername } from "../../utils";
 
 interface TaskDetailHeaderProps {
   task: Task;
+  appTestingSettings?: AppTestingSettings | null;
   submissionsCount: number;
   onBack: () => void;
   onDownloadPDF: () => void | Promise<void>;
@@ -34,6 +35,7 @@ interface TaskDetailHeaderProps {
 
 export function TaskDetailHeader({
   task,
+  appTestingSettings,
   submissionsCount,
   onBack,
   onDownloadPDF,
@@ -56,11 +58,17 @@ export function TaskDetailHeader({
   const businessInfo = parseBusinessRequestInfo(task);
   const clientUsername = task.clientUsername || (task.creatorType === "business" ? task.createdBy : "");
   const isForClient = task.isForClient || task.creatorType === "business";
+  const taskType = (task.taskType || "").toLowerCase();
+  const targetPlatform = (task.targetPlatform || "").toLowerCase();
   const isAppTestingTask =
-    task.taskType === "app_testing" ||
-    task.taskType === "app-testing" ||
-    task.targetPlatform === "app_testing" ||
-    task.targetPlatform === "app-testing";
+    taskType === "app_testing" ||
+    taskType === "app-testing" ||
+    targetPlatform === "app_testing" ||
+    targetPlatform === "app-testing";
+  const displayedReward =
+    isAppTestingTask && typeof appTestingSettings?.userRewardAmount === "number"
+      ? appTestingSettings.userRewardAmount
+      : task.amount;
   const isBusinessPaymentRequest = task.creatorType === "business" && businessInfo.paymentMethod !== "";
   const isManualPaymentRequest = isBusinessPaymentRequest && businessInfo.paymentMethod !== "paystack";
   const isPaystackPaymentRequest = isBusinessPaymentRequest && businessInfo.paymentMethod === "paystack";
@@ -335,7 +343,7 @@ export function TaskDetailHeader({
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-6 gap-4 pt-4 border-t border-zinc-800/60">
           <div>
             <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Reward</p>
-            <p className="text-sm font-bold text-emerald-400">{formatAmount(task.amount)}</p>
+            <p className="text-sm font-bold text-emerald-400">{formatAmount(displayedReward)}</p>
           </div>
           <div>
             <p className="text-[10px] text-zinc-650 uppercase tracking-wider font-semibold mb-1">Capacity</p>
