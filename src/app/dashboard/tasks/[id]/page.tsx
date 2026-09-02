@@ -17,6 +17,7 @@ import { BulkActionPanel } from "./components/BulkActionPanel";
 import { TaskDetailModals } from "./components/TaskDetailModals";
 import { BusinessPaymentConfirmModal } from "./components/BusinessPaymentConfirmModal";
 import { AppTestingQualifyModal } from "./components/AppTestingQualifyModal";
+import { AppReviewRequestModal } from "./components/AppReviewRequestModal";
 import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
@@ -45,6 +46,8 @@ export default function TaskSubmissionsPage() {
     "confirm_payment" | "approve_task" | "reject_task" | "reject_payment" | null
   >(null);
   const [appTestingQualifyModal, setAppTestingQualifyModal] = React.useState<Submission | null>(null);
+  const [appReviewRequestModal, setAppReviewRequestModal] = React.useState<Submission | null>(null);
+  const [appReviewRequestText, setAppReviewRequestText] = React.useState("");
 
   const { submissionsQuery, officersQuery, securedSpotsQuery } = useTaskQueries(
     taskId,
@@ -344,15 +347,25 @@ export default function TaskSubmissionsPage() {
   };
 
   const requestAppReview = (sub: Submission) => {
-    const reviewText = window.prompt(
-      `Ask @${sub.username} for an app review. User reward is ₦100. Enter the review instruction:`,
-      "Register on the app, use one or two features, and submit a review about your experience."
+    mutations.requestBusinessReview.reset();
+    setAppReviewRequestModal(sub);
+    setAppReviewRequestText(
+      "Download/open the app, use one or two features, leave an honest Play Store review about your experience, then upload a screenshot showing the submitted review."
     );
-    if (!reviewText?.trim()) return;
+  };
+
+  const confirmRequestAppReview = () => {
+    if (!appReviewRequestModal) return;
+    const reviewText = appReviewRequestText.trim();
+    if (!reviewText) return;
     mutations.requestBusinessReview.mutate(
-      { submissionId: sub.id, reviewText: reviewText.trim() },
+      { submissionId: appReviewRequestModal.id, reviewText },
       {
-        onSuccess: () => toast.success("App review request sent to the user."),
+        onSuccess: () => {
+          toast.success("App review request sent to the user.");
+          setAppReviewRequestModal(null);
+          setAppReviewRequestText("");
+        },
         onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to request app review."),
       }
     );
@@ -455,6 +468,22 @@ export default function TaskSubmissionsPage() {
             setAppTestingQualifyModal(null);
           }}
           onConfirm={confirmQualifyAppTester}
+        />
+      )}
+
+      {appReviewRequestModal && (
+        <AppReviewRequestModal
+          submission={appReviewRequestModal}
+          reviewText={appReviewRequestText}
+          setReviewText={setAppReviewRequestText}
+          isPending={mutations.requestBusinessReview.isPending}
+          error={mutations.requestBusinessReview.error}
+          onClose={() => {
+            mutations.requestBusinessReview.reset();
+            setAppReviewRequestModal(null);
+            setAppReviewRequestText("");
+          }}
+          onConfirm={confirmRequestAppReview}
         />
       )}
 
