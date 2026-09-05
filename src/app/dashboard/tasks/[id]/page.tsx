@@ -627,6 +627,15 @@ export default function TaskSubmissionsPage() {
             }
           }}
           onRequestAppReview={requestAppReview}
+          onWithdrawAppReview={(request) => {
+            if (window.confirm(`Withdraw app review request for @${request.username}?`)) {
+              mutations.withdrawBusinessReview.mutate(request.id, {
+                onSuccess: () => toast.success("App review request withdrawn."),
+                onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to withdraw request."),
+              });
+            }
+          }}
+          isWithdrawingAppReview={mutations.withdrawBusinessReview.isPending}
           onQualifyAppTesting={qualifyAppTester}
           onFinalizeAppTesting={finalizeAppTester}
         />

@@ -29,6 +29,8 @@ interface SubmissionsTableProps {
   openReverseModal: (sub: Submission) => void;
   onRemoveSubmission: (sub: Submission) => void;
   onRequestAppReview: (sub: Submission) => void;
+  onWithdrawAppReview: (request: BusinessReviewRequest) => void;
+  isWithdrawingAppReview?: boolean;
   onQualifyAppTesting: (sub: Submission) => void;
   onFinalizeAppTesting: (sub: Submission) => void;
 }
@@ -53,6 +55,8 @@ export function SubmissionsTable({
   openReverseModal,
   onRemoveSubmission,
   onRequestAppReview,
+  onWithdrawAppReview,
+  isWithdrawingAppReview = false,
   onQualifyAppTesting,
   onFinalizeAppTesting,
 }: SubmissionsTableProps) {
@@ -219,6 +223,8 @@ export function SubmissionsTable({
                     appReviewRequest={reviewRequestsBySubmission.get(sub.id) ?? null}
                     canRequestAppReview={isAppDownloadTask && sub.status === "approved"}
                     onRequestAppReview={() => onRequestAppReview(sub)}
+                    onWithdrawAppReview={onWithdrawAppReview}
+                    isWithdrawingAppReview={isWithdrawingAppReview}
                     isAppTestingTask={isAppTestingTask}
                     onQualifyAppTesting={() => onQualifyAppTesting(sub)}
                     onFinalizeAppTesting={() => onFinalizeAppTesting(sub)}

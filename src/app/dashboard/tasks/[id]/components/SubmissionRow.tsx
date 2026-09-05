@@ -8,11 +8,13 @@ import {
   Link as LinkIcon,
   Image as ImageIcon,
   Trash2,
+  Undo2,
 } from "lucide-react";
 import { BusinessReviewRequest, Submission } from "../types";
 import {
   formatAmount,
   formatDate,
+  formatRelativeAge,
   statusVariant,
   isActionableSubmissionStatus,
   formatSubmissionStatus,
@@ -36,6 +38,8 @@ interface SubmissionRowProps {
   appReviewRequest?: BusinessReviewRequest | null;
   canRequestAppReview?: boolean;
   onRequestAppReview?: () => void;
+  onWithdrawAppReview?: (request: BusinessReviewRequest) => void;
+  isWithdrawingAppReview?: boolean;
   isAppTestingTask?: boolean;
   onQualifyAppTesting?: () => void;
   onFinalizeAppTesting?: () => void;
@@ -55,6 +59,8 @@ export function SubmissionRow({
   appReviewRequest,
   canRequestAppReview = false,
   onRequestAppReview,
+  onWithdrawAppReview,
+  isWithdrawingAppReview = false,
   isAppTestingTask = false,
   onQualifyAppTesting,
   onFinalizeAppTesting,
@@ -184,9 +190,13 @@ export function SubmissionRow({
             <p className="text-[10px] text-red-400 mt-0.5">−{formatAmount(sub.deductedAmount)}</p>
           )}
           {appReviewRequest && (
-            <p className="text-[10px] text-blue-300 mt-1">
-              App review: {appReviewRequest.status} · {appReviewRequest.sourceType}
-            </p>
+            <div className="mt-1 space-y-0.5">
+              <p className="text-[10px] text-blue-300">
+                App review: {appReviewRequest.status} · {appReviewRequest.sourceType}
+              </p>
+              <p className="text-[10px] text-zinc-500">Requested {formatDate(appReviewRequest.createdAt)}</p>
+              <p className="text-[10px] font-semibold text-zinc-400">{formatRelativeAge(appReviewRequest.createdAt)}</p>
+            </div>
           )}
           {isAppTestingTask && (sub.status === "qualified" || sub.status === "testing_joined") && (
             <p className="mt-1 text-[10px] font-semibold text-sky-300">
@@ -275,6 +285,17 @@ export function SubmissionRow({
           >
             <CheckCircle className="w-3.5 h-3.5" />
             Ask review
+          </button>
+        )}
+        {appReviewRequest?.status === "requested" && onWithdrawAppReview && (
+          <button
+            type="button"
+            disabled={isWithdrawingAppReview}
+            onClick={() => onWithdrawAppReview(appReviewRequest)}
+            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 transition-colors disabled:opacity-50"
+          >
+            <Undo2 className="w-3.5 h-3.5" />
+            Withdraw review
           </button>
         )}
         {isAppTestingTask && (sub.status === "qualified" || sub.status === "testing_joined") && (
