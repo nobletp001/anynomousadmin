@@ -18,6 +18,7 @@ import { TaskDetailModals } from "./components/TaskDetailModals";
 import { BusinessPaymentConfirmModal } from "./components/BusinessPaymentConfirmModal";
 import { AppTestingQualifyModal } from "./components/AppTestingQualifyModal";
 import { AppReviewRequestModal } from "./components/AppReviewRequestModal";
+import { WithdrawReviewRequestModal } from "./components/WithdrawReviewRequestModal";
 import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
@@ -47,6 +48,9 @@ export default function TaskSubmissionsPage() {
   >(null);
   const [appTestingQualifyModal, setAppTestingQualifyModal] = React.useState<Submission | null>(null);
   const [appReviewRequestModal, setAppReviewRequestModal] = React.useState<Submission | null>(null);
+  const [withdrawReviewRequestModal, setWithdrawReviewRequestModal] = React.useState<BusinessReviewRequest | null>(
+    null
+  );
   const [appReviewRequestText, setAppReviewRequestText] = React.useState("");
 
   const { submissionsQuery, officersQuery, securedSpotsQuery } = useTaskQueries(
@@ -371,6 +375,17 @@ export default function TaskSubmissionsPage() {
     );
   };
 
+  const confirmWithdrawReviewRequest = () => {
+    if (!withdrawReviewRequestModal) return;
+    mutations.withdrawBusinessReview.mutate(withdrawReviewRequestModal.id, {
+      onSuccess: () => {
+        toast.success("App review request withdrawn.");
+        setWithdrawReviewRequestModal(null);
+      },
+      onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to withdraw request."),
+    });
+  };
+
   const qualifyAppTester = (sub: Submission) => {
     mutations.qualifyAppTestingSubmission.reset();
     setAppTestingQualifyModal(sub);
@@ -487,6 +502,16 @@ export default function TaskSubmissionsPage() {
         />
       )}
 
+      {withdrawReviewRequestModal && (
+        <WithdrawReviewRequestModal
+          request={withdrawReviewRequestModal}
+          isPending={mutations.withdrawBusinessReview.isPending}
+          error={mutations.withdrawBusinessReview.error}
+          onClose={() => setWithdrawReviewRequestModal(null)}
+          onConfirm={confirmWithdrawReviewRequest}
+        />
+      )}
+
       {task.isSecureSpotTask && (
         <div className="space-y-4">
           <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-4 shadow-xl">
@@ -564,14 +589,7 @@ export default function TaskSubmissionsPage() {
       <AppReviewRequestsPanel
         requests={reviewRequests}
         isPending={mutations.withdrawBusinessReview.isPending || mutations.decideBusinessReview.isPending}
-        onWithdraw={(request) => {
-          if (window.confirm(`Withdraw app review request for @${request.username}?`)) {
-            mutations.withdrawBusinessReview.mutate(request.id, {
-              onSuccess: () => toast.success("App review request withdrawn."),
-              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to withdraw request."),
-            });
-          }
-        }}
+        onWithdraw={setWithdrawReviewRequestModal}
         onApprove={(request) =>
           mutations.decideBusinessReview.mutate(
             { requestId: request.id, action: "approve" },
@@ -627,14 +645,7 @@ export default function TaskSubmissionsPage() {
             }
           }}
           onRequestAppReview={requestAppReview}
-          onWithdrawAppReview={(request) => {
-            if (window.confirm(`Withdraw app review request for @${request.username}?`)) {
-              mutations.withdrawBusinessReview.mutate(request.id, {
-                onSuccess: () => toast.success("App review request withdrawn."),
-                onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to withdraw request."),
-              });
-            }
-          }}
+          onWithdrawAppReview={setWithdrawReviewRequestModal}
           isWithdrawingAppReview={mutations.withdrawBusinessReview.isPending}
           onQualifyAppTesting={qualifyAppTester}
           onFinalizeAppTesting={finalizeAppTester}
