@@ -30,6 +30,19 @@ export interface NewUser {
   disabled: boolean;
 }
 
+export interface EmailActivityItem {
+  id: number;
+  jobType: string;
+  status: string;
+  attempts: number;
+  maxAttempts: number;
+  availableAt: string | null;
+  lastError: string | null;
+  createdAt: string;
+  updatedAt: string;
+  payloadEmail: string | null;
+}
+
 export interface UsersResponse {
   success: boolean;
   data: User[];
