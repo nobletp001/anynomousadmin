@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AudienceFilter, ImageEntry } from "../types";
+import { AudienceFilter, ImageEntry, InstructionPdfEntry } from "../types";
 
 export function useCreateTaskState() {
   const [title, setTitle] = useState("");
@@ -29,6 +29,7 @@ export function useCreateTaskState() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [showPromptRepo, setShowPromptRepo] = useState(false);
   const [images, setImages] = useState<ImageEntry[]>([]);
+  const [instructionPdf, setInstructionPdf] = useState<InstructionPdfEntry | null>(null);
   const [uploadError, setUploadError] = useState("");
   const [proofType, setProofType] = useState<"banner" | "url">("banner");
   const [acceptText, setAcceptText] = useState(false);
@@ -131,6 +132,8 @@ export function useCreateTaskState() {
     setShowPromptRepo,
     images,
     setImages,
+    instructionPdf,
+    setInstructionPdf,
     uploadError,
     setUploadError,
     proofType,

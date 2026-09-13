@@ -11,3 +11,8 @@ export interface ImageEntry {
   file: File;
   preview: string;
 }
+
+export interface InstructionPdfEntry {
+  fileName: string;
+  dataUrl: string;
+}

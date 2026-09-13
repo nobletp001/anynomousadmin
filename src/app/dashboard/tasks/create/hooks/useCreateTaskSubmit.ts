@@ -56,6 +56,8 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
     createTask.mutate({
       title: state.title.trim(),
       description: state.description.trim(),
+      instructionPdfName: state.instructionPdf?.fileName,
+      instructionPdfDataUrl: state.instructionPdf?.dataUrl,
       caption: state.caption.trim() || undefined,
       link: state.link.trim() || undefined,
       instructions: filteredInstructions.length ? filteredInstructions : undefined,

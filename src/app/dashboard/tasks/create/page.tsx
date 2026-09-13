@@ -79,6 +79,8 @@ export default function CreateTaskPage() {
           setLink={state.setLink}
           images={state.images}
           setImages={state.setImages}
+          instructionPdf={state.instructionPdf}
+          setInstructionPdf={state.setInstructionPdf}
           uploadError={state.uploadError}
           setUploadError={state.setUploadError}
         />

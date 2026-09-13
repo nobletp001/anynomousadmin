@@ -1,9 +1,10 @@
 import React, { useRef } from "react";
-import { Upload, X } from "lucide-react";
+import { FileText, Upload, X } from "lucide-react";
 import { FieldLabel } from "./FieldLabel";
-import { ImageEntry } from "../types";
+import { ImageEntry, InstructionPdfEntry } from "../types";
 
 const MAX_IMAGES = 5;
+const MAX_INSTRUCTION_PDF_SIZE = 5 * 1024 * 1024;
 
 interface TaskDetailsFormProps {
   title: string;
@@ -16,6 +17,8 @@ interface TaskDetailsFormProps {
   setLink: (v: string) => void;
   images: ImageEntry[];
   setImages: React.Dispatch<React.SetStateAction<ImageEntry[]>>;
+  instructionPdf: InstructionPdfEntry | null;
+  setInstructionPdf: React.Dispatch<React.SetStateAction<InstructionPdfEntry | null>>;
   uploadError: string;
   setUploadError: (v: string) => void;
 }
@@ -31,10 +34,13 @@ export function TaskDetailsForm({
   setLink,
   images,
   setImages,
+  instructionPdf,
+  setInstructionPdf,
   uploadError,
   setUploadError,
 }: TaskDetailsFormProps) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const pdfRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = (files: FileList | File[]) => {
     const arr = Array.from(files);
@@ -63,6 +69,29 @@ export function TaskDetailsForm({
     setUploadError("");
   };
 
+  const handleInstructionPdf = (file: File | null) => {
+    if (!file) {
+      setInstructionPdf(null);
+      setUploadError("");
+      return;
+    }
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setUploadError("Instruction file must be a PDF.");
+      return;
+    }
+    if (file.size > MAX_INSTRUCTION_PDF_SIZE) {
+      setUploadError("Instruction PDF must be under 5 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setInstructionPdf({ fileName: file.name, dataUrl: String(e.target?.result || "") });
+      setUploadError("");
+    };
+    reader.onerror = () => setUploadError("Unable to read instruction PDF.");
+    reader.readAsDataURL(file);
+  };
+
   const inputCls =
     "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
 
@@ -86,6 +115,45 @@ export function TaskDetailsForm({
           placeholder="Brief overview of what the task is about..."
           rows={2}
           className={`${inputCls} resize-none`}
+        />
+      </div>
+      <div>
+        <FieldLabel>
+          Upload instruction PDF <span className="text-zinc-650 font-normal">(optional — shown to users)</span>
+        </FieldLabel>
+        {instructionPdf ? (
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-zinc-700/60 bg-zinc-800/40 px-3 py-2.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <FileText className="h-4 w-4 shrink-0 text-purple-400" />
+              <span className="truncate text-sm font-semibold text-zinc-200">{instructionPdf.fileName}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleInstructionPdf(null)}
+              className="rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => pdfRef.current?.click()}
+            className="flex h-20 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700/60 bg-zinc-800/30 text-zinc-500 transition-colors hover:border-purple-500/40 hover:bg-zinc-800/50"
+          >
+            <Upload className="h-5 w-5" />
+            <span className="text-xs font-medium">Click to add instruction PDF</span>
+          </button>
+        )}
+        <input
+          ref={pdfRef}
+          type="file"
+          accept="application/pdf,.pdf"
+          className="hidden"
+          onChange={(e) => {
+            handleInstructionPdf(e.target.files?.[0] || null);
+            e.target.value = "";
+          }}
         />
       </div>
       <div>
