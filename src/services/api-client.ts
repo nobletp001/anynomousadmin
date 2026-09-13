@@ -1,10 +1,10 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-// NEXT_PUBLIC_API_URL must include /api (for example, https://your-railway-app.up.railway.app/api).
+// NEXT_PUBLIC_API_URL must include /api (for example, the production Cloudflare gateway URL plus /api).
 const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 if (!configuredApiUrl) {
-  throw new Error("NEXT_PUBLIC_API_URL is required. Set it to the Railway API URL including /api.");
+  throw new Error("NEXT_PUBLIC_API_URL is required. Set it to the Cloudflare API gateway URL including /api.");
 }
 
 const BASE_URL = configuredApiUrl.replace(/\/$/, "");

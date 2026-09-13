@@ -5,7 +5,7 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 if (process.env.NODE_ENV === "production" && !apiUrl) {
   throw new Error(
-    "NEXT_PUBLIC_API_URL is required for production builds. Set it to the Railway API URL including /api."
+    "NEXT_PUBLIC_API_URL is required for production builds. Set it to the Cloudflare API gateway URL including /api."
   );
 }
 

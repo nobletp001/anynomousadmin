@@ -14,7 +14,7 @@
 - Server Components: `src/app/layout.tsx` is a Server Component; most dashboard/login pages declare `"use client"`.
 - Server Actions: none found.
 - Middleware: none found.
-- API routes: none found in this repo. API calls go to the Railway backend through `NEXT_PUBLIC_API_URL`.
+- API routes: none found in this repo. API calls go through the Cloudflare API gateway via `NEXT_PUBLIC_API_URL`.
 - Authentication storage: the frontend stores admin access/refresh tokens in `sessionStorage` and sends credentials with Axios `withCredentials: true`.
 - Authentication cookies: no cookies are created by this frontend. Railway should set backend cookies as `HttpOnly`, `Secure` in production, and explicit `SameSite` according to cross-site needs.
 - Image optimization: no `next/image` usage found. Images are mostly remote URLs rendered directly, including Cloudinary-hosted proof images.
@@ -40,13 +40,13 @@ Required GitHub Actions secrets:
 
 - `CLOUDFLARE_API_TOKEN`: scoped Cloudflare API token for Workers deploys. Do not use the Global API Key.
 - `CLOUDFLARE_ACCOUNT_ID`: Cloudflare account id.
-- `NEXT_PUBLIC_API_URL`: Railway API gateway URL, including `/api`. Current value for this deployment is `https://api-gateway-production-529f.up.railway.app/api`.
+- `NEXT_PUBLIC_API_URL`: Cloudflare API gateway URL, including `/api`. The current value uses the production `workers.dev` gateway.
 
 Local setup:
 
 ```bash
 cp .env.example .env.local
-# set NEXT_PUBLIC_API_URL to the real Railway API URL including /api
+# set NEXT_PUBLIC_API_URL to the Cloudflare API gateway URL including /api
 ```
 
 The production build fails clearly when `NEXT_PUBLIC_API_URL` is missing. It is set in `wrangler.jsonc` for Wrangler/OpenNext builds, and any other production build environment must also set it. Do not put private secrets behind a `NEXT_PUBLIC_` prefix.
