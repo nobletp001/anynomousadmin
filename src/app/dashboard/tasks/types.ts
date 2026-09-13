@@ -24,6 +24,7 @@ export interface Task {
   verifiedBy?: string;
   isForClient?: boolean;
   clientUsername?: string;
+  isUserUseFreeTier?: boolean;
   createdAt: string;
   submissionCount: number;
   isTobeIncludereferralCount?: boolean | null;

@@ -163,6 +163,7 @@ export function TaskDetailHeader({
                 </div>
                 <div className="mt-3 grid gap-2 text-xs text-zinc-300 sm:grid-cols-2 xl:grid-cols-3">
                   <BusinessInfo label="Created by" value={`@${task.createdBy}`} />
+                  <BusinessInfo label="Free tier used" value={task.isUserUseFreeTier ? "Yes" : "No"} />
                   <BusinessInfo label="Payment method" value={businessInfo.paymentMethod || "manual"} />
                   <BusinessInfo label="Verified by" value={task.verifiedBy || "pending"} />
                   {isManualPaymentRequest ? (

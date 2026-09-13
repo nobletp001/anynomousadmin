@@ -119,6 +119,7 @@ export interface Task {
   verifiedBy?: string;
   isForClient?: boolean;
   clientUsername?: string;
+  isUserUseFreeTier?: boolean;
   assignedOfficer: string | null;
   proofType?: string | null;
   acceptText?: boolean | null;
