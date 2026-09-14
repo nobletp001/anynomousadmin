@@ -40,7 +40,7 @@ Required GitHub Actions secrets:
 
 - `CLOUDFLARE_API_TOKEN`: scoped Cloudflare API token for Workers deploys. Do not use the Global API Key.
 - `CLOUDFLARE_ACCOUNT_ID`: Cloudflare account id.
-- `NEXT_PUBLIC_API_URL`: Cloudflare API gateway URL, including `/api`. The current value uses the production `workers.dev` gateway.
+- `NEXT_PUBLIC_API_URL`: Cloudflare API gateway URL, including `/api`. The current value uses the branded production gateway: `https://api.payfluence.com.ng/api`.
 
 Local setup:
 
@@ -51,10 +51,10 @@ cp .env.example .env.local
 
 The production build fails clearly when `NEXT_PUBLIC_API_URL` is missing. It is set in `wrangler.jsonc` for Wrangler/OpenNext builds, and any other production build environment must also set it. Do not put private secrets behind a `NEXT_PUBLIC_` prefix.
 
-## Railway backend requirements
+## Cloudflare backend requirements
 
-- Keep the backend on Railway.
-- Add the final Cloudflare admin origin, `https://admin.payfluence.com`, to the Railway backend CORS allowlist.
+- Keep the backend behind the Cloudflare API gateway.
+- Add the final Cloudflare admin origin to the backend/gateway CORS allowlist before assigning a custom admin domain.
 - Credentialed CORS must set a specific allowed origin and `Access-Control-Allow-Credentials: true`; do not use `*` with credentials.
 - Login, logout, refresh, password reset, payment, wallet, report, and private admin API responses should use `Cache-Control: no-store`.
 - Backend-set cookies should be `HttpOnly` where JavaScript does not need to read them, `Secure` in production, and `SameSite=None` only if the final frontend/backend domains are cross-site and credentials must be sent cross-site.
@@ -129,7 +129,7 @@ Manual smoke tests before production cutover:
 - Login and logout.
 - Dashboard load and direct route refresh.
 - Auth redirects for unauthenticated users.
-- Railway API calls and credentialed CORS.
+- Cloudflare API gateway calls and credentialed CORS.
 - CSRF token fetch and non-GET mutations.
 - Static files under `/_next/static`.
 - Remote images/proof images.

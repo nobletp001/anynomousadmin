@@ -16,7 +16,7 @@
   },
   "vars": {
     "NEXTJS_ENV": "production",
-    "NEXT_PUBLIC_API_URL": "https://payfluence-api-gateway.ojotemitopeidnoble10.workers.dev/api"
+    "NEXT_PUBLIC_API_URL": "https://api.payfluence.com.ng/api"
   },
   "services": [
     {
