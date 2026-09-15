@@ -58,9 +58,20 @@ export function useUsersMutations(page: number) {
     },
   });
 
+  const reviewRegistrationPayment = useMutation({
+    mutationFn: ({ id, status, note }: { id: number; status: "approved" | "rejected"; note?: string }) =>
+      apiClient.patch(`/admin/registration-payments/${id}/review`, { status, note }) as any,
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-registration-payment-review"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-new-users"] });
+    },
+  });
+
   return {
     updateFlags,
     resendEmailOtp,
     manualVerifyEmail,
+    reviewRegistrationPayment,
   };
 }

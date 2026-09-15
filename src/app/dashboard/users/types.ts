@@ -30,6 +30,41 @@ export interface NewUser {
   disabled: boolean;
 }
 
+export interface RegistrationPaymentReview {
+  id: number;
+  reference: string;
+  provider: string;
+  status: string;
+  amount: number;
+  currency: string;
+  email: string;
+  username: string | null;
+  intendedUsername: string | null;
+  intendedName: string | null;
+  intendedWhatsappNumber: string | null;
+  providerResponse: {
+    bankName?: string;
+    accountNumber?: string;
+    accountName?: string;
+    receiptName?: string | null;
+    receiptDataUrl?: string | null;
+    payerPhone?: string | null;
+    depositorName?: string | null;
+    transferReference?: string | null;
+    supportPhone?: string;
+    submittedAt?: string;
+    [key: string]: unknown;
+  };
+  createdAt: string;
+  updatedAt: string;
+  userId: number | null;
+  userName: string | null;
+  userEmail: string | null;
+  userWhatsappNumber: string | null;
+  userEmailVerified: boolean | null;
+  userDisabled: boolean | null;
+}
+
 export interface EmailActivityItem {
   id: number;
   jobType: string;

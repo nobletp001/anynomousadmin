@@ -13,6 +13,7 @@ import { GWVerifiedTable } from "./components/GWVerifiedTable";
 import { NewUsersTable } from "./components/NewUsersTable";
 import { UserDetailModal } from "./components/UserDetailModal";
 import { UserTrackingTab } from "./components/UserTrackingTab";
+import { RegistrationPaymentReviewTable } from "./components/RegistrationPaymentReviewTable";
 import { ShieldOff, CreditCard, ClipboardX } from "lucide-react";
 import { toast } from "sonner";
 import type { SignupPurpose } from "./types";
@@ -21,17 +22,17 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
   const state = useUsersState();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"all" | "new" | "tracking" | "gw">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "new" | "tracking" | "gw" | "payments">("all");
   const [newUsersPurposeFilter, setNewUsersPurposeFilter] = useState<SignupPurpose | "all">("all");
 
-  const { usersQuery, gwQuery, newUsersQuery, detailQuery, topUsersQuery } = useUsersQueries(
+  const { usersQuery, gwQuery, newUsersQuery, paymentReviewQuery, detailQuery, topUsersQuery } = useUsersQueries(
     state.page,
     state.debouncedSearch,
     state.selectedUser,
     activeTab,
     newUsersPurposeFilter
   );
-  const { updateFlags, resendEmailOtp, manualVerifyEmail } = useUsersMutations(state.page);
+  const { updateFlags, resendEmailOtp, manualVerifyEmail, reviewRegistrationPayment } = useUsersMutations(state.page);
 
   const handleSendAction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,7 +105,9 @@ export default function UsersPage() {
                 ? "New registrations in the last 24 hours — email verification support"
                 : activeTab === "gw"
                   ? "Google & WhatsApp verified accounts — newest first"
-                  : "Track active/inactive user engagement and referrals"}
+                  : activeTab === "payments"
+                    ? "Review task performer registration bank-transfer receipts"
+                    : "Track active/inactive user engagement and referrals"}
           </p>
         </div>
 
@@ -145,6 +148,17 @@ export default function UsersPage() {
             </button>
             <button
               onClick={() => {
+                setActiveTab("payments");
+                state.setPage(1);
+              }}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "payments" ? "bg-purple-600 text-white shadow-lg" : "text-zinc-405 hover:text-zinc-250"
+              }`}
+            >
+              Payment Review
+            </button>
+            <button
+              onClick={() => {
                 setActiveTab("tracking");
                 state.setPage(1);
               }}
@@ -176,6 +190,32 @@ export default function UsersPage() {
 
       {activeTab === "tracking" ? (
         <UserTrackingTab />
+      ) : activeTab === "payments" ? (
+        <RegistrationPaymentReviewTable
+          payments={paymentReviewQuery.data?.data || []}
+          page={state.page}
+          setPage={state.setPage}
+          totalPages={
+            paymentReviewQuery.data
+              ? Math.max(
+                  Math.ceil(paymentReviewQuery.data.total / paymentReviewQuery.data.limit),
+                  state.page + (paymentReviewQuery.data.hasMore ? 1 : 0)
+                )
+              : 1
+          }
+          totalPayments={paymentReviewQuery.data?.total || 0}
+          hasMore={Boolean(paymentReviewQuery.data?.hasMore)}
+          reviewingId={(reviewRegistrationPayment.variables as { id?: number } | undefined)?.id ?? null}
+          onReview={(id, status, note) => {
+            reviewRegistrationPayment.mutate(
+              { id, status, note },
+              {
+                onSuccess: () => toast.success(status === "approved" ? "Payment approved." : "Payment rejected."),
+                onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to review payment."),
+              }
+            );
+          }}
+        />
       ) : activeTab === "new" ? (
         <NewUsersTable
           users={newUsersQuery.data?.data || []}

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/services/api-client";
-import { NewUser, SignupPurpose, UsersResponse } from "../types";
+import { NewUser, RegistrationPaymentReview, SignupPurpose, UsersResponse } from "../types";
 
 interface TopPerformer {
   username: string;
@@ -13,7 +13,7 @@ export function useUsersQueries(
   page: number,
   search: string,
   selectedUser: string | null,
-  activeTab: "all" | "new" | "tracking" | "gw",
+  activeTab: "all" | "new" | "tracking" | "gw" | "payments",
   newUsersPurposeFilter: SignupPurpose | "all" = "all"
 ) {
   const usersQuery = useQuery<UsersResponse>({
@@ -49,6 +49,20 @@ export function useUsersQueries(
     refetchInterval: activeTab === "new" && typeof document !== "undefined" && !document.hidden ? 60000 : false,
   });
 
+  const paymentReviewQuery = useQuery<{
+    success: boolean;
+    data: RegistrationPaymentReview[];
+    total: number;
+    page: number;
+    limit: number;
+    hasMore?: boolean;
+  }>({
+    queryKey: ["admin-registration-payment-review", page],
+    queryFn: () => apiClient.get(`/admin/registration-payments/pending?page=${page}&limit=20`) as any,
+    enabled: activeTab === "payments",
+    refetchInterval: activeTab === "payments" && typeof document !== "undefined" && !document.hidden ? 60000 : false,
+  });
+
   const detailQuery = useQuery({
     queryKey: ["admin-user-detail", selectedUser],
     queryFn: () => apiClient.get(`/admin/users/${selectedUser}`) as any,
@@ -68,6 +82,7 @@ export function useUsersQueries(
     usersQuery,
     gwQuery,
     newUsersQuery,
+    paymentReviewQuery,
     detailQuery,
     topUsersQuery,
   };
