@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { CheckCircle, ChevronLeft, ChevronRight, Eye, Phone, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui";
 import type { RegistrationPaymentReview } from "../types";
@@ -176,70 +177,85 @@ export function RegistrationPaymentReviewTable({
         </div>
       </div>
 
-      {selected ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-5 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-black text-zinc-100">Registration Payment Proof</h3>
-                <p className="mt-1 text-xs font-semibold text-zinc-500">
-                  @{selected.username || selected.intendedUsername} · {selected.userEmail || selected.email}
-                </p>
-              </div>
-              <button onClick={() => setSelected(null)} className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-900">
-                <XCircle className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="mt-5 grid gap-4 md:grid-cols-[1fr_1.1fr]">
-              <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 text-xs font-semibold text-zinc-300">
-                <p>Name: {selected.userName || selected.intendedName || "—"}</p>
-                <p>Email: {selected.userEmail || selected.email}</p>
-                <p>WhatsApp: {selected.userWhatsappNumber || selected.intendedWhatsappNumber || "—"}</p>
-                <p>Amount: ₦{selected.amount.toLocaleString()}</p>
-                <p>Bank: {selected.providerResponse?.bankName || "FCMB"}</p>
-                <p>Account: {selected.providerResponse?.accountNumber || "1049708347"}</p>
-                <p>Receipt: {selected.providerResponse?.receiptName || "uploaded proof"}</p>
-              </div>
-              <div className="min-h-72 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
-                {selected.providerResponse?.receiptDataUrl?.startsWith("data:application/pdf") ? (
-                  <iframe title="Receipt PDF" src={selected.providerResponse.receiptDataUrl} className="h-96 w-full" />
-                ) : selected.providerResponse?.receiptDataUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- Admin must inspect uploaded receipt data URLs.
-                  <img src={selected.providerResponse.receiptDataUrl} alt="Payment receipt" className="h-auto w-full" />
-                ) : (
-                  <div className="flex h-72 items-center justify-center text-xs font-bold text-zinc-500">
-                    No receipt preview available
+      {selected && typeof document !== "undefined"
+        ? createPortal(
+            <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-6">
+              <div className="max-h-[92vh] w-full max-w-6xl overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950 shadow-2xl">
+                <div className="flex items-start justify-between gap-4 border-b border-zinc-800 p-5">
+                  <div>
+                    <h3 className="text-lg font-black text-zinc-100">Registration Payment Proof</h3>
+                    <p className="mt-1 text-xs font-semibold text-zinc-500">
+                      @{selected.username || selected.intendedUsername} · {selected.userEmail || selected.email}
+                    </p>
                   </div>
-                )}
-              </div>
-            </div>
+                  <button onClick={() => setSelected(null)} className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-900">
+                    <XCircle className="h-5 w-5" />
+                  </button>
+                </div>
 
-            <textarea
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-              placeholder="Optional review note"
-              className="mt-4 min-h-24 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 outline-none focus:border-purple-500/60"
-            />
-            <div className="mt-4 flex flex-wrap justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => submitReview("rejected")}
-                className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-black text-red-300"
-              >
-                Reject Payment
-              </button>
-              <button
-                type="button"
-                onClick={() => submitReview("approved")}
-                className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-black text-emerald-300"
-              >
-                Approve Payment
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+                <div className="max-h-[calc(92vh-5rem)] overflow-y-auto p-5">
+                  <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
+                    <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 text-xs font-semibold text-zinc-300">
+                      <p>Name: {selected.userName || selected.intendedName || "—"}</p>
+                      <p>Email: {selected.userEmail || selected.email}</p>
+                      <p>WhatsApp: {selected.userWhatsappNumber || selected.intendedWhatsappNumber || "—"}</p>
+                      <p>Amount: ₦{selected.amount.toLocaleString()}</p>
+                      <p>Bank: {selected.providerResponse?.bankName || "FCMB"}</p>
+                      <p>Account: {selected.providerResponse?.accountNumber || "1049708347"}</p>
+                      <p className="break-words">
+                        Receipt: {selected.providerResponse?.receiptName || "uploaded proof"}
+                      </p>
+                    </div>
+                    <div className="flex min-h-[360px] items-center justify-center overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40 p-2">
+                      {selected.providerResponse?.receiptDataUrl?.startsWith("data:application/pdf") ? (
+                        <iframe
+                          title="Receipt PDF"
+                          src={selected.providerResponse.receiptDataUrl}
+                          className="h-[70vh] w-full rounded-lg bg-white"
+                        />
+                      ) : selected.providerResponse?.receiptDataUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- Admin must inspect uploaded receipt data URLs.
+                        <img
+                          src={selected.providerResponse.receiptDataUrl}
+                          alt="Payment receipt"
+                          className="max-h-[70vh] w-auto max-w-full rounded-lg object-contain"
+                        />
+                      ) : (
+                        <div className="flex h-72 items-center justify-center text-xs font-bold text-zinc-500">
+                          No receipt preview available
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <textarea
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                    placeholder="Optional review note"
+                    className="mt-4 min-h-24 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 outline-none focus:border-purple-500/60"
+                  />
+                  <div className="mt-4 flex flex-wrap justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => submitReview("rejected")}
+                      className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-black text-red-300"
+                    >
+                      Reject Payment
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => submitReview("approved")}
+                      className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-black text-emerald-300"
+                    >
+                      Approve Payment
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 }
