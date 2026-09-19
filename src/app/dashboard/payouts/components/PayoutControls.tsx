@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Settings, Coins, RefreshCw, X, Check, AlertTriangle } from "lucide-react";
+import { Search, Settings, Coins, RefreshCw, X, Check, AlertTriangle, ToggleLeft, ToggleRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Input, Button } from "@/components/ui";
 import { apiClient } from "@/services/api-client";
 
@@ -20,6 +20,14 @@ export function PayoutControls() {
   const [generalSuccess, setGeneralSuccess] = useState<string | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
+  // Registration Payment Gate States
+  const [regPayEnabled, setRegPayEnabled] = useState<boolean>(true);
+  const [regPayAmount, setRegPayAmount] = useState<number>(500);
+  const [regPayAmountInput, setRegPayAmountInput] = useState<string>("500");
+  const [regPayLoading, setRegPayLoading] = useState<boolean>(false);
+  const [regPaySuccess, setRegPaySuccess] = useState<string | null>(null);
+  const [regPayError, setRegPayError] = useState<string | null>(null);
+
   // Custom User Minimum States
   const [userQuery, setUserQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
@@ -37,6 +45,15 @@ export function PayoutControls() {
       if (res?.success && res.data?.minPayoutAmount != null) {
         setGeneralMin(res.data.minPayoutAmount);
         setGeneralInput(res.data.minPayoutAmount.toString());
+      }
+      if (res?.success) {
+        if (res.data?.registrationPaymentEnabled != null) {
+          setRegPayEnabled(res.data.registrationPaymentEnabled);
+        }
+        if (res.data?.registrationPaymentAmount != null) {
+          setRegPayAmount(res.data.registrationPaymentAmount);
+          setRegPayAmountInput(res.data.registrationPaymentAmount.toString());
+        }
       }
     } catch (err: any) {
       console.error("Failed to load settings:", err);
@@ -296,6 +313,140 @@ export function PayoutControls() {
               )}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      {/* CARD 3: Registration Payment Gate */}
+      <Card className="md:col-span-2" accentColor="emerald">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            {regPayEnabled ? (
+              <ToggleRight className="w-5 h-5 text-emerald-400" />
+            ) : (
+              <ToggleLeft className="w-5 h-5 text-zinc-500" />
+            )}
+            <CardTitle>User Registration Payment</CardTitle>
+          </div>
+          <CardDescription>
+            Toggle whether new users must pay the registration fee. When <strong>OFF</strong>, users skip payment and go
+            directly to email verification — they receive a &quot;fee waived&quot; status and can still perform tasks.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {/* Toggle row */}
+          <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-4">
+            <div>
+              <p className="text-sm font-bold text-white">Payment Required</p>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                {regPayEnabled
+                  ? "Users must pay before accessing the dashboard"
+                  : "Payment is OFF — users skip to email OTP directly"}
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={regPayLoading}
+              onClick={async () => {
+                setRegPayLoading(true);
+                setRegPayError(null);
+                setRegPaySuccess(null);
+                const next = !regPayEnabled;
+                try {
+                  const res = (await apiClient.patch("/admin/payouts/settings/registration-enabled", {
+                    enabled: next,
+                  })) as any;
+                  if (res?.success) {
+                    setRegPayEnabled(next);
+                    setRegPaySuccess(
+                      next ? "Payment requirement turned ON" : "Payment requirement turned OFF — users can skip payment"
+                    );
+                    setTimeout(() => setRegPaySuccess(null), 5000);
+                  }
+                } catch (err: any) {
+                  setRegPayError(err.message || "Failed to update toggle");
+                } finally {
+                  setRegPayLoading(false);
+                }
+              }}
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                regPayEnabled ? "bg-emerald-500" : "bg-zinc-700"
+              } disabled:opacity-50`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  regPayEnabled ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Amount row */}
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-bold text-white">Registration Fee Amount</p>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Shown on the payment page and used by all payment methods
+                </p>
+              </div>
+              <span className="text-2xl font-black text-emerald-400">₦{regPayAmount.toLocaleString()}</span>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setRegPayLoading(true);
+                setRegPayError(null);
+                setRegPaySuccess(null);
+                const amount = parseInt(regPayAmountInput);
+                if (isNaN(amount) || amount < 0) {
+                  setRegPayError("Enter a valid positive amount");
+                  setRegPayLoading(false);
+                  return;
+                }
+                try {
+                  const res = (await apiClient.patch("/admin/payouts/settings/registration-amount", { amount })) as any;
+                  if (res?.success) {
+                    setRegPayAmount(amount);
+                    setRegPaySuccess(`Registration fee updated to ₦${amount.toLocaleString()}`);
+                    setTimeout(() => setRegPaySuccess(null), 5000);
+                  }
+                } catch (err: any) {
+                  setRegPayError(err.message || "Failed to update amount");
+                } finally {
+                  setRegPayLoading(false);
+                }
+              }}
+              className="flex gap-2"
+            >
+              <Input
+                type="number"
+                placeholder="e.g. 500"
+                value={regPayAmountInput}
+                onChange={(e) => setRegPayAmountInput(e.target.value)}
+                fullWidth
+              />
+              <Button
+                type="submit"
+                disabled={regPayLoading || !regPayAmountInput}
+                className="shrink-0 uppercase font-extrabold tracking-wider"
+              >
+                {regPayLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Save"}
+              </Button>
+            </form>
+          </div>
+
+          {regPaySuccess && (
+            <div className="flex items-center gap-2 p-3 text-xs text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+              <Check className="w-4 h-4 shrink-0" />
+              <span>{regPaySuccess}</span>
+            </div>
+          )}
+          {regPayError && (
+            <div className="flex items-center gap-2 p-3 text-xs text-red-400 bg-red-500/5 border border-red-500/20 rounded-xl">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{regPayError}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

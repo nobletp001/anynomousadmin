@@ -135,6 +135,7 @@ export function useCreateTaskSubmit(state: CreateTaskState, mutations: ReturnTyp
       additionalSlots:
         state.isSecureSpotTask && state.additionalSlots.trim() ? toInteger(state.additionalSlots) : undefined,
       blockSameDevice: state.blockSameDevice,
+      isIgnoreDistributedTime: state.isSecureSpotTask && state.isIgnoreDistributedTime,
       initialSlotUsers: state.isSecureSpotTask
         ? [...state.initialSlotSelectedUsers, state.initialSlotBulkUsers].filter(Boolean)
         : undefined,

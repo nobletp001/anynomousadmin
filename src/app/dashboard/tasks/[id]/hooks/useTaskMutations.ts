@@ -65,8 +65,15 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
   });
 
   const requestBusinessReview = useMutation({
-    mutationFn: ({ submissionId, reviewText }: { submissionId: number; reviewText: string }) =>
-      apiClient.post(`/admin/tasks/${taskId}/review-requests`, { submissionId, reviewText }) as any,
+    mutationFn: ({
+      submissionId,
+      reviewText,
+      workerAmount,
+    }: {
+      submissionId: number;
+      reviewText: string;
+      workerAmount?: number;
+    }) => apiClient.post(`/admin/tasks/${taskId}/review-requests`, { submissionId, reviewText, workerAmount }) as any,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
   });
 

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, X } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useTaskQueries } from "./hooks/useTaskQueries";
 import { useTaskMutations } from "./hooks/useTaskMutations";
@@ -17,7 +17,6 @@ import { BulkActionPanel } from "./components/BulkActionPanel";
 import { TaskDetailModals } from "./components/TaskDetailModals";
 import { BusinessPaymentConfirmModal } from "./components/BusinessPaymentConfirmModal";
 import { AppTestingQualifyModal } from "./components/AppTestingQualifyModal";
-import { AppReviewRequestModal } from "./components/AppReviewRequestModal";
 import { WithdrawReviewRequestModal } from "./components/WithdrawReviewRequestModal";
 import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
@@ -47,11 +46,14 @@ export default function TaskSubmissionsPage() {
     "confirm_payment" | "approve_task" | "reject_task" | "reject_payment" | null
   >(null);
   const [appTestingQualifyModal, setAppTestingQualifyModal] = React.useState<Submission | null>(null);
-  const [appReviewRequestModal, setAppReviewRequestModal] = React.useState<Submission | null>(null);
   const [withdrawReviewRequestModal, setWithdrawReviewRequestModal] = React.useState<BusinessReviewRequest | null>(
     null
   );
-  const [appReviewRequestText, setAppReviewRequestText] = React.useState("");
+  const [requestReviewModal, setRequestReviewModal] = React.useState<{
+    submission: Submission;
+    reviewText: string;
+    workerAmount: string;
+  } | null>(null);
 
   const { submissionsQuery, officersQuery, securedSpotsQuery } = useTaskQueries(
     taskId,
@@ -296,6 +298,7 @@ export default function TaskSubmissionsPage() {
     );
     editState.setEditIsPinned(!!task.isPinned);
     editState.setEditBlockSameDevice(task.blockSameDevice !== false);
+    editState.setEditIsIgnoreDistributedTime(!!task.isIgnoreDistributedTime);
     editState.setEditHasClientRequestReview(!!task.hasClientRequestReview);
     let reviewsList: string[] = [""];
     try {
@@ -351,24 +354,39 @@ export default function TaskSubmissionsPage() {
   };
 
   const requestAppReview = (sub: Submission) => {
-    mutations.requestBusinessReview.reset();
-    setAppReviewRequestModal(sub);
-    setAppReviewRequestText(
-      "Download/open the app, use one or two features, leave an honest Play Store review about your experience, then upload a screenshot showing the submitted review."
-    );
+    setRequestReviewModal({
+      submission: sub,
+      reviewText:
+        "Download/open the app, use one or two features, leave an honest Play Store review about your experience, then upload a screenshot showing the submitted review.",
+      workerAmount: "100",
+    });
   };
 
-  const confirmRequestAppReview = () => {
-    if (!appReviewRequestModal) return;
-    const reviewText = appReviewRequestText.trim();
-    if (!reviewText) return;
+  const confirmSendReviewRequest = () => {
+    if (!requestReviewModal) return;
+    const amount = Number(requestReviewModal.workerAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error("Please enter a valid review reward amount.");
+      return;
+    }
+    if (!requestReviewModal.reviewText.trim()) {
+      toast.error("Please enter review instructions.");
+      return;
+    }
+
+    mutations.requestBusinessReview.reset();
     mutations.requestBusinessReview.mutate(
-      { submissionId: appReviewRequestModal.id, reviewText },
+      {
+        submissionId: requestReviewModal.submission.id,
+        reviewText: requestReviewModal.reviewText.trim(),
+        workerAmount: amount,
+      },
       {
         onSuccess: () => {
-          toast.success("App review request sent to the user.");
-          setAppReviewRequestModal(null);
-          setAppReviewRequestText("");
+          toast.success(
+            `App review request sent to @${requestReviewModal.submission.username} with ₦${amount} reward.`
+          );
+          setRequestReviewModal(null);
         },
         onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to request app review."),
       }
@@ -483,22 +501,6 @@ export default function TaskSubmissionsPage() {
             setAppTestingQualifyModal(null);
           }}
           onConfirm={confirmQualifyAppTester}
-        />
-      )}
-
-      {appReviewRequestModal && (
-        <AppReviewRequestModal
-          submission={appReviewRequestModal}
-          reviewText={appReviewRequestText}
-          setReviewText={setAppReviewRequestText}
-          isPending={mutations.requestBusinessReview.isPending}
-          error={mutations.requestBusinessReview.error}
-          onClose={() => {
-            mutations.requestBusinessReview.reset();
-            setAppReviewRequestModal(null);
-            setAppReviewRequestText("");
-          }}
-          onConfirm={confirmRequestAppReview}
         />
       )}
 
@@ -697,6 +699,78 @@ export default function TaskSubmissionsPage() {
         openRejectModal={openRejectModal}
         handleWatchUser={handleWatchUser}
       />
+
+      {requestReviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
+              <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-blue-400" />
+                Ask App Review from @{requestReviewModal.submission.username}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setRequestReviewModal(null)}
+                className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  Review Reward Amount (₦)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={requestReviewModal.workerAmount}
+                  onChange={(e) => setRequestReviewModal({ ...requestReviewModal, workerAmount: e.target.value })}
+                  placeholder="100"
+                  className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:border-blue-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  This amount will be paid into @{requestReviewModal.submission.username}&apos;s wallet upon approval.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  Review Instructions for User
+                </label>
+                <textarea
+                  rows={4}
+                  value={requestReviewModal.reviewText}
+                  onChange={(e) => setRequestReviewModal({ ...requestReviewModal, reviewText: e.target.value })}
+                  placeholder="Enter review instructions..."
+                  className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-100 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-zinc-800/60 pt-3">
+              <button
+                type="button"
+                onClick={() => setRequestReviewModal(null)}
+                className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-zinc-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={mutations.requestBusinessReview.isPending}
+                onClick={confirmSendReviewRequest}
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 transition-colors disabled:opacity-50"
+              >
+                {mutations.requestBusinessReview.isPending
+                  ? "Sending..."
+                  : `Send Review Request (₦${requestReviewModal.workerAmount || 0})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -715,93 +789,168 @@ function AppReviewRequestsPanel({
   onDispute: (request: BusinessReviewRequest) => void;
 }) {
   if (requests.length === 0) return null;
+
+  const submittedRequests = requests.filter((r) => r.status === "submitted");
+  const otherRequests = requests.filter((r) => r.status !== "submitted");
+
   return (
-    <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-4 shadow-xl">
-      <div className="mb-3 flex items-center justify-between gap-3">
+    <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-5 shadow-xl space-y-5">
+      <div className="flex items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
         <div>
-          <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-200">App review requests</h2>
+          <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-200">
+            App Review Requests & Submissions
+          </h2>
           <p className="mt-1 text-xs text-zinc-500">
-            Admin-created requests do not charge wallet. Client requests hold ₦200 until completion or refund.
+            Track follow-up app review tasks requested from users and review submitted proof.
           </p>
         </div>
         <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-bold text-blue-300">
           {requests.length} total
         </span>
       </div>
-      <div className="grid gap-3">
-        {requests.map((request) => {
-          const proofImages = getImagesList(request.reviewProof || "");
-          return (
-            <article key={request.id} className="rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-bold text-zinc-100">@{request.username}</p>
-                    <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-400">
-                      {request.status}
-                    </span>
-                    <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-300">
-                      {request.sourceType}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-xs text-zinc-400">{request.reviewText}</p>
-                  {request.reviewProof ? (
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      {proofImages.map((proof, index) => (
-                        <a
-                          key={`${proof}-${index}`}
-                          href={proof}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-blue-300 hover:text-blue-200"
-                        >
-                          Proof {index + 1}
-                        </a>
-                      ))}
+
+      {submittedRequests.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            Submitted Review Proofs ({submittedRequests.length})
+          </h3>
+          <div className="grid gap-3">
+            {submittedRequests.map((request) => {
+              const proofImages = getImagesList(request.reviewProof || "");
+              return (
+                <article
+                  key={request.id}
+                  className="rounded-xl border border-emerald-500/30 bg-emerald-955/20 p-4 space-y-3"
+                >
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-bold text-zinc-100">@{request.username}</span>
+                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-emerald-300">
+                          Submitted Proof
+                        </span>
+                        <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-[10px] font-bold text-zinc-400">
+                          {request.sourceType}
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-300 font-medium">
+                        Instruction: <span className="text-zinc-400">{request.reviewText}</span>
+                      </p>
+                      {proofImages.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {proofImages.map((proof, index) => (
+                            <a
+                              key={`${proof}-${index}`}
+                              href={proof}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group relative h-20 w-20 overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900"
+                            >
+                              <img
+                                src={proof}
+                                alt={`Review proof ${index + 1}`}
+                                className="h-full w-full object-cover transition group-hover:scale-105"
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-[11px] text-zinc-500">
+                        User reward: <strong className="text-emerald-400">{formatAmount(request.workerAmount)}</strong>{" "}
+                        · Submitted {formatDate(request.submittedAt || request.updatedAt)}
+                      </p>
                     </div>
-                  ) : null}
-                  <p className="mt-2 text-[11px] text-zinc-550">
-                    {formatAmount(request.amount)} total · user {formatAmount(request.workerAmount)} · requested{" "}
-                    {formatDate(request.createdAt)}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {request.status === "requested" ? (
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      onClick={() => onWithdraw(request)}
-                      className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-200 hover:bg-zinc-700 disabled:opacity-50"
-                    >
-                      Withdraw
-                    </button>
-                  ) : null}
-                  {request.status === "submitted" ? (
-                    <>
+
+                    <div className="flex flex-wrap items-center gap-2 self-start">
                       <button
                         type="button"
                         disabled={isPending}
                         onClick={() => onApprove(request)}
-                        className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
+                        className="rounded-xl border border-emerald-500/30 bg-emerald-500 px-4 py-2 text-xs font-bold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-50 cursor-pointer"
                       >
-                        Approve review
+                        Approve & Pay {formatAmount(request.workerAmount)}
                       </button>
                       <button
                         type="button"
                         disabled={isPending}
                         onClick={() => onDispute(request)}
-                        className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-500/20 disabled:opacity-50"
+                        className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-bold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50 cursor-pointer"
                       >
-                        Dispute
+                        Dispute Review
                       </button>
-                    </>
-                  ) : null}
-                </div>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {otherRequests.length > 0 && (
+        <div className="space-y-3">
+          {submittedRequests.length > 0 && (
+            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              Other Review Requests ({otherRequests.length})
+            </h3>
+          )}
+          <div className="grid gap-3">
+            {otherRequests.map((request) => {
+              const proofImages = getImagesList(request.reviewProof || "");
+              return (
+                <article key={request.id} className="rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-bold text-zinc-100">@{request.username}</p>
+                        <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-400">
+                          {request.status}
+                        </span>
+                        <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-300">
+                          {request.sourceType}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs text-zinc-400">{request.reviewText}</p>
+                      {request.reviewProof ? (
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                          {proofImages.map((proof, index) => (
+                            <a
+                              key={`${proof}-${index}`}
+                              href={proof}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-300 hover:text-blue-200"
+                            >
+                              Proof {index + 1}
+                            </a>
+                          ))}
+                        </div>
+                      ) : null}
+                      <p className="mt-2 text-[11px] text-zinc-550">
+                        {formatAmount(request.amount)} total · user {formatAmount(request.workerAmount)} · requested{" "}
+                        {formatDate(request.createdAt)}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {request.status === "requested" ? (
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => onWithdraw(request)}
+                          className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-200 hover:bg-zinc-700 disabled:opacity-50"
+                        >
+                          Withdraw
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

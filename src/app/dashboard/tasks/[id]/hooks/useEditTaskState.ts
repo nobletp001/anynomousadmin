@@ -61,6 +61,7 @@ export function useEditTaskState() {
   const [editSecureSpotNumberPerDay, setEditSecureSpotNumberPerDay] = useState("");
   const [editAdditionalSlots, setEditAdditionalSlots] = useState("0");
   const [editBlockSameDevice, setEditBlockSameDevice] = useState(true);
+  const [editIsIgnoreDistributedTime, setEditIsIgnoreDistributedTime] = useState(false);
   const [editHasClientRequestReview, setEditHasClientRequestReview] = useState(false);
   const [editClientRequestReviews, setEditClientRequestReviews] = useState<string[]>([""]);
 
@@ -161,6 +162,8 @@ export function useEditTaskState() {
     setEditAdditionalSlots,
     editBlockSameDevice,
     setEditBlockSameDevice,
+    editIsIgnoreDistributedTime,
+    setEditIsIgnoreDistributedTime,
     editHasClientRequestReview,
     setEditHasClientRequestReview,
     editClientRequestReviews,

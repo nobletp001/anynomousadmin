@@ -157,6 +157,7 @@ export interface Task {
   secureSpotNumberPerDay?: number | null;
   additionalSlots?: number | null;
   blockSameDevice?: boolean;
+  isIgnoreDistributedTime?: boolean;
   clientRequestReviews?: string | string[] | null;
   hasClientRequestReview?: boolean;
 }

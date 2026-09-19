@@ -59,6 +59,8 @@ interface TaskConfigFormProps {
   setAdditionalSlots: (v: string) => void;
   blockSameDevice: boolean;
   setBlockSameDevice: (v: boolean) => void;
+  isIgnoreDistributedTime: boolean;
+  setIsIgnoreDistributedTime: (v: boolean) => void;
 }
 
 export function TaskConfigForm({
@@ -116,10 +118,13 @@ export function TaskConfigForm({
   setAdditionalSlots,
   blockSameDevice,
   setBlockSameDevice,
+  isIgnoreDistributedTime,
+  setIsIgnoreDistributedTime,
 }: TaskConfigFormProps) {
   const isJetpot = taskType === "jetpot";
   const isViews = taskType === "views";
-  const isImmediateSecureSpot = isSecureSpotTask && !secureSpotInterval.trim() && !secureSpotConstantDelay.trim();
+  const isImmediateSecureSpot =
+    isSecureSpotTask && (isIgnoreDistributedTime || (!secureSpotInterval.trim() && !secureSpotConstantDelay.trim()));
   const inputCls =
     "w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors";
 
@@ -130,15 +135,7 @@ export function TaskConfigForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <FieldLabel required>Task Type</FieldLabel>
-          <select
-            value={taskType}
-            onChange={(e) => {
-              const t = e.target.value;
-              setTaskType(t);
-              setTargetPlatform(t === "use-app" ? "" : "instagram");
-            }}
-            className={inputCls}
-          >
+          <select value={taskType} onChange={(e) => setTaskType(e.target.value)} className={inputCls}>
             {TASK_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
                 {t.label}
@@ -147,28 +144,14 @@ export function TaskConfigForm({
           </select>
         </div>
         <div>
-          {taskType === "use-app" ? (
-            <>
-              <FieldLabel required>App Name</FieldLabel>
-              <input
-                value={targetPlatform}
-                onChange={(e) => setTargetPlatform(e.target.value)}
-                placeholder="e.g. Kena, Moniass, OPay..."
-                className={inputCls}
-              />
-            </>
-          ) : (
-            <>
-              <FieldLabel required>Target Platform</FieldLabel>
-              <select value={targetPlatform} onChange={(e) => setTargetPlatform(e.target.value)} className={inputCls}>
-                {PLATFORMS.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
+          <FieldLabel required>Target Platform</FieldLabel>
+          <select value={targetPlatform} onChange={(e) => setTargetPlatform(e.target.value)} className={inputCls}>
+            {PLATFORMS.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -492,6 +475,32 @@ export function TaskConfigForm({
 
         {isSecureSpotTask && (
           <div className="mt-3 space-y-3 rounded-2xl border border-zinc-700 bg-zinc-900/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-700/70 bg-zinc-800/50 px-3 py-2.5">
+              <div>
+                <span className="text-[11px] font-semibold text-zinc-300">
+                  Ignore Distributed Time (Immediate Submission)
+                </span>
+                <p className="text-[10px] text-zinc-500">
+                  Users reserve a slot to guarantee a seat, but can perform and submit immediately.
+                </p>
+              </div>
+              <div
+                onClick={() => {
+                  const next = !isIgnoreDistributedTime;
+                  setIsIgnoreDistributedTime(next);
+                  if (next) {
+                    setSecureSpotInterval("");
+                    setSecureSpotConstantDelay("");
+                  }
+                }}
+                className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${isIgnoreDistributedTime ? "bg-emerald-500" : "bg-zinc-700"}`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${isIgnoreDistributedTime ? "translate-x-4" : "translate-x-0"}`}
+                />
+              </div>
+            </label>
+
             {/* Mode selector */}
             <div>
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Delay Mode</p>
@@ -499,6 +508,7 @@ export function TaskConfigForm({
                 <button
                   type="button"
                   onClick={() => {
+                    setIsIgnoreDistributedTime(true);
                     setSecureSpotInterval("");
                     setSecureSpotConstantDelay("");
                   }}
@@ -515,6 +525,7 @@ export function TaskConfigForm({
                     key={type}
                     type="button"
                     onClick={() => {
+                      setIsIgnoreDistributedTime(false);
                       setSecureSpotIntervalType(type);
                       if (type !== "days") {
                         setSecureSpotIsExactDays(false);

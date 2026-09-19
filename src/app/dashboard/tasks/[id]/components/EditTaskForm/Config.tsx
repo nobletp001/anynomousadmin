@@ -62,6 +62,8 @@ interface ConfigProps {
   setEditAdditionalSlots: (v: string) => void;
   editBlockSameDevice: boolean;
   setEditBlockSameDevice: (v: boolean) => void;
+  editIsIgnoreDistributedTime: boolean;
+  setEditIsIgnoreDistributedTime: (v: boolean) => void;
 }
 
 export function Config({
@@ -119,10 +121,12 @@ export function Config({
   setEditAdditionalSlots,
   editBlockSameDevice,
   setEditBlockSameDevice,
+  editIsIgnoreDistributedTime,
+  setEditIsIgnoreDistributedTime,
 }: ConfigProps) {
-  const isUseApp = editTaskType === "use-app";
   const isImmediateSecureSpot =
-    editIsSecureSpotTask && !editSecureSpotInterval.trim() && !editSecureSpotConstantDelay.trim();
+    editIsSecureSpotTask &&
+    (editIsIgnoreDistributedTime || (!editSecureSpotInterval.trim() && !editSecureSpotConstantDelay.trim()));
 
   return (
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
@@ -131,14 +135,7 @@ export function Config({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <FieldLabel required>Task Type</FieldLabel>
-          <select
-            value={editTaskType}
-            onChange={(e) => {
-              setEditTaskType(e.target.value);
-              setEditTargetPlatform(e.target.value === "use-app" ? "" : "instagram");
-            }}
-            className={inputCls}
-          >
+          <select value={editTaskType} onChange={(e) => setEditTaskType(e.target.value)} className={inputCls}>
             {TASK_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
                 {t.label}
@@ -147,32 +144,18 @@ export function Config({
           </select>
         </div>
         <div>
-          {isUseApp ? (
-            <>
-              <FieldLabel required>App Name</FieldLabel>
-              <input
-                value={editTargetPlatform}
-                onChange={(e) => setEditTargetPlatform(e.target.value)}
-                placeholder="e.g. Kena, OPay..."
-                className={inputCls}
-              />
-            </>
-          ) : (
-            <>
-              <FieldLabel required>Target Platform</FieldLabel>
-              <select
-                value={editTargetPlatform}
-                onChange={(e) => setEditTargetPlatform(e.target.value)}
-                className={inputCls}
-              >
-                {PLATFORMS.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
+          <FieldLabel required>Target Platform</FieldLabel>
+          <select
+            value={editTargetPlatform}
+            onChange={(e) => setEditTargetPlatform(e.target.value)}
+            className={inputCls}
+          >
+            {PLATFORMS.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -534,12 +517,39 @@ export function Config({
 
         {editIsSecureSpotTask && (
           <div className="mt-3 space-y-3 rounded-2xl border border-zinc-700 bg-zinc-900/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <label className="flex items-center justify-between gap-3 rounded-xl border border-zinc-700/70 bg-zinc-800/50 px-3 py-2.5">
+              <div>
+                <span className="text-[11px] font-semibold text-zinc-300">
+                  Ignore Distributed Time (Immediate Submission)
+                </span>
+                <p className="text-[10px] text-zinc-500">
+                  Users reserve a slot to guarantee a seat, but can perform and submit immediately.
+                </p>
+              </div>
+              <div
+                onClick={() => {
+                  const next = !editIsIgnoreDistributedTime;
+                  setEditIsIgnoreDistributedTime(next);
+                  if (next) {
+                    setEditSecureSpotInterval("");
+                    setEditSecureSpotConstantDelay("");
+                  }
+                }}
+                className={`relative w-9 h-5 rounded-full transition-all cursor-pointer ${editIsIgnoreDistributedTime ? "bg-emerald-500" : "bg-zinc-700"}`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${editIsIgnoreDistributedTime ? "translate-x-4" : "translate-x-0"}`}
+                />
+              </div>
+            </label>
+
             <div>
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Delay Mode</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <button
                   type="button"
                   onClick={() => {
+                    setEditIsIgnoreDistributedTime(true);
                     setEditSecureSpotInterval("");
                     setEditSecureSpotConstantDelay("");
                   }}
@@ -556,6 +566,7 @@ export function Config({
                     key={type}
                     type="button"
                     onClick={() => {
+                      setEditIsIgnoreDistributedTime(false);
                       setEditSecureSpotIntervalType(type);
                       if (type !== "days") {
                         setEditSecureSpotIsExactDays(false);

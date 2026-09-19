@@ -154,6 +154,8 @@ export default function CreateTaskPage() {
           setAdditionalSlots={state.setAdditionalSlots}
           blockSameDevice={state.blockSameDevice}
           setBlockSameDevice={state.setBlockSameDevice}
+          isIgnoreDistributedTime={state.isIgnoreDistributedTime}
+          setIsIgnoreDistributedTime={state.setIsIgnoreDistributedTime}
         />
 
         {state.isSecureSpotTask && (

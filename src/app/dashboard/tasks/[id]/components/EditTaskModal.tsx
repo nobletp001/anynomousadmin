@@ -207,6 +207,7 @@ export function EditTaskModal({
           ? parseInt(editState.editAdditionalSlots)
           : undefined,
       blockSameDevice: editState.editBlockSameDevice,
+      isIgnoreDistributedTime: editState.editIsSecureSpotTask && editState.editIsIgnoreDistributedTime,
     });
   };
 
@@ -340,6 +341,8 @@ export function EditTaskModal({
             setEditAdditionalSlots={editState.setEditAdditionalSlots}
             editBlockSameDevice={editState.editBlockSameDevice}
             setEditBlockSameDevice={editState.setEditBlockSameDevice}
+            editIsIgnoreDistributedTime={editState.editIsIgnoreDistributedTime}
+            setEditIsIgnoreDistributedTime={editState.setEditIsIgnoreDistributedTime}
           />
           <Targeting
             editEnableTargeting={editState.editEnableTargeting}

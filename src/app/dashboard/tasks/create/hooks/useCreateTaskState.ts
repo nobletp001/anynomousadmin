@@ -60,6 +60,7 @@ export function useCreateTaskState() {
   const [secureSpotNumberPerDay, setSecureSpotNumberPerDay] = useState("");
   const [additionalSlots, setAdditionalSlots] = useState("0");
   const [blockSameDevice, setBlockSameDevice] = useState(true);
+  const [isIgnoreDistributedTime, setIsIgnoreDistributedTime] = useState(false);
   const [initialSlotSelectedUsers, setInitialSlotSelectedUsers] = useState<string[]>([]);
   const [initialSlotBulkUsers, setInitialSlotBulkUsers] = useState("");
   const [hasClientRequestReview, setHasClientRequestReview] = useState(false);
@@ -192,6 +193,8 @@ export function useCreateTaskState() {
     setAdditionalSlots,
     blockSameDevice,
     setBlockSameDevice,
+    isIgnoreDistributedTime,
+    setIsIgnoreDistributedTime,
     initialSlotSelectedUsers,
     setInitialSlotSelectedUsers,
     initialSlotBulkUsers,
