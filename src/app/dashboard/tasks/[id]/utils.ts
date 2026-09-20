@@ -41,18 +41,26 @@ export function statusVariant(s: string) {
   if (s === "approved") return "success";
   if (s === "qualified") return "info";
   if (s === "rejected") return "danger";
+  if (s === "disputed") return "danger";
   if (s === "fraud" || s === "fraud_detect") return "danger";
   if (s === "removed") return "default";
   return "warning";
 }
 
 export function isActionableSubmissionStatus(status: string) {
-  return status === "pending" || status === "needs_correction" || status === "fraud" || status === "fraud_detect";
+  return (
+    status === "pending" ||
+    status === "needs_correction" ||
+    status === "fraud" ||
+    status === "fraud_detect" ||
+    status === "disputed"
+  );
 }
 
 export function formatSubmissionStatus(status: string) {
   if (status === "needs_correction") return "correction requested";
   if (status === "fraud" || status === "fraud_detect") return "fraud alert";
+  if (status === "disputed") return "Client dispute";
   if (status === "removed") return "removed";
   if (status === "qualified") return "qualified";
   return status;

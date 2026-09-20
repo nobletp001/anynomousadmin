@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, UploadCloud, X } from "lucide-react";
+import { Search, UploadCloud, X, Plus } from "lucide-react";
 import { apiClient } from "@/services/api-client";
 import { Task } from "../types";
 
@@ -14,6 +14,8 @@ function fileToBase64(file: File): Promise<{ base64: string; mimeType: string }>
     reader.readAsDataURL(file);
   });
 }
+
+const MAX_IMAGES = 5;
 
 interface AssistSubmissionPanelProps {
   task: Task;
@@ -36,7 +38,18 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
   const [numberResponse, setNumberResponse] = React.useState("");
   const [files, setFiles] = React.useState<File[]>([]);
   const [error, setError] = React.useState("");
+  const addMoreRef = React.useRef<HTMLInputElement>(null);
   const acceptsMultipleImages = Boolean(task.acceptMultipleImages);
+
+  // Derive object-URL previews from files; revoke stale URLs on next render.
+  const previews = React.useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
+  React.useEffect(() => {
+    // Revoke the URLs created in the previous render cycle.
+    return () => {
+      previews.forEach((u) => URL.revokeObjectURL(u));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: only revoke on unmount / files change
+  }, [files]);
 
   const usersQuery = useQuery<{ success: boolean; data: SuggestedUser[] }>({
     queryKey: ["assist-submission-user-suggestions", userSearch],
@@ -55,6 +68,16 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
   const clearSelectedUser = () => {
     setSelectedUser(null);
     setUserSearch("");
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addFiles = (incoming: FileList | null) => {
+    if (!incoming) return;
+    const next = [...files, ...Array.from(incoming)].slice(0, MAX_IMAGES);
+    setFiles(next);
   };
 
   const submit = async () => {
@@ -105,6 +128,7 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
         </p>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
+        {/* User search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
           <input
@@ -155,6 +179,8 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
             </div>
           )}
         </div>
+
+        {/* Proof input */}
         {task.proofType === "url" ? (
           <input
             value={proofUrl}
@@ -162,28 +188,89 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
             placeholder="Proof URL"
             className="rounded-xl border border-zinc-700/70 bg-zinc-800/70 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-555 focus:border-purple-500/50 focus:outline-none"
           />
+        ) : acceptsMultipleImages ? (
+          /* ── Multi-image upload area ── */
+          <div className="flex flex-col gap-2">
+            {/* Thumbnails grid */}
+            {files.length > 0 && (
+              <div className="grid grid-cols-5 gap-1.5">
+                {files.map((_file, idx) => (
+                  <div
+                    key={idx}
+                    className="relative group aspect-square rounded-lg overflow-hidden border border-zinc-700 bg-zinc-900"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={previews[idx]} alt={`Proof ${idx + 1}`} className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeFile(idx)}
+                      aria-label={`Remove image ${idx + 1}`}
+                      className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4 text-white" />
+                    </button>
+                  </div>
+                ))}
+                {/* Add-more button */}
+                {files.length < MAX_IMAGES && (
+                  <button
+                    type="button"
+                    onClick={() => addMoreRef.current?.click()}
+                    className="aspect-square rounded-lg border border-dashed border-zinc-600 bg-zinc-900/50 flex flex-col items-center justify-center gap-1 hover:border-purple-500/50 transition-colors"
+                  >
+                    <Plus className="h-4 w-4 text-zinc-500" />
+                    <span className="text-[9px] font-bold text-zinc-600">Add</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Upload trigger (shown if no files yet, or as a hidden input for add-more) */}
+            {files.length === 0 ? (
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 px-3 py-2.5 text-xs font-bold text-zinc-400 hover:border-purple-500/50 hover:text-zinc-200">
+                <UploadCloud className="h-4 w-4" />
+                Upload proof images
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => addFiles(e.target.files)}
+                />
+              </label>
+            ) : (
+              <input
+                ref={addMoreRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => addFiles(e.target.files)}
+              />
+            )}
+
+            {/* Count indicator */}
+            <p className="text-[10px] font-semibold text-zinc-500 text-right">
+              {files.length} / {MAX_IMAGES} images selected
+            </p>
+          </div>
         ) : (
+          /* ── Single-image upload (unchanged) ── */
           <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 px-3 py-2.5 text-xs font-bold text-zinc-400 hover:border-purple-500/50 hover:text-zinc-200">
             <UploadCloud className="h-4 w-4" />
-            {files.length > 0
-              ? acceptsMultipleImages
-                ? `${files.length} proof image${files.length === 1 ? "" : "s"} selected`
-                : files[0].name
-              : acceptsMultipleImages
-                ? "Upload proof images"
-                : "Upload proof image"}
+            {files.length > 0 ? files[0].name : "Upload proof image"}
             <input
               type="file"
               accept="image/*"
-              multiple={acceptsMultipleImages}
               className="hidden"
               onChange={(event) => {
-                const selectedFiles = Array.from(event.target.files ?? []);
-                setFiles(acceptsMultipleImages ? selectedFiles.slice(0, 5) : selectedFiles.slice(0, 1));
+                const selected = Array.from(event.target.files ?? []);
+                setFiles(selected.slice(0, 1));
               }}
             />
           </label>
         )}
+
         {task.acceptText && (
           <input
             value={textResponse}

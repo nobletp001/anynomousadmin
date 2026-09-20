@@ -139,6 +139,7 @@ export function SubmissionsTable({
               <option value="">All Submissions</option>
               <option value="pending">Pending</option>
               <option value="fraud_detect">Fraud Alert</option>
+              <option value="disputed">Disputed (Client)</option>
               <option value="approved">Approved</option>
               <option value="qualified">Qualified</option>
               <option value="rejected">Rejected</option>
