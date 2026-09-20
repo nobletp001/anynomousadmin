@@ -34,8 +34,9 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
   const [proofUrl, setProofUrl] = React.useState("");
   const [textResponse, setTextResponse] = React.useState("");
   const [numberResponse, setNumberResponse] = React.useState("");
-  const [file, setFile] = React.useState<File | null>(null);
+  const [files, setFiles] = React.useState<File[]>([]);
   const [error, setError] = React.useState("");
+  const acceptsMultipleImages = Boolean(task.acceptMultipleImages);
 
   const usersQuery = useQuery<{ success: boolean; data: SuggestedUser[] }>({
     queryKey: ["assist-submission-user-suggestions", userSearch],
@@ -73,10 +74,15 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
         return;
       }
       payload.proofUrl = proofUrl.trim();
-    } else if (file) {
-      const encoded = await fileToBase64(file);
-      payload.proofBase64 = encoded.base64;
-      payload.proofMimeType = encoded.mimeType;
+    } else if (files.length > 0) {
+      const encodedFiles = await Promise.all(files.map(fileToBase64));
+      if (acceptsMultipleImages) {
+        payload.proofsBase64 = encodedFiles.map((encoded) => encoded.base64);
+        payload.proofsMimeType = encodedFiles.map((encoded) => encoded.mimeType);
+      } else {
+        payload.proofBase64 = encodedFiles[0].base64;
+        payload.proofMimeType = encodedFiles[0].mimeType;
+      }
     } else if (!textResponse.trim() && !numberResponse.trim()) {
       setError("Upload proof or enter required details.");
       return;
@@ -87,7 +93,7 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
     setProofUrl("");
     setTextResponse("");
     setNumberResponse("");
-    setFile(null);
+    setFiles([]);
   };
 
   return (
@@ -159,12 +165,22 @@ export function AssistSubmissionPanel({ task, isPending, onSubmit }: AssistSubmi
         ) : (
           <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 px-3 py-2.5 text-xs font-bold text-zinc-400 hover:border-purple-500/50 hover:text-zinc-200">
             <UploadCloud className="h-4 w-4" />
-            {file ? file.name : "Upload proof image"}
+            {files.length > 0
+              ? acceptsMultipleImages
+                ? `${files.length} proof image${files.length === 1 ? "" : "s"} selected`
+                : files[0].name
+              : acceptsMultipleImages
+                ? "Upload proof images"
+                : "Upload proof image"}
             <input
               type="file"
               accept="image/*"
+              multiple={acceptsMultipleImages}
               className="hidden"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              onChange={(event) => {
+                const selectedFiles = Array.from(event.target.files ?? []);
+                setFiles(acceptsMultipleImages ? selectedFiles.slice(0, 5) : selectedFiles.slice(0, 1));
+              }}
             />
           </label>
         )}
