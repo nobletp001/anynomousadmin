@@ -11,7 +11,7 @@ export function useUsersMutations(page: number) {
       flags,
     }: {
       id: number;
-      flags: Partial<Pick<User, "disabled" | "withdrawalDisabled" | "taskDisabled">>;
+      flags: Partial<Pick<User, "disabled" | "withdrawalDisabled" | "taskDisabled" | "registrationFeeWaived">>;
     }) => apiClient.patch(`/admin/users/${id}/flags`, flags) as any,
     onMutate: async ({ id, flags }) => {
       await queryClient.cancelQueries({ queryKey: ["admin-users", page] });
@@ -26,6 +26,9 @@ export function useUsersMutations(page: number) {
             if (flags.disabled) {
               next.withdrawalDisabled = true;
               next.taskDisabled = true;
+            }
+            if (typeof flags.registrationFeeWaived === "boolean") {
+              next.registrationPaymentStatus = flags.registrationFeeWaived ? "free" : "not_paid";
             }
             return next;
           }),

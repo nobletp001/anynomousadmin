@@ -1,5 +1,5 @@
 import React from "react";
-import { Ban, ShieldOff, CreditCard, ClipboardX, ChevronLeft, ChevronRight, Users } from "lucide-react";
+import { Ban, ShieldOff, CreditCard, ClipboardX, ChevronLeft, ChevronRight, Users, Gift } from "lucide-react";
 import { Badge, Button } from "@/components/ui";
 import { User } from "../types";
 import { Toggle } from "./Toggle";
@@ -8,12 +8,35 @@ import { formatDate, roleBadgeVariant } from "../utils";
 interface UsersTableProps {
   users: User[];
   onSelectUser: (username: string) => void;
-  onUpdateFlags: (id: number, flags: Partial<Pick<User, "disabled" | "withdrawalDisabled" | "taskDisabled">>) => void;
+  onUpdateFlags: (
+    id: number,
+    flags: Partial<Pick<User, "disabled" | "withdrawalDisabled" | "taskDisabled" | "registrationFeeWaived">>
+  ) => void;
   page: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
   totalPages: number;
   totalUsers: number;
   hasMore?: boolean;
+}
+
+function paymentBadge(user: User): {
+  label: string;
+  variant: "default" | "success" | "warning" | "danger" | "info" | "purple";
+} {
+  switch (user.registrationPaymentStatus) {
+    case "free":
+      return { label: "Free user", variant: "success" };
+    case "paid":
+      return { label: "Payment user", variant: "purple" };
+    case "pending":
+      return { label: "Pending", variant: "warning" };
+    case "rejected":
+      return { label: "Rejected", variant: "danger" };
+    case "not_paid":
+      return { label: "Not payment", variant: "danger" };
+    default:
+      return { label: "Not required", variant: "default" };
+  }
 }
 
 export function UsersTable({
@@ -37,6 +60,7 @@ export function UsersTable({
               <th className="px-6 py-4 font-semibold">Username</th>
               <th className="px-6 py-4 font-semibold">Email</th>
               <th className="px-6 py-4 font-semibold">Role</th>
+              <th className="px-6 py-4 font-semibold">Payment</th>
               <th className="px-6 py-4 font-semibold">Joined</th>
               <th className="px-6 py-4 font-semibold">Restrictions</th>
             </tr>
@@ -71,6 +95,22 @@ export function UsersTable({
                     <Badge variant={roleBadgeVariant(user.role) as any} dot>
                       {user.role}
                     </Badge>
+                  </td>
+                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={paymentBadge(user).variant} dot>
+                        {paymentBadge(user).label}
+                      </Badge>
+                      <Toggle
+                        checked={Boolean(user.registrationFeeWaived)}
+                        onChange={(v) => onUpdateFlags(user.id, { registrationFeeWaived: v })}
+                        color="emerald"
+                        label="Mark registration payment free"
+                      />
+                      <Gift
+                        className={`h-3.5 w-3.5 ${user.registrationFeeWaived ? "text-emerald-400" : "text-zinc-600"}`}
+                      />
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-zinc-500 text-xs">{formatDate(user.createdAt)}</td>
                   <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
@@ -123,7 +163,7 @@ export function UsersTable({
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-6 py-16 text-center text-zinc-500">
+                <td colSpan={7} className="px-6 py-16 text-center text-zinc-500">
                   <Users className="w-8 h-8 mx-auto mb-2 opacity-40" />
                   No users found
                 </td>

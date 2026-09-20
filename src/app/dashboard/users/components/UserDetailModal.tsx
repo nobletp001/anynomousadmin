@@ -1,6 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui";
+import { Badge, Button } from "@/components/ui";
 import { UserStatsGrid } from "./UserStatsGrid";
 import { FinancialBreakdown } from "./FinancialBreakdown";
 import { DemographicsAndBank } from "./DemographicsAndBank";
@@ -26,6 +26,26 @@ interface UserDetailModalProps {
   copiedId: string | null;
   handleCopyRef: (refId: string) => void;
   onActionReverseSuccess?: () => void;
+}
+
+function paymentBadge(status?: string): {
+  label: string;
+  variant: "default" | "success" | "warning" | "danger" | "info" | "purple";
+} {
+  switch (status) {
+    case "free":
+      return { label: "Free user", variant: "success" };
+    case "paid":
+      return { label: "Payment user", variant: "purple" };
+    case "pending":
+      return { label: "Payment pending", variant: "warning" };
+    case "rejected":
+      return { label: "Payment rejected", variant: "danger" };
+    case "not_paid":
+      return { label: "Not payment", variant: "danger" };
+    default:
+      return { label: "Not required", variant: "default" };
+  }
 }
 
 export function UserDetailModal({
@@ -85,7 +105,12 @@ export function UserDetailModal({
                       <p className="text-sm text-zinc-400">
                         @{user.username} · {user.email || "No email"}
                       </p>
-                      <p className="text-xs text-zinc-650 mt-0.5">Joined {formatDate(user.createdAt)}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <p className="text-xs text-zinc-650">Joined {formatDate(user.createdAt)}</p>
+                        <Badge variant={paymentBadge(user.registrationPaymentStatus).variant} dot>
+                          {paymentBadge(user.registrationPaymentStatus).label}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
 

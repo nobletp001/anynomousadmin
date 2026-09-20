@@ -514,41 +514,43 @@ export default function TaskSubmissionsPage() {
         />
       )}
 
-      {task.isSecureSpotTask && (
+      {(task.isSecureSpotTask || securedSpots.length > 0) && (
         <div className="space-y-4">
-          <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-4 shadow-xl">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-extrabold text-zinc-200 uppercase tracking-wider">Assign Slots</h2>
-                <p className="mt-1 text-xs text-zinc-500">
-                  Search and add users one by one, or paste many usernames/emails in bulk.
-                </p>
+          {task.isSecureSpotTask && (
+            <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-4 shadow-xl">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-extrabold text-zinc-200 uppercase tracking-wider">Assign Slots</h2>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Search and add users one by one, or paste many usernames/emails in bulk.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={
+                    mutations.addSecuredSpots.isPending || (slotSelectedUsers.length === 0 && !slotBulkUsers.trim())
+                  }
+                  onClick={() => {
+                    mutations.addSecuredSpots.mutate([...slotSelectedUsers, slotBulkUsers].filter(Boolean), {
+                      onSuccess: () => {
+                        setSlotSelectedUsers([]);
+                        setSlotBulkUsers("");
+                      },
+                    });
+                  }}
+                  className="rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-emerald-400 disabled:opacity-50"
+                >
+                  {mutations.addSecuredSpots.isPending ? "Adding..." : "Assign Slots"}
+                </button>
               </div>
-              <button
-                type="button"
-                disabled={
-                  mutations.addSecuredSpots.isPending || (slotSelectedUsers.length === 0 && !slotBulkUsers.trim())
-                }
-                onClick={() => {
-                  mutations.addSecuredSpots.mutate([...slotSelectedUsers, slotBulkUsers].filter(Boolean), {
-                    onSuccess: () => {
-                      setSlotSelectedUsers([]);
-                      setSlotBulkUsers("");
-                    },
-                  });
-                }}
-                className="rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-black hover:bg-emerald-400 disabled:opacity-50"
-              >
-                {mutations.addSecuredSpots.isPending ? "Adding..." : "Assign Slots"}
-              </button>
+              <SlotUserPicker
+                selectedUsers={slotSelectedUsers}
+                onChange={setSlotSelectedUsers}
+                bulkUsers={slotBulkUsers}
+                onBulkChange={setSlotBulkUsers}
+              />
             </div>
-            <SlotUserPicker
-              selectedUsers={slotSelectedUsers}
-              onChange={setSlotSelectedUsers}
-              bulkUsers={slotBulkUsers}
-              onBulkChange={setSlotBulkUsers}
-            />
-          </div>
+          )}
 
           <SecuredSpotsPanel
             spots={securedSpots}

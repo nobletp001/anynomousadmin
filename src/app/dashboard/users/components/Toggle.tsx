@@ -5,20 +5,15 @@ interface ToggleProps {
   onChange: (v: boolean) => void;
   disabled?: boolean;
   label: string;
-  color?: "red" | "amber" | "orange";
+  color?: "red" | "amber" | "orange" | "emerald";
 }
 
-export function Toggle({
-  checked,
-  onChange,
-  disabled,
-  label,
-  color = "red",
-}: ToggleProps) {
+export function Toggle({ checked, onChange, disabled, label, color = "red" }: ToggleProps) {
   const activeColors = {
     red: "bg-red-500",
     amber: "bg-amber-500",
     orange: "bg-orange-500",
+    emerald: "bg-emerald-500",
   };
   return (
     <button

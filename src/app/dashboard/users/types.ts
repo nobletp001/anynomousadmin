@@ -8,6 +8,10 @@ export interface User {
   disabled: boolean;
   withdrawalDisabled: boolean;
   taskDisabled: boolean;
+  accountType?: string | null;
+  signupPurpose?: SignupPurpose | string | null;
+  registrationFeeWaived?: boolean;
+  registrationPaymentStatus?: "free" | "paid" | "pending" | "rejected" | "not_paid" | "not_required";
   whatsappNumber?: string | null;
   emailVerified?: boolean;
   emailVerificationExpiresAt?: string | null;
