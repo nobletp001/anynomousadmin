@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui";
 import { AlertCircle, Users, ScanSearch, Star } from "lucide-react";
 import { Submission } from "../types";
-import { formatAmount, statusVariant } from "../utils";
+import { formatAmount, formatSubmissionStatus, statusVariant } from "../utils";
 import { FraudAlertsList } from "./FraudAlertsList";
 import { SubmissionCollisionModal } from "./SubmissionCollisionModal";
 import { apiClient } from "@/services/api-client";
@@ -114,7 +114,7 @@ export function SubmissionUserDetailsCard({ sub, submissions, onCompareUser }: S
           <p className="text-[10px] text-zinc-500 uppercase font-semibold">Status</p>
           <div className="mt-1">
             <Badge variant={statusVariant(sub.status)} dot>
-              {sub.status}
+              {formatSubmissionStatus(sub.status)}
             </Badge>
           </div>
         </div>

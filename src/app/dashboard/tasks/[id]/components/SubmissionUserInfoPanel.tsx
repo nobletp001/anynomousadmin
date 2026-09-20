@@ -203,17 +203,40 @@ export function SubmissionUserInfoPanel({
         </div>
       )}
 
-      {(sub.status === "rejected" || sub.status === "needs_correction") && sub.rejectionReason && (
-        <div className="rounded-xl border border-red-500/10 bg-red-500/[0.02] p-4 space-y-2">
-          <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest flex items-center gap-1.5">
-            {sub.status === "rejected" ? "Rejection Reason" : "Correction Instructions"}
-          </h4>
-          <p className="text-xs text-zinc-300 leading-relaxed font-semibold">{sub.rejectionReason}</p>
-          {sub.status === "rejected" && sub.deductedAmount > 0 && (
-            <p className="text-[10px] text-red-400 font-semibold mt-1">Deducted: -{formatAmount(sub.deductedAmount)}</p>
-          )}
-        </div>
-      )}
+      {(sub.status === "rejected" ||
+        sub.status === "needs_correction" ||
+        sub.status === "in_review" ||
+        sub.status === "in review" ||
+        sub.status === "disputed") &&
+        sub.rejectionReason && (
+          <div
+            className={`rounded-xl p-4 space-y-2 border ${
+              sub.status === "in_review" || sub.status === "in review" || sub.status === "disputed"
+                ? "border-amber-500/20 bg-amber-500/[0.04]"
+                : "border-red-500/10 bg-red-500/[0.02]"
+            }`}
+          >
+            <h4
+              className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${
+                sub.status === "in_review" || sub.status === "in review" || sub.status === "disputed"
+                  ? "text-amber-400"
+                  : "text-red-400"
+              }`}
+            >
+              {sub.status === "rejected"
+                ? "Rejection Reason"
+                : sub.status === "needs_correction"
+                  ? "Correction Instructions"
+                  : "Dispute Reason / Client Review Note"}
+            </h4>
+            <p className="text-xs text-zinc-300 leading-relaxed font-semibold">{sub.rejectionReason}</p>
+            {sub.status === "rejected" && sub.deductedAmount > 0 && (
+              <p className="text-[10px] text-red-400 font-semibold mt-1">
+                Deducted: -{formatAmount(sub.deductedAmount)}
+              </p>
+            )}
+          </div>
+        )}
     </div>
   );
 }

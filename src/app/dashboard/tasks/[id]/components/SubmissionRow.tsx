@@ -181,11 +181,26 @@ export function SubmissionRow({
           <Badge variant={statusVariant(sub.status)} dot>
             {formatSubmissionStatus(sub.status)}
           </Badge>
-          {(sub.status === "rejected" || sub.status === "needs_correction") && sub.rejectionReason && (
-            <p className="text-[10px] text-zinc-550 mt-0.5 max-w-44 truncate font-medium" title={sub.rejectionReason}>
-              Reason: {sub.rejectionReason}
-            </p>
-          )}
+          {(sub.status === "rejected" ||
+            sub.status === "needs_correction" ||
+            sub.status === "in_review" ||
+            sub.status === "in review" ||
+            sub.status === "disputed") &&
+            sub.rejectionReason && (
+              <p
+                className={`text-[10px] mt-0.5 max-w-44 truncate font-medium ${
+                  sub.status === "in_review" || sub.status === "in review" || sub.status === "disputed"
+                    ? "text-amber-400/90"
+                    : "text-zinc-550"
+                }`}
+                title={sub.rejectionReason}
+              >
+                {sub.status === "in_review" || sub.status === "in review" || sub.status === "disputed"
+                  ? "Dispute: "
+                  : "Reason: "}
+                {sub.rejectionReason}
+              </p>
+            )}
           {sub.status === "rejected" && sub.deductedAmount > 0 && (
             <p className="text-[10px] text-red-400 mt-0.5">−{formatAmount(sub.deductedAmount)}</p>
           )}
