@@ -445,6 +445,25 @@ export default function TaskSubmissionsPage() {
     );
   };
 
+  const rewindSubmission = (sub: Submission) => {
+    const message =
+      sub.status === "approved"
+        ? `Rewind @${sub.username}'s approved submission back to pending? This will remove the task reward and approved count so you can approve, reject, or request correction again.`
+        : sub.status === "rejected"
+          ? `Rewind @${sub.username}'s rejected submission back to pending? Any rejection penalty or debt from this rejection will be reversed.`
+          : `Rewind @${sub.username}'s submission back to pending so you can review it again?`;
+    if (!window.confirm(message)) return;
+    mutations.rewindSubmission.mutate(sub.id, {
+      onSuccess: () => {
+        toast.success(`@${sub.username}'s submission was rewound to pending.`);
+        if (state.viewingSub?.id === sub.id) {
+          state.setViewingSub(null);
+        }
+      },
+      onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to rewind submission."),
+    });
+  };
+
   return (
     <div className="space-y-6">
       <TaskDetailHeader
@@ -637,6 +656,7 @@ export default function TaskSubmissionsPage() {
           openReverseModal={(sub) =>
             setReverseModal({ subId: sub.id, username: sub.username, deductedAmount: sub.deductedAmount ?? 0 })
           }
+          onRewindSubmission={rewindSubmission}
           onRemoveSubmission={(sub) => {
             const message =
               (task.taskType === "app_testing" || task.targetPlatform === "app_testing") && sub.status === "qualified"
@@ -699,6 +719,7 @@ export default function TaskSubmissionsPage() {
         closeRejectModal={closeRejectModal}
         openCorrectionModal={openCorrectionModal}
         openRejectModal={openRejectModal}
+        onRewindSubmission={rewindSubmission}
         handleWatchUser={handleWatchUser}
       />
 

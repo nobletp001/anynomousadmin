@@ -60,6 +60,16 @@ export function isActionableSubmissionStatus(status: string) {
   );
 }
 
+export function isRewindableSubmissionStatus(status: string) {
+  return (
+    status === "approved" ||
+    status === "rejected" ||
+    status === "needs_correction" ||
+    status === "qualified" ||
+    status === "testing_joined"
+  );
+}
+
 export function formatSubmissionStatus(status: string) {
   if (status === "needs_correction") return "correction requested";
   if (status === "fraud" || status === "fraud_detect") return "fraud alert";

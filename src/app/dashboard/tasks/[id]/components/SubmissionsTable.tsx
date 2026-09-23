@@ -27,6 +27,7 @@ interface SubmissionsTableProps {
   openCorrectionModal: (sub: Submission) => void;
   openRejectModal: (sub: Submission) => void;
   openReverseModal: (sub: Submission) => void;
+  onRewindSubmission: (sub: Submission) => void;
   onRemoveSubmission: (sub: Submission) => void;
   onRequestAppReview: (sub: Submission) => void;
   onWithdrawAppReview: (request: BusinessReviewRequest) => void;
@@ -53,6 +54,7 @@ export function SubmissionsTable({
   openCorrectionModal,
   openRejectModal,
   openReverseModal,
+  onRewindSubmission,
   onRemoveSubmission,
   onRequestAppReview,
   onWithdrawAppReview,
@@ -221,6 +223,7 @@ export function SubmissionsTable({
                     onCorrection={() => openCorrectionModal(sub)}
                     onReject={() => openRejectModal(sub)}
                     onReverseReject={() => openReverseModal(sub)}
+                    onRewind={() => onRewindSubmission(sub)}
                     onRemove={() => onRemoveSubmission(sub)}
                     appReviewRequest={reviewRequestsBySubmission.get(sub.id) ?? null}
                     canRequestAppReview={isAppDownloadTask && sub.status === "approved"}

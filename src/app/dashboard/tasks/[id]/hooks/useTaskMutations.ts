@@ -183,6 +183,12 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
   });
 
+  const rewindSubmission = useMutation({
+    mutationFn: (subId: number) =>
+      apiClient.patch(`/admin/tasks/${taskId}/submissions/${subId}`, { action: "rewind" }) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
   const removeSubmission = useMutation({
     mutationFn: (subId: number) => apiClient.delete(`/admin/tasks/${taskId}/submissions/${subId}`) as any,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
@@ -258,6 +264,7 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     updateTask,
     uploadImage,
     reverseSubmission,
+    rewindSubmission,
     removeSubmission,
     removeSecuredSpot,
     addSecuredSpots,

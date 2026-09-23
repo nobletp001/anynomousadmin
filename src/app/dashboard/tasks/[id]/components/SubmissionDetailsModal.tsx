@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Move, X, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, Move, X, Eye, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui";
 import { ImageCollisionMatch, Submission, Task } from "../types";
-import { formatDate, getImagesList } from "../utils";
+import { formatDate, getImagesList, isActionableSubmissionStatus, isRewindableSubmissionStatus } from "../utils";
 import { SubmissionUserInfoPanel } from "./SubmissionUserInfoPanel";
 import { SubmissionProofPanel } from "./SubmissionProofPanel";
 import { SideBySideCompareBody } from "./SideBySideCompareBody";
 import { apiClient } from "@/services/api-client";
-import { isActionableSubmissionStatus } from "../utils";
 import { toast } from "sonner";
 
 interface SubmissionDetailsModalProps {
@@ -31,7 +30,9 @@ interface SubmissionDetailsModalProps {
   onApprove: () => void;
   onCorrectionClick: () => void;
   onRejectClick: () => void;
+  onRewindClick?: () => void;
   isApprovePending: boolean;
+  isRewindPending?: boolean;
   onWatchUser?: (username: string) => void;
   onPrev?: () => void;
   onNext?: () => void;
@@ -60,7 +61,9 @@ export function SubmissionDetailsModal({
   onApprove,
   onCorrectionClick,
   onRejectClick,
+  onRewindClick,
   isApprovePending,
+  isRewindPending = false,
   onWatchUser,
   onPrev,
   onNext,
@@ -278,6 +281,16 @@ export function SubmissionDetailsModal({
                 </button>
               )}
             </div>
+            {!canAction && isRewindableSubmissionStatus(sub.status) && onRewindClick && (
+              <button
+                onClick={onRewindClick}
+                disabled={isRewindPending}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-violet-500/10 text-violet-300 border border-violet-500/20 hover:bg-violet-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                {isRewindPending ? "Rewinding..." : "Rewind to Pending"}
+              </button>
+            )}
             {canAction && (
               <div className="flex items-center gap-2.5">
                 <button

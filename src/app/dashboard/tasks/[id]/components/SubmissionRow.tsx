@@ -22,6 +22,7 @@ import {
   getIpWarning,
   getDeviceWarning,
   getImagesList,
+  isRewindableSubmissionStatus,
 } from "../utils";
 
 interface SubmissionRowProps {
@@ -34,6 +35,7 @@ interface SubmissionRowProps {
   onCorrection: () => void;
   onReject: () => void;
   onReverseReject?: () => void;
+  onRewind?: () => void;
   onRemove: () => void;
   appReviewRequest?: BusinessReviewRequest | null;
   canRequestAppReview?: boolean;
@@ -55,6 +57,7 @@ export function SubmissionRow({
   onCorrection,
   onReject,
   onReverseReject,
+  onRewind,
   onRemove,
   appReviewRequest,
   canRequestAppReview = false,
@@ -280,6 +283,15 @@ export function SubmissionRow({
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Reverse
+          </button>
+        )}
+        {isRewindableSubmissionStatus(sub.status) && onRewind && (
+          <button
+            onClick={onRewind}
+            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/20 hover:bg-violet-500/20 transition-colors"
+          >
+            <Undo2 className="w-3.5 h-3.5" />
+            Rewind
           </button>
         )}
         {sub.status !== "removed" && (

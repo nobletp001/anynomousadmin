@@ -19,6 +19,7 @@ interface TaskDetailModalsProps {
   closeRejectModal: () => void;
   openCorrectionModal: (sub: Submission) => void;
   openRejectModal: (sub: Submission) => void;
+  onRewindSubmission: (sub: Submission) => void;
   handleWatchUser: (username: string) => void;
 }
 
@@ -34,6 +35,7 @@ export function TaskDetailModals({
   closeRejectModal,
   openCorrectionModal,
   openRejectModal,
+  onRewindSubmission,
   handleWatchUser,
 }: TaskDetailModalsProps) {
   return (
@@ -80,7 +82,9 @@ export function TaskDetailModals({
               }
               onCorrectionClick={() => openCorrectionModal(state.viewingSub!)}
               onRejectClick={() => openRejectModal(state.viewingSub!)}
+              onRewindClick={() => onRewindSubmission(state.viewingSub!)}
               isApprovePending={mutations.approveSubmission.isPending}
+              isRewindPending={mutations.rewindSubmission.isPending}
               onWatchUser={handleWatchUser}
               currentIndex={currentIdx}
               totalCount={submissions.length}
