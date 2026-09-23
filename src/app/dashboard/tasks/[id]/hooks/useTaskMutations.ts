@@ -92,7 +92,11 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
       action: "approve" | "dispute";
       reason?: string;
     }) => apiClient.patch(`/admin/tasks/${taskId}/review-requests/${requestId}`, { action, reason }) as any,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] });
+      callbacks.closeRejectModal();
+      callbacks.closeViewingSub();
+    },
   });
 
   const updateAppTestingSettings = useMutation({

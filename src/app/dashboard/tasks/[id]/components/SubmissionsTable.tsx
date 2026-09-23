@@ -65,7 +65,7 @@ export function SubmissionsTable({
   const reviewRequestsBySubmission = React.useMemo(() => {
     const map = new Map<number, BusinessReviewRequest>();
     for (const request of reviewRequests) {
-      if (request.status === "requested" || request.status === "submitted") {
+      if (request.status === "requested") {
         map.set(request.submissionId, request);
       }
     }
@@ -87,7 +87,9 @@ export function SubmissionsTable({
       }),
     [submissions]
   );
-  const selectableSubmissions = submissions.filter((s) => isActionableSubmissionStatus(s.status));
+  const selectableSubmissions = submissions.filter(
+    (s) => isActionableSubmissionStatus(s.status) && !s.isAppReviewSubmission
+  );
   const page = pagination?.page ?? 1;
   const limit = pagination?.limit ?? 50;
   const total = pagination?.total ?? submissions.length;

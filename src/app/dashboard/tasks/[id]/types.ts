@@ -230,6 +230,8 @@ export interface Submission {
     revisions: number;
   };
   assignedReview?: string | null;
+  isAppReviewSubmission?: boolean;
+  appReviewRequest?: BusinessReviewRequest;
 }
 
 export interface BusinessReviewRequest {

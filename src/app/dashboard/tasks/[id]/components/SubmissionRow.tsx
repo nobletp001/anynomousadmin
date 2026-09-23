@@ -69,6 +69,8 @@ export function SubmissionRow({
   onFinalizeAppTesting,
 }: SubmissionRowProps) {
   const isSelectable = isActionableSubmissionStatus(sub.status);
+  const isReviewSubmission = Boolean(sub.isAppReviewSubmission);
+  const canBulkSelect = isSelectable && !isReviewSubmission;
 
   return (
     <tr
@@ -78,7 +80,7 @@ export function SubmissionRow({
       }`}
     >
       <td className="px-4 py-4 w-10" onClick={(e) => e.stopPropagation()}>
-        {isSelectable ? (
+        {canBulkSelect ? (
           <input
             type="checkbox"
             checked={selectedIds.has(sub.id)}
@@ -124,7 +126,12 @@ export function SubmissionRow({
       <td className="px-6 py-4 text-xs font-semibold text-emerald-400">{formatAmount(sub.userBalance)}</td>
       <td className="px-6 py-4">
         <div className="space-y-1.5 py-1">
-          {sub.proofType === "link" ? (
+          {isReviewSubmission ? (
+            <span className="inline-flex items-center gap-1.5 text-blue-300 text-xs font-bold transition-colors">
+              <ImageIcon className="w-3.5 h-3.5" />
+              App review proof ({getImagesList(sub.proof).length})
+            </span>
+          ) : sub.proofType === "link" ? (
             <a
               href={sub.proof}
               target="_blank"
@@ -182,8 +189,13 @@ export function SubmissionRow({
       <td className="px-6 py-4">
         <div>
           <Badge variant={statusVariant(sub.status)} dot>
-            {formatSubmissionStatus(sub.status)}
+            {isReviewSubmission ? "pending review" : formatSubmissionStatus(sub.status)}
           </Badge>
+          {isReviewSubmission && (
+            <p className="mt-1 text-[10px] font-semibold text-blue-300">
+              App review · user reward {formatAmount(sub.appReviewRequest?.workerAmount ?? 0)}
+            </p>
+          )}
           {(sub.status === "rejected" ||
             sub.status === "needs_correction" ||
             sub.status === "in_review" ||
@@ -276,7 +288,7 @@ export function SubmissionRow({
             </button>
           </div>
         ) : null}
-        {sub.status === "rejected" && onReverseReject && (
+        {sub.status === "rejected" && onReverseReject && !isReviewSubmission && (
           <button
             onClick={onReverseReject}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 transition-colors"
@@ -285,7 +297,7 @@ export function SubmissionRow({
             Reverse
           </button>
         )}
-        {isRewindableSubmissionStatus(sub.status) && onRewind && (
+        {isRewindableSubmissionStatus(sub.status) && onRewind && !isReviewSubmission && (
           <button
             onClick={onRewind}
             className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/20 hover:bg-violet-500/20 transition-colors"
@@ -294,7 +306,7 @@ export function SubmissionRow({
             Rewind
           </button>
         )}
-        {sub.status !== "removed" && (
+        {sub.status !== "removed" && !isReviewSubmission && (
           <button
             onClick={onRemove}
             className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 transition-colors"
@@ -305,7 +317,7 @@ export function SubmissionRow({
               : "Remove"}
           </button>
         )}
-        {canRequestAppReview && !appReviewRequest && (
+        {canRequestAppReview && !appReviewRequest && !isReviewSubmission && (
           <button
             onClick={onRequestAppReview}
             className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"

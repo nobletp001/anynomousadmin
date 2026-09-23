@@ -65,6 +65,10 @@ export default function TaskSubmissionsPage() {
   const task = submissionsQuery.data?.data?.task;
   const submissions = submissionsQuery.data?.data?.submissions ?? [];
   const reviewRequests = submissionsQuery.data?.data?.reviewRequests ?? [];
+  const displaySubmissions = React.useMemo(
+    () => buildDisplaySubmissions(submissions, reviewRequests),
+    [submissions, reviewRequests]
+  );
   const appTesting = submissionsQuery.data?.data?.appTesting ?? null;
   const appTestingApprovedPortfolioCount = submissionsQuery.data?.data?.appTestingApprovedPortfolioCount ?? 0;
   const submissionsPagination = submissionsQuery.data?.data?.pagination;
@@ -72,7 +76,7 @@ export default function TaskSubmissionsPage() {
   const securedSpots = securedSpotsQuery.data?.data ?? [];
 
   const advanceToNextPending = (currentSubId: number) => {
-    const pendings = submissions.filter((s) => isActionableSubmissionStatus(s.status));
+    const pendings = displaySubmissions.filter((s) => isActionableSubmissionStatus(s.status));
     const currentIdx = pendings.findIndex((s) => s.id === currentSubId);
     state.setViewingSub(currentIdx !== -1 && currentIdx < pendings.length - 1 ? pendings[currentIdx + 1] : null);
   };
@@ -198,9 +202,16 @@ export default function TaskSubmissionsPage() {
     rating: state.rating,
     setRating: state.setRating,
     feedback: state.feedback,
-    submissions,
+    submissions: displaySubmissions,
     setViewingSub: state.setViewingSub,
-    onApprove: (r, f) => mutations.approveSubmission.mutate({ subId: state.viewingSub!.id, rating: r, feedback: f }),
+    onApprove: (r, f) => {
+      const request = state.viewingSub?.appReviewRequest;
+      if (request) {
+        mutations.decideBusinessReview.mutate({ requestId: request.id, action: "approve" });
+        return;
+      }
+      mutations.approveSubmission.mutate({ subId: state.viewingSub!.id, rating: r, feedback: f });
+    },
     onRejectClick: openRejectModal,
     onCorrectionClick: openCorrectionModal,
   });
@@ -610,7 +621,7 @@ export default function TaskSubmissionsPage() {
       )}
 
       <AppReviewRequestsPanel
-        requests={reviewRequests}
+        requests={reviewRequests.filter((request) => request.status !== "submitted")}
         isPending={mutations.withdrawBusinessReview.isPending || mutations.decideBusinessReview.isPending}
         onWithdraw={setWithdrawReviewRequestModal}
         onApprove={(request) =>
@@ -637,7 +648,7 @@ export default function TaskSubmissionsPage() {
 
       <div id="submissions-table" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <SubmissionsTable
-          submissions={submissions}
+          submissions={displaySubmissions}
           task={task}
           reviewRequests={reviewRequests}
           pagination={submissionsPagination}
@@ -709,7 +720,7 @@ export default function TaskSubmissionsPage() {
 
       <TaskDetailModals
         task={task}
-        submissions={submissions}
+        submissions={displaySubmissions}
         editState={editState}
         state={state}
         mutations={mutations}
@@ -1128,6 +1139,42 @@ function AppTestingInput({
       />
     </label>
   );
+}
+
+function buildDisplaySubmissions(submissions: Submission[], reviewRequests: BusinessReviewRequest[]) {
+  const submissionsById = new Map(submissions.map((submission) => [submission.id, submission]));
+  const reviewSubmissions = reviewRequests
+    .filter((request) => request.status === "submitted")
+    .map((request): Submission => {
+      const originalSubmission = submissionsById.get(request.submissionId);
+      return {
+        ...(originalSubmission ?? {
+          taskId: request.taskId,
+          username: request.username,
+          user: null,
+          userBalance: 0,
+          rejectionReason: null,
+          deductedAmount: 0,
+          createdAt: request.submittedAt || request.updatedAt,
+        }),
+        id: -request.id,
+        taskId: request.taskId,
+        username: request.username,
+        proof: request.reviewProof || "",
+        proofType: request.reviewProofType || "image",
+        textResponse: request.textResponse || null,
+        numberResponse: request.numberResponse || null,
+        status: "pending",
+        rejectionReason: null,
+        deductedAmount: 0,
+        createdAt: request.submittedAt || request.updatedAt,
+        assignedReview: request.reviewText,
+        isAppReviewSubmission: true,
+        appReviewRequest: request,
+      };
+    });
+
+  return [...reviewSubmissions, ...submissions];
 }
 
 function getBusinessExpectedTotal(task: Task) {
