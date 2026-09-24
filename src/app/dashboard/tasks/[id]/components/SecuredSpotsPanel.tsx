@@ -22,13 +22,11 @@ interface SecuredSpotsPanelProps {
   onViewSubmission?: (spot: SecuredSpot) => void;
 }
 
-export function SecuredSpotsPanel({
-  spots,
-  isLoading,
-  onRemoveSpot,
-  removingUsername,
-  onViewSubmission,
-}: SecuredSpotsPanelProps) {
+export function SecuredSpotsPanel({ spots, isLoading, onRemoveSpot, removingUsername }: SecuredSpotsPanelProps) {
+  const activeSpots = spots.filter((spot) => spot.status !== "submitted");
+
+  if (!isLoading && activeSpots.length === 0) return null;
+
   return (
     <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
       <div className="p-4 border-b border-zinc-800 flex items-center justify-between gap-3 bg-zinc-950/20">
@@ -36,12 +34,12 @@ export function SecuredSpotsPanel({
           <Users className="h-4 w-4 text-purple-300" />
           <h2 className="text-sm font-extrabold text-zinc-200 uppercase tracking-wider">Booked Slots</h2>
         </div>
-        <Badge variant="purple">{spots.length} booked</Badge>
+        <Badge variant="purple">{activeSpots.length} booked</Badge>
       </div>
 
       {isLoading ? (
         <div className="p-5 text-sm text-zinc-500">Loading booked slots...</div>
-      ) : spots.length === 0 ? (
+      ) : activeSpots.length === 0 ? (
         <div className="p-5 text-sm text-zinc-500">No user has booked a slot for this task yet.</div>
       ) : (
         <div className="overflow-x-auto">
@@ -55,7 +53,7 @@ export function SecuredSpotsPanel({
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/40">
-              {spots.map((spot) => (
+              {activeSpots.map((spot) => (
                 <tr key={spot.id} className="hover:bg-zinc-800/20 transition-colors">
                   <td className="px-5 py-4">
                     <p className="text-xs font-bold text-zinc-100">{spot.name || "—"}</p>
@@ -69,32 +67,16 @@ export function SecuredSpotsPanel({
                     <p className="mt-1 text-[10px] text-zinc-600">{new Date(spot.eligibleAt).toLocaleString()}</p>
                   </td>
                   <td className="px-5 py-4">
-                    <Badge variant={spot.status === "submitted" ? "success" : spot.isEligible ? "info" : "warning"} dot>
-                      {spot.status === "submitted" ? "submitted" : spot.isEligible ? "ready" : "waiting"}
+                    <Badge variant={spot.isEligible ? "info" : "warning"} dot>
+                      {spot.isEligible ? "ready" : "waiting"}
                     </Badge>
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
-                      {spot.status === "submitted" && onViewSubmission && (
-                        <button
-                          type="button"
-                          onClick={() => onViewSubmission(spot)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors"
-                        >
-                          View Submission
-                        </button>
-                      )}
                       <button
                         type="button"
-                        disabled={
-                          spot.status === "submitted" || removingUsername?.toLowerCase() === spot.username.toLowerCase()
-                        }
+                        disabled={removingUsername?.toLowerCase() === spot.username.toLowerCase()}
                         onClick={() => onRemoveSpot(spot)}
-                        title={
-                          spot.status === "submitted"
-                            ? "Already submitted — reject or reverse the submission first to free this slot."
-                            : undefined
-                        }
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 disabled:opacity-40 disabled:hover:bg-zinc-800 disabled:hover:text-zinc-300 disabled:hover:border-zinc-700 disabled:cursor-not-allowed transition-colors"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
