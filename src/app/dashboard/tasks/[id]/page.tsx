@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle, X } from "lucide-react";
-import { Button } from "@/components/ui";
+import { AlertCircle, CheckCircle, MessageSquareText, X } from "lucide-react";
+import { Badge, Button } from "@/components/ui";
 import { useTaskQueries } from "./hooks/useTaskQueries";
 import { useTaskMutations } from "./hooks/useTaskMutations";
 import { useTaskState } from "./hooks/useTaskState";
@@ -65,10 +65,7 @@ export default function TaskSubmissionsPage() {
   const task = submissionsQuery.data?.data?.task;
   const submissions = submissionsQuery.data?.data?.submissions ?? [];
   const reviewRequests = submissionsQuery.data?.data?.reviewRequests ?? [];
-  const displaySubmissions = React.useMemo(
-    () => buildDisplaySubmissions(submissions, reviewRequests),
-    [submissions, reviewRequests]
-  );
+  const displaySubmissions = submissions;
   const appTesting = submissionsQuery.data?.data?.appTesting ?? null;
   const appTestingApprovedPortfolioCount = submissionsQuery.data?.data?.appTestingApprovedPortfolioCount ?? 0;
   const submissionsPagination = submissionsQuery.data?.data?.pagination;
@@ -646,6 +643,31 @@ export default function TaskSubmissionsPage() {
         }}
       />
 
+      <AppReviewSubmissionsPanel
+        requests={reviewRequests.filter((request) => ["submitted", "approved", "disputed"].includes(request.status))}
+        isPending={mutations.decideBusinessReview.isPending}
+        onApprove={(request) =>
+          mutations.decideBusinessReview.mutate(
+            { requestId: request.id, action: "approve" },
+            {
+              onSuccess: () => toast.success("Review approved. Reward moved to the user wallet."),
+              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to approve review."),
+            }
+          )
+        }
+        onDispute={(request) => {
+          const reason = window.prompt(`Reject app review from @${request.username}. Add a reason:`);
+          if (!reason?.trim()) return;
+          mutations.decideBusinessReview.mutate(
+            { requestId: request.id, action: "dispute", reason: reason.trim() },
+            {
+              onSuccess: () => toast.success("Review rejected."),
+              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to reject review."),
+            }
+          );
+        }}
+      />
+
       <div id="submissions-table" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <SubmissionsTable
           submissions={displaySubmissions}
@@ -807,6 +829,144 @@ export default function TaskSubmissionsPage() {
       )}
     </div>
   );
+}
+
+function AppReviewSubmissionsPanel({
+  requests,
+  isPending,
+  onApprove,
+  onDispute,
+}: {
+  requests: BusinessReviewRequest[];
+  isPending: boolean;
+  onApprove: (request: BusinessReviewRequest) => void;
+  onDispute: (request: BusinessReviewRequest) => void;
+}) {
+  if (requests.length === 0) return null;
+
+  const sortedRequests = [...requests].sort(
+    (a, b) =>
+      reviewRequestStatusPriority(a.status) - reviewRequestStatusPriority(b.status) ||
+      reviewRequestTime(b) - reviewRequestTime(a)
+  );
+
+  return (
+    <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
+      <div className="p-4 border-b border-zinc-800 flex items-center justify-between gap-3 bg-zinc-950/20">
+        <div className="flex items-center gap-2">
+          <MessageSquareText className="h-4 w-4 text-blue-300" />
+          <h2 className="text-sm font-extrabold text-zinc-200 uppercase tracking-wider">Review Submissions</h2>
+        </div>
+        <Badge variant="info">{requests.length} reviews</Badge>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead>
+            <tr className="border-b border-zinc-800 text-zinc-500 text-xs uppercase tracking-wider">
+              <th className="px-5 py-3 font-semibold">User</th>
+              <th className="px-5 py-3 font-semibold">Reward</th>
+              <th className="px-5 py-3 font-semibold">Proof</th>
+              <th className="px-5 py-3 font-semibold">Status</th>
+              <th className="px-5 py-3 font-semibold">Submitted</th>
+              <th className="px-5 py-3 font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-800/40">
+            {sortedRequests.map((request) => {
+              const proofImages = getImagesList(request.reviewProof || "");
+              return (
+                <tr key={request.id} className="hover:bg-zinc-800/20 transition-colors">
+                  <td className="px-5 py-4">
+                    <p className="text-xs font-bold text-zinc-100">@{request.username}</p>
+                    <p className="mt-1 max-w-64 truncate text-[11px] text-zinc-550" title={request.reviewText}>
+                      {request.reviewText}
+                    </p>
+                  </td>
+                  <td className="px-5 py-4 text-xs font-semibold text-emerald-400">
+                    {formatAmount(request.workerAmount)}
+                  </td>
+                  <td className="px-5 py-4">
+                    {proofImages.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {proofImages.map((proof, index) => (
+                          <a
+                            key={`${proof}-${index}`}
+                            href={proof}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs font-semibold text-blue-300 hover:text-blue-200"
+                          >
+                            Proof {index + 1}
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-zinc-600">No proof</span>
+                    )}
+                  </td>
+                  <td className="px-5 py-4">
+                    <Badge variant={reviewRequestStatusVariant(request.status)} dot>
+                      {formatReviewRequestStatus(request.status)}
+                    </Badge>
+                  </td>
+                  <td className="px-5 py-4 text-xs text-zinc-500 whitespace-nowrap">
+                    {formatDate(request.submittedAt || request.reviewedAt || request.updatedAt)}
+                  </td>
+                  <td className="px-5 py-4">
+                    {request.status === "submitted" ? (
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => onApprove(request)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 disabled:opacity-50 transition-colors"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => onDispute(request)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-300 border border-red-500/30 hover:bg-red-500/20 disabled:opacity-50 transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-zinc-600">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function reviewRequestStatusPriority(status: string) {
+  if (status === "submitted") return 0;
+  if (status === "approved" || status === "disputed") return 1;
+  return 2;
+}
+
+function reviewRequestTime(request: BusinessReviewRequest) {
+  return new Date(request.reviewedAt || request.submittedAt || request.updatedAt).getTime();
+}
+
+function reviewRequestStatusVariant(status: string) {
+  if (status === "approved") return "success";
+  if (status === "disputed") return "danger";
+  return "warning";
+}
+
+function formatReviewRequestStatus(status: string) {
+  if (status === "submitted") return "pending";
+  if (status === "disputed") return "rejected";
+  return status;
 }
 
 function AppReviewRequestsPanel({
@@ -1139,43 +1299,6 @@ function AppTestingInput({
       />
     </label>
   );
-}
-
-function buildDisplaySubmissions(submissions: Submission[], reviewRequests: BusinessReviewRequest[]) {
-  const submissionsById = new Map(submissions.map((submission) => [submission.id, submission]));
-  const reviewSubmissions = reviewRequests
-    .filter((request) => request.status === "submitted")
-    .map((request): Submission => {
-      const originalSubmission = submissionsById.get(request.submissionId);
-      return {
-        ...(originalSubmission ?? {
-          taskId: request.taskId,
-          username: request.username,
-          user: null,
-          userBalance: 0,
-          rejectionReason: null,
-          deductedAmount: 0,
-          createdAt: request.submittedAt || request.updatedAt,
-        }),
-        id: -request.id,
-        taskId: request.taskId,
-        username: request.username,
-        proof: request.reviewProof || "",
-        proofType: request.reviewProofType || "image",
-        textResponse: request.textResponse || null,
-        numberResponse: request.numberResponse || null,
-        status: "pending",
-        rejectionReason: null,
-        deductedAmount: 0,
-        createdAt: request.submittedAt || request.updatedAt,
-        updatedAt: request.updatedAt,
-        assignedReview: request.reviewText,
-        isAppReviewSubmission: true,
-        appReviewRequest: request,
-      };
-    });
-
-  return [...reviewSubmissions, ...submissions];
 }
 
 function getBusinessExpectedTotal(task: Task) {
