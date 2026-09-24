@@ -621,7 +621,7 @@ export default function TaskSubmissionsPage() {
       )}
 
       <AppReviewRequestsPanel
-        requests={reviewRequests.filter((request) => request.status !== "submitted")}
+        requests={reviewRequests.filter((request) => request.status === "requested")}
         isPending={mutations.withdrawBusinessReview.isPending || mutations.decideBusinessReview.isPending}
         onWithdraw={setWithdrawReviewRequestModal}
         onApprove={(request) =>
