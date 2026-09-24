@@ -65,7 +65,14 @@ export default function TaskSubmissionsPage() {
   const task = submissionsQuery.data?.data?.task;
   const submissions = submissionsQuery.data?.data?.submissions ?? [];
   const reviewRequests = submissionsQuery.data?.data?.reviewRequests ?? [];
-  const displaySubmissions = submissions;
+  const reviewSubmissions = React.useMemo(
+    () => buildReviewSubmissions(submissions, reviewRequests),
+    [submissions, reviewRequests]
+  );
+  const displaySubmissions = React.useMemo(
+    () => [...reviewSubmissions, ...submissions],
+    [reviewSubmissions, submissions]
+  );
   const appTesting = submissionsQuery.data?.data?.appTesting ?? null;
   const appTestingApprovedPortfolioCount = submissionsQuery.data?.data?.appTestingApprovedPortfolioCount ?? 0;
   const submissionsPagination = submissionsQuery.data?.data?.pagination;
@@ -644,33 +651,22 @@ export default function TaskSubmissionsPage() {
       />
 
       <AppReviewSubmissionsPanel
-        requests={reviewRequests.filter((request) => ["submitted", "approved", "disputed"].includes(request.status))}
+        submissions={reviewSubmissions}
         isPending={mutations.decideBusinessReview.isPending}
-        onApprove={(request) =>
-          mutations.decideBusinessReview.mutate(
-            { requestId: request.id, action: "approve" },
-            {
-              onSuccess: () => toast.success("Review approved. Reward moved to the user wallet."),
-              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to approve review."),
-            }
-          )
-        }
-        onDispute={(request) => {
-          const reason = window.prompt(`Reject app review from @${request.username}. Add a reason:`);
-          if (!reason?.trim()) return;
-          mutations.decideBusinessReview.mutate(
-            { requestId: request.id, action: "dispute", reason: reason.trim() },
-            {
-              onSuccess: () => toast.success("Review rejected."),
-              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to reject review."),
-            }
-          );
+        onReview={state.setViewingSub}
+        onCorrection={(sub) => {
+          state.setViewingSub(sub);
+          openCorrectionModal(sub);
+        }}
+        onReject={(sub) => {
+          state.setViewingSub(sub);
+          openRejectModal(sub);
         }}
       />
 
       <div id="submissions-table" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <SubmissionsTable
-          submissions={displaySubmissions}
+          submissions={submissions}
           task={task}
           reviewRequests={reviewRequests}
           pagination={submissionsPagination}
@@ -832,22 +828,24 @@ export default function TaskSubmissionsPage() {
 }
 
 function AppReviewSubmissionsPanel({
-  requests,
+  submissions,
   isPending,
-  onApprove,
-  onDispute,
+  onReview,
+  onCorrection,
+  onReject,
 }: {
-  requests: BusinessReviewRequest[];
+  submissions: Submission[];
   isPending: boolean;
-  onApprove: (request: BusinessReviewRequest) => void;
-  onDispute: (request: BusinessReviewRequest) => void;
+  onReview: (submission: Submission) => void;
+  onCorrection: (submission: Submission) => void;
+  onReject: (submission: Submission) => void;
 }) {
-  if (requests.length === 0) return null;
+  if (submissions.length === 0) return null;
 
-  const sortedRequests = [...requests].sort(
+  const sortedSubmissions = [...submissions].sort(
     (a, b) =>
-      reviewRequestStatusPriority(a.status) - reviewRequestStatusPriority(b.status) ||
-      reviewRequestTime(b) - reviewRequestTime(a)
+      reviewSubmissionStatusPriority(a.status) - reviewSubmissionStatusPriority(b.status) ||
+      reviewSubmissionTime(b) - reviewSubmissionTime(a)
   );
 
   return (
@@ -857,7 +855,7 @@ function AppReviewSubmissionsPanel({
           <MessageSquareText className="h-4 w-4 text-blue-300" />
           <h2 className="text-sm font-extrabold text-zinc-200 uppercase tracking-wider">Review Submissions</h2>
         </div>
-        <Badge variant="info">{requests.length} reviews</Badge>
+        <Badge variant="info">{submissions.length} reviews</Badge>
       </div>
 
       <div className="overflow-x-auto">
@@ -873,18 +871,21 @@ function AppReviewSubmissionsPanel({
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800/40">
-            {sortedRequests.map((request) => {
-              const proofImages = getImagesList(request.reviewProof || "");
+            {sortedSubmissions.map((submission) => {
+              const proofImages = getImagesList(submission.proof || "");
               return (
-                <tr key={request.id} className="hover:bg-zinc-800/20 transition-colors">
+                <tr key={submission.id} className="hover:bg-zinc-800/20 transition-colors">
                   <td className="px-5 py-4">
-                    <p className="text-xs font-bold text-zinc-100">@{request.username}</p>
-                    <p className="mt-1 max-w-64 truncate text-[11px] text-zinc-550" title={request.reviewText}>
-                      {request.reviewText}
+                    <p className="text-xs font-bold text-zinc-100">@{submission.username}</p>
+                    <p
+                      className="mt-1 max-w-64 truncate text-[11px] text-zinc-550"
+                      title={submission.assignedReview || ""}
+                    >
+                      {submission.assignedReview}
                     </p>
                   </td>
                   <td className="px-5 py-4 text-xs font-semibold text-emerald-400">
-                    {formatAmount(request.workerAmount)}
+                    {formatAmount(submission.appReviewRequest?.workerAmount ?? 0)}
                   </td>
                   <td className="px-5 py-4">
                     {proofImages.length > 0 ? (
@@ -906,28 +907,36 @@ function AppReviewSubmissionsPanel({
                     )}
                   </td>
                   <td className="px-5 py-4">
-                    <Badge variant={reviewRequestStatusVariant(request.status)} dot>
-                      {formatReviewRequestStatus(request.status)}
+                    <Badge variant={reviewSubmissionStatusVariant(submission.status)} dot>
+                      {formatReviewSubmissionStatus(submission.status)}
                     </Badge>
                   </td>
                   <td className="px-5 py-4 text-xs text-zinc-500 whitespace-nowrap">
-                    {formatDate(request.submittedAt || request.reviewedAt || request.updatedAt)}
+                    {formatDate(submission.updatedAt || submission.createdAt)}
                   </td>
                   <td className="px-5 py-4">
-                    {request.status === "submitted" ? (
+                    {isActionableSubmissionStatus(submission.status) ? (
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
                           disabled={isPending}
-                          onClick={() => onApprove(request)}
+                          onClick={() => onReview(submission)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 disabled:opacity-50 transition-colors"
                         >
-                          Approve
+                          Review
                         </button>
                         <button
                           type="button"
                           disabled={isPending}
-                          onClick={() => onDispute(request)}
+                          onClick={() => onCorrection(submission)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 disabled:opacity-50 transition-colors"
+                        >
+                          Correction
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => onReject(submission)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-300 border border-red-500/30 hover:bg-red-500/20 disabled:opacity-50 transition-colors"
                         >
                           Reject
@@ -947,25 +956,25 @@ function AppReviewSubmissionsPanel({
   );
 }
 
-function reviewRequestStatusPriority(status: string) {
-  if (status === "submitted") return 0;
-  if (status === "approved" || status === "disputed") return 1;
+function reviewSubmissionStatusPriority(status: string) {
+  if (status === "pending" || status === "needs_correction" || status === "in_review") return 0;
+  if (status === "approved" || status === "rejected") return 1;
   return 2;
 }
 
-function reviewRequestTime(request: BusinessReviewRequest) {
-  return new Date(request.reviewedAt || request.submittedAt || request.updatedAt).getTime();
+function reviewSubmissionTime(submission: Submission) {
+  return new Date(submission.updatedAt || submission.createdAt).getTime();
 }
 
-function reviewRequestStatusVariant(status: string) {
+function reviewSubmissionStatusVariant(status: string) {
   if (status === "approved") return "success";
-  if (status === "disputed") return "danger";
+  if (status === "rejected") return "danger";
   return "warning";
 }
 
-function formatReviewRequestStatus(status: string) {
-  if (status === "submitted") return "pending";
-  if (status === "disputed") return "rejected";
+function formatReviewSubmissionStatus(status: string) {
+  if (status === "needs_correction") return "correction requested";
+  if (status === "in_review") return "in review";
   return status;
 }
 
@@ -1299,6 +1308,43 @@ function AppTestingInput({
       />
     </label>
   );
+}
+
+function buildReviewSubmissions(submissions: Submission[], reviewRequests: BusinessReviewRequest[]) {
+  const submissionsById = new Map(submissions.map((submission) => [submission.id, submission]));
+  return reviewRequests
+    .filter((request) => ["submitted", "approved", "disputed"].includes(request.status))
+    .map((request): Submission => {
+      const originalSubmission = submissionsById.get(request.submissionId);
+      const status =
+        request.status === "submitted" ? "pending" : request.status === "disputed" ? "rejected" : request.status;
+      return {
+        ...(originalSubmission ?? {
+          taskId: request.taskId,
+          username: request.username,
+          user: null,
+          userBalance: 0,
+          rejectionReason: null,
+          deductedAmount: 0,
+          createdAt: request.submittedAt || request.updatedAt,
+        }),
+        id: -request.id,
+        taskId: request.taskId,
+        username: request.username,
+        proof: request.reviewProof || "",
+        proofType: request.reviewProofType || "image",
+        textResponse: request.textResponse || null,
+        numberResponse: request.numberResponse || null,
+        status,
+        rejectionReason: request.status === "disputed" ? "Review rejected." : null,
+        deductedAmount: 0,
+        createdAt: request.submittedAt || request.updatedAt,
+        updatedAt: request.reviewedAt || request.submittedAt || request.updatedAt,
+        assignedReview: request.reviewText,
+        isAppReviewSubmission: true,
+        appReviewRequest: request,
+      };
+    });
 }
 
 function getBusinessExpectedTotal(task: Task) {
