@@ -77,13 +77,13 @@ export function SubmissionsTable({
   const sortedSubmissions = React.useMemo(
     () =>
       [...submissions].sort((a, b) => {
-        const correctionDelta = Number(a.status !== "needs_correction") - Number(b.status !== "needs_correction");
-        if (correctionDelta !== 0) return correctionDelta;
+        const statusDelta = submissionStatusPriority(a.status) - submissionStatusPriority(b.status);
+        if (statusDelta !== 0) return statusDelta;
 
         const penaltyDelta = Number((b.deductedAmount ?? 0) > 0) - Number((a.deductedAmount ?? 0) > 0);
         if (penaltyDelta !== 0) return penaltyDelta;
 
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return submissionSortTime(b) - submissionSortTime(a);
       }),
     [submissions]
   );
@@ -244,4 +244,23 @@ export function SubmissionsTable({
       </div>
     </div>
   );
+}
+
+function submissionStatusPriority(status: string) {
+  switch (status.toLowerCase()) {
+    case "pending":
+    case "in_review":
+    case "in review":
+      return 0;
+    case "approved":
+    case "needs_correction":
+    case "rejected":
+      return 1;
+    default:
+      return 2;
+  }
+}
+
+function submissionSortTime(submission: Submission) {
+  return new Date(submission.updatedAt ?? submission.createdAt).getTime();
 }

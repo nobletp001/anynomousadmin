@@ -1168,6 +1168,7 @@ function buildDisplaySubmissions(submissions: Submission[], reviewRequests: Busi
         rejectionReason: null,
         deductedAmount: 0,
         createdAt: request.submittedAt || request.updatedAt,
+        updatedAt: request.updatedAt,
         assignedReview: request.reviewText,
         isAppReviewSubmission: true,
         appReviewRequest: request,

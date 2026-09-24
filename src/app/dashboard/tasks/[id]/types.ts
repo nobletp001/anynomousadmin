@@ -205,6 +205,7 @@ export interface Submission {
   deductedAmount: number;
   appTestingJoinedLink?: boolean;
   createdAt: string;
+  updatedAt?: string;
   user: UserInfo | null;
   userBalance: number;
   rating?: number | null;
