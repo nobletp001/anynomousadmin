@@ -224,6 +224,7 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["task-secured-spots", taskId] });
       queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-tasks"] });
     },
   });
 

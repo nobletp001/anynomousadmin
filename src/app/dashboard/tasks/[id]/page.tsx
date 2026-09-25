@@ -18,11 +18,12 @@ import { TaskDetailModals } from "./components/TaskDetailModals";
 import { BusinessPaymentConfirmModal } from "./components/BusinessPaymentConfirmModal";
 import { AppTestingQualifyModal } from "./components/AppTestingQualifyModal";
 import { WithdrawReviewRequestModal } from "./components/WithdrawReviewRequestModal";
+import { RemoveSecuredSpotModal } from "./components/RemoveSecuredSpotModal";
 import { SlotUserPicker } from "../components/SlotUserPicker";
 import { downloadPDFReport } from "./pdf-report";
 import { downloadExcelReport } from "./excel-report";
 import { downloadClientTaskBrief } from "./client-brief";
-import { AppTestingSettings, BusinessReviewRequest, Submission, SubmissionsResponse, Task } from "./types";
+import { AppTestingSettings, BusinessReviewRequest, SecuredSpot, Submission, SubmissionsResponse, Task } from "./types";
 import { formatAmount, formatDate, getImagesList, isActionableSubmissionStatus } from "./utils";
 import { apiClient } from "@/services/api-client";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ export default function TaskSubmissionsPage() {
   const [withdrawReviewRequestModal, setWithdrawReviewRequestModal] = React.useState<BusinessReviewRequest | null>(
     null
   );
+  const [removeSpotModal, setRemoveSpotModal] = React.useState<SecuredSpot | null>(null);
   const [requestReviewModal, setRequestReviewModal] = React.useState<{
     submission: Submission;
     reviewText: string;
@@ -548,6 +550,29 @@ export default function TaskSubmissionsPage() {
         />
       )}
 
+      {removeSpotModal && (
+        <RemoveSecuredSpotModal
+          spot={removeSpotModal}
+          isPending={
+            mutations.removeSecuredSpot.isPending &&
+            (mutations.removeSecuredSpot.variables as string | undefined)?.toLowerCase() ===
+              removeSpotModal.username.toLowerCase()
+          }
+          error={mutations.removeSecuredSpot.error}
+          onClose={() => {
+            if (!mutations.removeSecuredSpot.isPending) setRemoveSpotModal(null);
+          }}
+          onConfirm={() => {
+            mutations.removeSecuredSpot.mutate(removeSpotModal.username, {
+              onSuccess: () => {
+                toast.success(`@${removeSpotModal.username}'s booked slot was removed.`);
+                setRemoveSpotModal(null);
+              },
+            });
+          }}
+        />
+      )}
+
       {(task.isSecureSpotTask || securedSpots.length > 0) && (
         <div className="space-y-4">
           {task.isSecureSpotTask && (
@@ -590,11 +615,7 @@ export default function TaskSubmissionsPage() {
             spots={securedSpots}
             isLoading={securedSpotsQuery.isLoading}
             removingUsername={(mutations.removeSecuredSpot.variables as string | undefined) ?? null}
-            onRemoveSpot={(spot) => {
-              if (window.confirm(`Remove @${spot.username}'s booked slot for this task?`)) {
-                mutations.removeSecuredSpot.mutate(spot.username);
-              }
-            }}
+            onRemoveSpot={(spot) => setRemoveSpotModal(spot)}
             onViewSubmission={(spot) => {
               state.setSearchFilter(spot.username);
               document.getElementById("submissions-table")?.scrollIntoView({ behavior: "smooth", block: "start" });
