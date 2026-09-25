@@ -251,9 +251,9 @@ function submissionStatusPriority(status: string) {
     case "pending":
     case "in_review":
     case "in review":
+    case "needs_correction":
       return 0;
     case "approved":
-    case "needs_correction":
     case "rejected":
       return 1;
     default:
