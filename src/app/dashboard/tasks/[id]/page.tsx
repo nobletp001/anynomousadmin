@@ -684,6 +684,32 @@ export default function TaskSubmissionsPage() {
           state.setViewingSub(sub);
           openRejectModal(sub);
         }}
+        onRewind={(sub) => {
+          const requestId = sub.appReviewRequest?.id;
+          if (!requestId) return;
+          mutations.decideBusinessReview.mutate(
+            { requestId, action: "rewind" },
+            {
+              onSuccess: () => toast.success(`App review for @${sub.username} rewound to pending review.`),
+              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to rewind app review."),
+            }
+          );
+        }}
+        onRemove={(sub) => {
+          const requestId = sub.appReviewRequest?.id;
+          if (!requestId) return;
+          if (
+            !window.confirm(
+              `Remove this app review submission from @${sub.username}? Wallet changes will be reversed where needed.`
+            )
+          ) {
+            return;
+          }
+          mutations.removeBusinessReview.mutate(requestId, {
+            onSuccess: () => toast.success(`App review submission from @${sub.username} removed.`),
+            onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to remove app review."),
+          });
+        }}
       />
 
       <div id="submissions-table" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -855,12 +881,16 @@ function AppReviewSubmissionsPanel({
   onReview,
   onCorrection,
   onReject,
+  onRewind,
+  onRemove,
 }: {
   submissions: Submission[];
   viewingSub: Submission | null;
   onReview: (submission: Submission) => void;
   onCorrection: (submission: Submission) => void;
   onReject: (submission: Submission) => void;
+  onRewind: (submission: Submission) => void;
+  onRemove: (submission: Submission) => void;
 }) {
   const selectedIds = React.useMemo(() => new Set<number>(), []);
   const noop = React.useCallback(() => {}, []);
@@ -908,7 +938,8 @@ function AppReviewSubmissionsPanel({
                 onReview={() => onReview(submission)}
                 onCorrection={() => onCorrection(submission)}
                 onReject={() => onReject(submission)}
-                onRemove={noop}
+                onRewind={() => onRewind(submission)}
+                onRemove={() => onRemove(submission)}
               />
             ))}
           </tbody>

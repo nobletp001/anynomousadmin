@@ -89,7 +89,7 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
       reason,
     }: {
       requestId: number;
-      action: "approve" | "dispute" | "needs_correction";
+      action: "approve" | "dispute" | "needs_correction" | "rewind";
       reason?: string;
     }) => apiClient.patch(`/admin/tasks/${taskId}/review-requests/${requestId}`, { action, reason }) as any,
     onSuccess: () => {
@@ -198,6 +198,12 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
   });
 
+  const removeBusinessReview = useMutation({
+    mutationFn: (requestId: number) =>
+      apiClient.delete(`/admin/tasks/${taskId}/review-requests/${requestId}/remove`) as any,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["task-submissions", taskId] }),
+  });
+
   const removeSecuredSpot = useMutation({
     mutationFn: (username: string) =>
       apiClient.delete(`/admin/tasks/${taskId}/secured-spots/${encodeURIComponent(username)}`) as any,
@@ -271,6 +277,7 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
     reverseSubmission,
     rewindSubmission,
     removeSubmission,
+    removeBusinessReview,
     removeSecuredSpot,
     addSecuredSpots,
     assistSubmission,

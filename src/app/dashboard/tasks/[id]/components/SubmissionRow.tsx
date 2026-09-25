@@ -297,7 +297,7 @@ export function SubmissionRow({
             Reverse
           </button>
         )}
-        {isRewindableSubmissionStatus(sub.status) && onRewind && !isReviewSubmission && (
+        {isRewindableSubmissionStatus(sub.status) && onRewind && (
           <button
             onClick={onRewind}
             className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/20 hover:bg-violet-500/20 transition-colors"
@@ -306,15 +306,17 @@ export function SubmissionRow({
             Rewind
           </button>
         )}
-        {sub.status !== "removed" && !isReviewSubmission && (
+        {sub.status !== "removed" && (
           <button
             onClick={onRemove}
             className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            {isAppTestingTask && (sub.status === "qualified" || sub.status === "testing_joined")
-              ? "Remove approved portfolio"
-              : "Remove"}
+            {isReviewSubmission
+              ? "Remove"
+              : isAppTestingTask && (sub.status === "qualified" || sub.status === "testing_joined")
+                ? "Remove approved portfolio"
+                : "Remove"}
           </button>
         )}
         {canRequestAppReview && !appReviewRequest && !isReviewSubmission && (
