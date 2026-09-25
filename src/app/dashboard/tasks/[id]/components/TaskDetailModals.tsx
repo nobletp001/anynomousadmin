@@ -124,7 +124,7 @@ export function TaskDetailModals({
             state.viewingSub?.appReviewRequest && state.rejectModal!.subId === state.viewingSub.id
               ? mutations.decideBusinessReview.mutate({
                   requestId: state.viewingSub.appReviewRequest.id,
-                  action: "dispute",
+                  action: "needs_correction",
                   reason: state.rejectReason,
                 })
               : mutations.requestCorrection.mutate({ subId: state.rejectModal!.subId, reason: state.rejectReason })

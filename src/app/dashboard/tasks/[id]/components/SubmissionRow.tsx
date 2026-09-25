@@ -189,7 +189,7 @@ export function SubmissionRow({
       <td className="px-6 py-4">
         <div>
           <Badge variant={statusVariant(sub.status)} dot>
-            {isReviewSubmission ? "pending review" : formatSubmissionStatus(sub.status)}
+            {formatSubmissionStatus(sub.status)}
           </Badge>
           {isReviewSubmission && (
             <p className="mt-1 text-[10px] font-semibold text-blue-300">

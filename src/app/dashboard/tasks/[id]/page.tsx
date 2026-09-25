@@ -15,6 +15,7 @@ import { SecuredSpotsPanel } from "./components/SecuredSpotsPanel";
 import { AssistSubmissionPanel } from "./components/AssistSubmissionPanel";
 import { BulkActionPanel } from "./components/BulkActionPanel";
 import { TaskDetailModals } from "./components/TaskDetailModals";
+import { SubmissionRow } from "./components/SubmissionRow";
 import { BusinessPaymentConfirmModal } from "./components/BusinessPaymentConfirmModal";
 import { AppTestingQualifyModal } from "./components/AppTestingQualifyModal";
 import { WithdrawReviewRequestModal } from "./components/WithdrawReviewRequestModal";
@@ -673,7 +674,7 @@ export default function TaskSubmissionsPage() {
 
       <AppReviewSubmissionsPanel
         submissions={reviewSubmissions}
-        isPending={mutations.decideBusinessReview.isPending}
+        viewingSub={state.viewingSub}
         onReview={state.setViewingSub}
         onCorrection={(sub) => {
           state.setViewingSub(sub);
@@ -850,17 +851,20 @@ export default function TaskSubmissionsPage() {
 
 function AppReviewSubmissionsPanel({
   submissions,
-  isPending,
+  viewingSub,
   onReview,
   onCorrection,
   onReject,
 }: {
   submissions: Submission[];
-  isPending: boolean;
+  viewingSub: Submission | null;
   onReview: (submission: Submission) => void;
   onCorrection: (submission: Submission) => void;
   onReject: (submission: Submission) => void;
 }) {
+  const selectedIds = React.useMemo(() => new Set<number>(), []);
+  const noop = React.useCallback(() => {}, []);
+
   if (submissions.length === 0) return null;
 
   const sortedSubmissions = [...submissions].sort(
@@ -883,93 +887,30 @@ function AppReviewSubmissionsPanel({
         <table className="w-full text-sm text-left">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-500 text-xs uppercase tracking-wider">
-              <th className="px-5 py-3 font-semibold">User</th>
-              <th className="px-5 py-3 font-semibold">Reward</th>
-              <th className="px-5 py-3 font-semibold">Proof</th>
-              <th className="px-5 py-3 font-semibold">Status</th>
-              <th className="px-5 py-3 font-semibold">Submitted</th>
-              <th className="px-5 py-3 font-semibold">Actions</th>
+              <th className="px-4 py-3 w-10 font-semibold">—</th>
+              <th className="px-6 py-3 font-semibold">User</th>
+              <th className="px-6 py-3 font-semibold">Balance</th>
+              <th className="px-6 py-3 font-semibold">Submission Proof &amp; Inputs</th>
+              <th className="px-6 py-3 font-semibold">Status</th>
+              <th className="px-6 py-3 font-semibold">Submitted</th>
+              <th className="px-6 py-3 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800/40">
-            {sortedSubmissions.map((submission) => {
-              const proofImages = getImagesList(submission.proof || "");
-              return (
-                <tr key={submission.id} className="hover:bg-zinc-800/20 transition-colors">
-                  <td className="px-5 py-4">
-                    <p className="text-xs font-bold text-zinc-100">@{submission.username}</p>
-                    <p
-                      className="mt-1 max-w-64 truncate text-[11px] text-zinc-550"
-                      title={submission.assignedReview || ""}
-                    >
-                      {submission.assignedReview}
-                    </p>
-                  </td>
-                  <td className="px-5 py-4 text-xs font-semibold text-emerald-400">
-                    {formatAmount(submission.appReviewRequest?.workerAmount ?? 0)}
-                  </td>
-                  <td className="px-5 py-4">
-                    {proofImages.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {proofImages.map((proof, index) => (
-                          <a
-                            key={`${proof}-${index}`}
-                            href={proof}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs font-semibold text-blue-300 hover:text-blue-200"
-                          >
-                            Proof {index + 1}
-                          </a>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-zinc-600">No proof</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4">
-                    <Badge variant={reviewSubmissionStatusVariant(submission.status)} dot>
-                      {formatReviewSubmissionStatus(submission.status)}
-                    </Badge>
-                  </td>
-                  <td className="px-5 py-4 text-xs text-zinc-500 whitespace-nowrap">
-                    {formatDate(submission.updatedAt || submission.createdAt)}
-                  </td>
-                  <td className="px-5 py-4">
-                    {isActionableSubmissionStatus(submission.status) ? (
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          disabled={isPending}
-                          onClick={() => onReview(submission)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 disabled:opacity-50 transition-colors"
-                        >
-                          Review
-                        </button>
-                        <button
-                          type="button"
-                          disabled={isPending}
-                          onClick={() => onCorrection(submission)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 disabled:opacity-50 transition-colors"
-                        >
-                          Correction
-                        </button>
-                        <button
-                          type="button"
-                          disabled={isPending}
-                          onClick={() => onReject(submission)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-300 border border-red-500/30 hover:bg-red-500/20 disabled:opacity-50 transition-colors"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-zinc-600">—</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+            {sortedSubmissions.map((submission) => (
+              <SubmissionRow
+                key={submission.id}
+                sub={submission}
+                submissions={sortedSubmissions}
+                selectedIds={selectedIds}
+                onSelect={noop}
+                isViewing={viewingSub?.id === submission.id}
+                onReview={() => onReview(submission)}
+                onCorrection={() => onCorrection(submission)}
+                onReject={() => onReject(submission)}
+                onRemove={noop}
+              />
+            ))}
           </tbody>
         </table>
       </div>
@@ -985,18 +926,6 @@ function reviewSubmissionStatusPriority(status: string) {
 
 function reviewSubmissionTime(submission: Submission) {
   return new Date(submission.updatedAt || submission.createdAt).getTime();
-}
-
-function reviewSubmissionStatusVariant(status: string) {
-  if (status === "approved") return "success";
-  if (status === "rejected") return "danger";
-  return "warning";
-}
-
-function formatReviewSubmissionStatus(status: string) {
-  if (status === "needs_correction") return "correction requested";
-  if (status === "in_review") return "in review";
-  return status;
 }
 
 function AppReviewRequestsPanel({
@@ -1334,7 +1263,7 @@ function AppTestingInput({
 function buildReviewSubmissions(submissions: Submission[], reviewRequests: BusinessReviewRequest[]) {
   const submissionsById = new Map(submissions.map((submission) => [submission.id, submission]));
   return reviewRequests
-    .filter((request) => ["submitted", "approved", "disputed"].includes(request.status))
+    .filter((request) => ["submitted", "approved", "disputed", "needs_correction"].includes(request.status))
     .map((request): Submission => {
       const originalSubmission = submissionsById.get(request.submissionId);
       const status =

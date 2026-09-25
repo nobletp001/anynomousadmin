@@ -89,7 +89,7 @@ export function useTaskMutations(taskId: string, callbacks: MutationCallbacks) {
       reason,
     }: {
       requestId: number;
-      action: "approve" | "dispute";
+      action: "approve" | "dispute" | "needs_correction";
       reason?: string;
     }) => apiClient.patch(`/admin/tasks/${taskId}/review-requests/${requestId}`, { action, reason }) as any,
     onSuccess: () => {
