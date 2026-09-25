@@ -80,7 +80,11 @@ export function TaskDetailHeader({
     isBusinessPaymentRequest &&
     task.status !== "rejected" &&
     (hasConfirmedReviewer || (isPaystackPaymentRequest && task.status !== "payment_pending"));
-  const taskFinalized = task.status === "active" || task.status === "rejected";
+  const normalizedTaskStatus = (task.status || "").toLowerCase();
+  const canReviewBusinessPayment = ["pending", "payment_pending", "payment_abandoned", "payment_failed"].includes(
+    normalizedTaskStatus
+  );
+  const canDecideBusinessTask = normalizedTaskStatus === "pending" && moneyConfirmed;
 
   const handleCopyTargetUsername = () => {
     if (!targetUsername) return;
@@ -196,7 +200,7 @@ export function TaskDetailHeader({
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                {!taskFinalized && isManualPaymentRequest && !moneyConfirmed ? (
+                {canReviewBusinessPayment && isManualPaymentRequest && !moneyConfirmed ? (
                   <>
                     <button
                       className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-bold text-sky-200 hover:bg-sky-500/20 disabled:opacity-60"
@@ -216,12 +220,12 @@ export function TaskDetailHeader({
                     </button>
                   </>
                 ) : null}
-                {!taskFinalized && isPaystackPaymentRequest && task.status === "payment_pending" ? (
+                {canReviewBusinessPayment && isPaystackPaymentRequest && task.status === "payment_pending" ? (
                   <span className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-bold text-sky-200">
                     Waiting for Paystack payment
                   </span>
                 ) : null}
-                {!taskFinalized && moneyConfirmed ? (
+                {canDecideBusinessTask ? (
                   <>
                     <button
                       className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60"
@@ -249,6 +253,11 @@ export function TaskDetailHeader({
                 {task.status === "rejected" ? (
                   <span className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200">
                     Task rejected
+                  </span>
+                ) : null}
+                {task.status === "closed" ? (
+                  <span className="rounded-lg border border-zinc-600/40 bg-zinc-800/60 px-3 py-2 text-xs font-bold text-zinc-300">
+                    Task closed
                   </span>
                 ) : null}
               </div>
