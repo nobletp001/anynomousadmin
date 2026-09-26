@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { AlertCircle, CheckCircle, Clock, Image as ImageIcon, Trash2, Undo2, Users, XCircle } from "lucide-react";
 import { BusinessReviewRequest, Submission, Task } from "../types";
 import { formatAmount, formatDate, getImagesList } from "../utils";
@@ -24,7 +25,7 @@ export function reviewRequestToSubmission(request: BusinessReviewRequest): Submi
   return {
     id: -request.id,
     taskId: request.taskId,
-    username: request.username,
+    username: request.username || "",
     user: request.user ?? null,
     userBalance: request.userBalance ?? 0,
     proof: request.reviewProof || "",
@@ -77,7 +78,7 @@ export function AppReviewSubmissionsTable({
 
   // Status counts across all active requests
   const activeRequests = React.useMemo(
-    () => requests.filter((r) => r.status !== "removed" && r.status !== "cancelled"),
+    () => (requests || []).filter((r) => r && r.status !== "removed" && r.status !== "cancelled"),
     [requests]
   );
 
@@ -89,6 +90,7 @@ export function AppReviewSubmissionsTable({
     let disputedCount = 0;
 
     for (const r of activeRequests) {
+      if (!r) continue;
       if (r.status === "submitted") pendingCount++;
       else if (r.status === "needs_correction") correctionCount++;
       else if (r.status === "requested") requestedCount++;
@@ -109,12 +111,13 @@ export function AppReviewSubmissionsTable({
   // Filtering
   const filteredRequests = React.useMemo(() => {
     return activeRequests.filter((r) => {
+      if (!r) return false;
       if (statusFilter && r.status !== statusFilter) {
         return false;
       }
       if (searchFilter.trim()) {
         const query = searchFilter.toLowerCase().trim();
-        const matchesUsername = r.username.toLowerCase().includes(query);
+        const matchesUsername = (r.username || "").toLowerCase().includes(query);
         const matchesName = r.user?.name?.toLowerCase().includes(query) ?? false;
         if (!matchesUsername && !matchesName) return false;
       }
@@ -405,13 +408,13 @@ export function AppReviewSubmissionsTable({
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700/60 flex items-center justify-center text-xs font-bold text-blue-400 shrink-0">
-                          {(request.user?.name ?? request.username).charAt(0).toUpperCase()}
+                          {(request.user?.name || request.username || "?").charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <p className="font-medium text-zinc-100 text-xs">{request.user?.name ?? "—"}</p>
-                          <p className="text-zinc-400 text-[11px]">@{request.username}</p>
+                          <p className="text-zinc-400 text-[11px]">@{request.username || "unknown"}</p>
                           <span className="inline-block mt-0.5 rounded border border-zinc-700/60 bg-zinc-800/50 px-1.5 py-0.2 text-[9px] font-bold text-zinc-400 uppercase">
-                            {request.sourceType}
+                            {request.sourceType || "system"}
                           </span>
                         </div>
                       </div>
@@ -441,6 +444,7 @@ export function AppReviewSubmissionsTable({
                                 }}
                                 className="h-9 w-9 rounded-lg border border-zinc-700 overflow-hidden bg-zinc-900 hover:border-blue-400 transition"
                               >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={img} alt={`Proof ${idx + 1}`} className="h-full w-full object-cover" />
                               </button>
                             ))}

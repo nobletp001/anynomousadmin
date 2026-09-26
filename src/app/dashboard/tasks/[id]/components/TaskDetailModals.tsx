@@ -96,9 +96,9 @@ export function TaskDetailModals({
               isRewindPending={mutations.rewindSubmission.isPending}
               onWatchUser={handleWatchUser}
               currentIndex={currentIdx}
-              totalCount={submissions.length}
-              onPrev={hasPrev ? () => state.setViewingSub(submissions[currentIdx - 1]) : undefined}
-              onNext={hasNext ? () => state.setViewingSub(submissions[currentIdx + 1]) : undefined}
+              totalCount={activeList.length}
+              onPrev={hasPrev ? () => state.setViewingSub(activeList[currentIdx - 1]) : undefined}
+              onNext={hasNext ? () => state.setViewingSub(activeList[currentIdx + 1]) : undefined}
             />
           );
         })()}
