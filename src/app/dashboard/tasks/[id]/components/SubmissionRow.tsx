@@ -9,6 +9,7 @@ import {
   Image as ImageIcon,
   Trash2,
   Undo2,
+  Clock,
 } from "lucide-react";
 import { BusinessReviewRequest, Submission } from "../types";
 import {
@@ -319,26 +320,79 @@ export function SubmissionRow({
                 : "Remove"}
           </button>
         )}
-        {canRequestAppReview && !appReviewRequest && !isReviewSubmission && (
-          <button
-            onClick={onRequestAppReview}
-            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
-          >
-            <CheckCircle className="w-3.5 h-3.5" />
-            Ask review
-          </button>
-        )}
-        {appReviewRequest?.status === "requested" && onWithdrawAppReview && (
-          <button
-            type="button"
-            disabled={isWithdrawingAppReview}
-            onClick={() => onWithdrawAppReview(appReviewRequest)}
-            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 transition-colors disabled:opacity-50"
-          >
-            <Undo2 className="w-3.5 h-3.5" />
-            Withdraw review
-          </button>
-        )}
+        {canRequestAppReview && !isReviewSubmission && (() => {
+          if (!appReviewRequest || appReviewRequest.status === "withdrawn" || appReviewRequest.status === "cancelled") {
+            return (
+              <button
+                onClick={onRequestAppReview}
+                className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+              >
+                <CheckCircle className="w-3.5 h-3.5" />
+                Ask review
+              </button>
+            );
+          }
+
+          if (appReviewRequest.status === "requested") {
+            return (
+              <div className="mt-2 flex flex-col gap-1.5">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-300 bg-blue-500/10 border border-blue-500/20 rounded px-2 py-0.5 w-fit">
+                  <Clock className="w-2.5 h-2.5" />
+                  Review requested
+                </span>
+                {onWithdrawAppReview && (
+                  <button
+                    type="button"
+                    disabled={isWithdrawingAppReview}
+                    onClick={() => onWithdrawAppReview(appReviewRequest)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 transition-colors disabled:opacity-50"
+                  >
+                    <Undo2 className="w-3 h-3" />
+                    Withdraw review
+                  </button>
+                )}
+              </div>
+            );
+          }
+
+          if (appReviewRequest.status === "submitted") {
+            return (
+              <span className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded px-2 py-0.5 w-fit">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Review submitted (Pending)
+              </span>
+            );
+          }
+
+          if (appReviewRequest.status === "needs_correction") {
+            return (
+              <span className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded px-2 py-0.5 w-fit">
+                <AlertCircle className="w-2.5 h-2.5" />
+                Review in correction
+              </span>
+            );
+          }
+
+          if (appReviewRequest.status === "approved") {
+            return (
+              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/30 rounded px-2 py-0.5 w-fit">
+                <CheckCircle className="w-2.5 h-2.5" />
+                Review approved
+              </span>
+            );
+          }
+
+          if (appReviewRequest.status === "disputed") {
+            return (
+              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded px-2 py-0.5 w-fit">
+                <XCircle className="w-2.5 h-2.5" />
+                Review rejected
+              </span>
+            );
+          }
+
+          return null;
+        })()}
         {isAppTestingTask && (sub.status === "qualified" || sub.status === "testing_joined") && (
           <button
             onClick={onFinalizeAppTesting}

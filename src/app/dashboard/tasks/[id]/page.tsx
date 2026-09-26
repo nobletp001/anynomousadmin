@@ -11,6 +11,7 @@ import { useEditTaskState } from "./hooks/useEditTaskState";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { TaskDetailHeader } from "./components/TaskDetailHeader";
 import { SubmissionsTable } from "./components/SubmissionsTable";
+import { AppReviewSubmissionsTable } from "./components/AppReviewSubmissionsTable";
 import { SecuredSpotsPanel } from "./components/SecuredSpotsPanel";
 import { AssistSubmissionPanel } from "./components/AssistSubmissionPanel";
 import { BulkActionPanel } from "./components/BulkActionPanel";
@@ -72,45 +73,16 @@ export default function TaskSubmissionsPage() {
     () => buildReviewSubmissions(submissions, reviewRequests),
     [submissions, reviewRequests]
   );
-  const filteredReviewSubmissions = React.useMemo(() => {
-    return reviewSubmissions.filter((sub) => {
-      if (state.statusFilter) {
-        if (state.statusFilter === "pending" && sub.status !== "pending") return false;
-        if (state.statusFilter === "approved" && sub.status !== "approved") return false;
-        if (state.statusFilter === "rejected" && sub.status !== "rejected") return false;
-        if (state.statusFilter === "disputed" && sub.status !== "rejected") return false;
-        if (state.statusFilter === "needs_correction" && sub.status !== "needs_correction") return false;
-        if (!["pending", "approved", "rejected", "disputed", "needs_correction"].includes(state.statusFilter)) {
-          return false;
-        }
-      }
-      if (state.debouncedSearch) {
-        const query = state.debouncedSearch.toLowerCase().trim();
-        const matchesUsername = sub.username.toLowerCase().includes(query);
-        const matchesName = sub.user?.name?.toLowerCase().includes(query) ?? false;
-        if (!matchesUsername && !matchesName) return false;
-      }
-      return true;
-    });
-  }, [reviewSubmissions, state.statusFilter, state.debouncedSearch]);
-  const displaySubmissions = React.useMemo(
-    () => (state.submissionsPage === 1 ? [...filteredReviewSubmissions, ...submissions] : submissions),
-    [filteredReviewSubmissions, submissions, state.submissionsPage]
-  );
-  const combinedPagination = React.useMemo(() => {
-    if (!submissionsPagination) return undefined;
-    return {
-      ...submissionsPagination,
-      total: submissionsPagination.total + filteredReviewSubmissions.length,
-    };
-  }, [submissionsPagination, filteredReviewSubmissions.length]);
+  const displaySubmissions = submissions;
   const appTesting = submissionsQuery.data?.data?.appTesting ?? null;
   const appTestingApprovedPortfolioCount = submissionsQuery.data?.data?.appTestingApprovedPortfolioCount ?? 0;
   const officers = officersQuery.data?.data ?? [];
   const securedSpots = securedSpotsQuery.data?.data ?? [];
 
   const advanceToNextPending = (currentSubId: number) => {
-    const pendings = displaySubmissions.filter((s) => isActionableSubmissionStatus(s.status));
+    const isReview = currentSubId < 0 || reviewSubmissions.some((r) => r.id === currentSubId);
+    const activeList = isReview ? reviewSubmissions : displaySubmissions;
+    const pendings = activeList.filter((s) => isActionableSubmissionStatus(s.status));
     const currentIdx = pendings.findIndex((s) => s.id === currentSubId);
     state.setViewingSub(currentIdx !== -1 && currentIdx < pendings.length - 1 ? pendings[currentIdx + 1] : null);
   };
@@ -131,7 +103,7 @@ export default function TaskSubmissionsPage() {
   const fetchAllSubmissionsForExport = React.useCallback(async () => {
     const total = submissionsPagination?.total ?? submissions.length;
     if (total <= submissions.length) {
-      return [...filteredReviewSubmissions, ...submissions];
+      return submissions;
     }
 
     const pageLimit = 250;
@@ -159,9 +131,8 @@ export default function TaskSubmissionsPage() {
       }
     }
 
-    return [...filteredReviewSubmissions, ...all];
+    return all;
   }, [
-    filteredReviewSubmissions,
     state.debouncedSearch,
     state.statusFilter,
     submissions,
@@ -252,7 +223,7 @@ export default function TaskSubmissionsPage() {
     rating: state.rating,
     setRating: state.setRating,
     feedback: state.feedback,
-    submissions: displaySubmissions,
+    submissions: state.viewingSub?.isAppReviewSubmission ? reviewSubmissions : displaySubmissions,
     setViewingSub: state.setViewingSub,
     onApprove: (r, f) => {
       const request = state.viewingSub?.appReviewRequest;
@@ -711,38 +682,49 @@ export default function TaskSubmissionsPage() {
         />
       )}
 
-      <AppReviewRequestsPanel
-        requests={reviewRequests.filter((request) => request.status === "requested")}
-        isPending={mutations.withdrawBusinessReview.isPending || mutations.decideBusinessReview.isPending}
-        onWithdraw={setWithdrawReviewRequestModal}
-        onApprove={(request) =>
-          mutations.decideBusinessReview.mutate(
-            { requestId: request.id, action: "approve" },
-            {
-              onSuccess: () => toast.success("Review approved. ₦100 moved to the user wallet."),
-              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to approve review."),
+      {((task.taskType === "app_download" ||
+        task.targetPlatform === "app_download" ||
+        task.taskType === "download") ||
+        reviewRequests.length > 0) && (
+        <AppReviewSubmissionsTable
+          requests={reviewRequests}
+          task={task}
+          onReview={(sub) => state.setViewingSub(sub)}
+          onCorrection={openCorrectionModal}
+          onReject={openRejectModal}
+          onRewind={rewindSubmission}
+          onRemove={(sub) => {
+            const requestId = sub.appReviewRequest?.id;
+            if (!requestId) return;
+            if (
+              !window.confirm(
+                `Remove this app review submission from @${sub.username}? Wallet changes will be reversed where needed.`
+              )
+            ) {
+              return;
             }
-          )
-        }
-        onDispute={(request) => {
-          const reason = window.prompt(`Dispute app review from @${request.username}. Add a reason:`);
-          if (!reason?.trim()) return;
-          mutations.decideBusinessReview.mutate(
-            { requestId: request.id, action: "dispute", reason: reason.trim() },
-            {
-              onSuccess: () => toast.success("Review disputed. Client-funded holds were returned where applicable."),
-              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to dispute review."),
-            }
-          );
-        }}
-      />
+            mutations.removeBusinessReview.mutate(requestId, {
+              onSuccess: () => toast.success(`App review submission from @${sub.username} removed.`),
+              onError: (error) =>
+                toast.error(error instanceof Error ? error.message : "Failed to remove app review."),
+            });
+          }}
+          onWithdraw={(request) => setWithdrawReviewRequestModal(request)}
+          onZoomImage={(images, idx) => {
+            state.setActiveImagesList(images);
+            state.setActiveImageIndex(idx);
+          }}
+          viewingSubId={state.viewingSub?.id}
+          isPending={mutations.withdrawBusinessReview.isPending || mutations.decideBusinessReview.isPending}
+        />
+      )}
 
       <div id="submissions-table" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <SubmissionsTable
           submissions={displaySubmissions}
           task={task}
           reviewRequests={reviewRequests}
-          pagination={combinedPagination}
+          pagination={submissionsPagination}
           onPageChange={state.setSubmissionsPage}
           isFetching={submissionsQuery.isFetching}
           selectedIds={state.selectedIds}
@@ -829,6 +811,7 @@ export default function TaskSubmissionsPage() {
       <TaskDetailModals
         task={task}
         submissions={displaySubmissions}
+        reviewSubmissions={reviewSubmissions}
         editState={editState}
         state={state}
         mutations={mutations}
@@ -914,186 +897,6 @@ export default function TaskSubmissionsPage() {
         </div>
       )}
     </div>
-  );
-}
-
-function AppReviewRequestsPanel({
-  requests,
-  isPending,
-  onWithdraw,
-  onApprove,
-  onDispute,
-}: {
-  requests: BusinessReviewRequest[];
-  isPending: boolean;
-  onWithdraw: (request: BusinessReviewRequest) => void;
-  onApprove: (request: BusinessReviewRequest) => void;
-  onDispute: (request: BusinessReviewRequest) => void;
-}) {
-  if (requests.length === 0) return null;
-
-  const submittedRequests = requests.filter((r) => r.status === "submitted");
-  const otherRequests = requests.filter((r) => r.status !== "submitted");
-
-  return (
-    <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-5 shadow-xl space-y-5">
-      <div className="flex items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
-        <div>
-          <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-200">
-            App Review Requests & Submissions
-          </h2>
-          <p className="mt-1 text-xs text-zinc-500">
-            Track follow-up app review tasks requested from users and review submitted proof.
-          </p>
-        </div>
-        <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-bold text-blue-300">
-          {requests.length} total
-        </span>
-      </div>
-
-      {submittedRequests.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            Submitted Review Proofs ({submittedRequests.length})
-          </h3>
-          <div className="grid gap-3">
-            {submittedRequests.map((request) => {
-              const proofImages = getImagesList(request.reviewProof || "");
-              return (
-                <article
-                  key={request.id}
-                  className="rounded-xl border border-emerald-500/30 bg-emerald-955/20 p-4 space-y-3"
-                >
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="min-w-0 space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-bold text-zinc-100">@{request.username}</span>
-                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-emerald-300">
-                          Submitted Proof
-                        </span>
-                        <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-[10px] font-bold text-zinc-400">
-                          {request.sourceType}
-                        </span>
-                      </div>
-                      <p className="text-xs text-zinc-300 font-medium">
-                        Instruction: <span className="text-zinc-400">{request.reviewText}</span>
-                      </p>
-                      {proofImages.length > 0 && (
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {proofImages.map((proof, index) => (
-                            <a
-                              key={`${proof}-${index}`}
-                              href={proof}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="group relative h-20 w-20 overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900"
-                            >
-                              <img
-                                src={proof}
-                                alt={`Review proof ${index + 1}`}
-                                className="h-full w-full object-cover transition group-hover:scale-105"
-                              />
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                      <p className="text-[11px] text-zinc-500">
-                        User reward: <strong className="text-emerald-400">{formatAmount(request.workerAmount)}</strong>{" "}
-                        · Submitted {formatDate(request.submittedAt || request.updatedAt)}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 self-start">
-                      <button
-                        type="button"
-                        disabled={isPending}
-                        onClick={() => onApprove(request)}
-                        className="rounded-xl border border-emerald-500/30 bg-emerald-500 px-4 py-2 text-xs font-bold text-zinc-950 transition hover:bg-emerald-400 disabled:opacity-50 cursor-pointer"
-                      >
-                        Approve & Pay {formatAmount(request.workerAmount)}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={isPending}
-                        onClick={() => onDispute(request)}
-                        className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-bold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50 cursor-pointer"
-                      >
-                        Dispute Review
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {otherRequests.length > 0 && (
-        <div className="space-y-3">
-          {submittedRequests.length > 0 && (
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-              Other Review Requests ({otherRequests.length})
-            </h3>
-          )}
-          <div className="grid gap-3">
-            {otherRequests.map((request) => {
-              const proofImages = getImagesList(request.reviewProof || "");
-              return (
-                <article key={request.id} className="rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-bold text-zinc-100">@{request.username}</p>
-                        <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-400">
-                          {request.status}
-                        </span>
-                        <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-300">
-                          {request.sourceType}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-xs text-zinc-400">{request.reviewText}</p>
-                      {request.reviewProof ? (
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                          {proofImages.map((proof, index) => (
-                            <a
-                              key={`${proof}-${index}`}
-                              href={proof}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-blue-300 hover:text-blue-200"
-                            >
-                              Proof {index + 1}
-                            </a>
-                          ))}
-                        </div>
-                      ) : null}
-                      <p className="mt-2 text-[11px] text-zinc-550">
-                        {formatAmount(request.amount)} total · user {formatAmount(request.workerAmount)} · requested{" "}
-                        {formatDate(request.createdAt)}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {request.status === "requested" ? (
-                        <button
-                          type="button"
-                          disabled={isPending}
-                          onClick={() => onWithdraw(request)}
-                          className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-200 hover:bg-zinc-700 disabled:opacity-50"
-                        >
-                          Withdraw
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </section>
   );
 }
 

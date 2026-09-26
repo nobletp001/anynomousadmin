@@ -65,8 +65,18 @@ export function SubmissionsTable({
   const reviewRequestsBySubmission = React.useMemo(() => {
     const map = new Map<number, BusinessReviewRequest>();
     for (const request of reviewRequests) {
-      if (request.status === "requested") {
-        map.set(request.submissionId, request);
+      if (request.submissionId) {
+        map.set(Number(request.submissionId), request);
+      }
+    }
+    return map;
+  }, [reviewRequests]);
+
+  const reviewRequestsByUsername = React.useMemo(() => {
+    const map = new Map<string, BusinessReviewRequest>();
+    for (const request of reviewRequests) {
+      if (request.username) {
+        map.set(request.username.toLowerCase().trim(), request);
       }
     }
     return map;
@@ -227,7 +237,11 @@ export function SubmissionsTable({
                     onReverseReject={() => openReverseModal(sub)}
                     onRewind={() => onRewindSubmission(sub)}
                     onRemove={() => onRemoveSubmission(sub)}
-                    appReviewRequest={reviewRequestsBySubmission.get(sub.id) ?? null}
+                    appReviewRequest={
+                      reviewRequestsBySubmission.get(Number(sub.id)) ??
+                      reviewRequestsByUsername.get(sub.username.toLowerCase().trim()) ??
+                      null
+                    }
                     canRequestAppReview={isAppDownloadTask && sub.status === "approved"}
                     onRequestAppReview={() => onRequestAppReview(sub)}
                     onWithdrawAppReview={onWithdrawAppReview}

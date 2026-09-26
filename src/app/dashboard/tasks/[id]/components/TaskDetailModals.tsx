@@ -10,6 +10,7 @@ import { EditTaskState } from "../hooks/useEditTaskState";
 interface TaskDetailModalsProps {
   task: Task;
   submissions: Submission[];
+  reviewSubmissions?: Submission[];
   editState: EditTaskState;
   state: any;
   mutations: any;
@@ -26,6 +27,7 @@ interface TaskDetailModalsProps {
 export function TaskDetailModals({
   task,
   submissions,
+  reviewSubmissions = [],
   editState,
   state,
   mutations,
@@ -42,13 +44,15 @@ export function TaskDetailModals({
     <>
       {state.viewingSub &&
         (() => {
-          const currentIdx = submissions.findIndex((s) => s.id === state.viewingSub!.id);
+          const isReview = Boolean(state.viewingSub.isAppReviewSubmission || state.viewingSub.appReviewRequest);
+          const activeList = isReview && reviewSubmissions.length > 0 ? reviewSubmissions : submissions;
+          const currentIdx = activeList.findIndex((s) => s.id === state.viewingSub!.id);
           const hasPrev = currentIdx > 0;
-          const hasNext = currentIdx !== -1 && currentIdx < submissions.length - 1;
+          const hasNext = currentIdx !== -1 && currentIdx < activeList.length - 1;
           return (
             <SubmissionDetailsModal
               sub={state.viewingSub}
-              submissions={submissions}
+              submissions={activeList}
               task={task}
               rating={state.rating}
               setRating={state.setRating}
