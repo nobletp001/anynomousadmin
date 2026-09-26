@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle, MessageSquareText, X } from "lucide-react";
-import { Badge, Button } from "@/components/ui";
+import { AlertCircle, CheckCircle, X } from "lucide-react";
+import { Button } from "@/components/ui";
 import { useTaskQueries } from "./hooks/useTaskQueries";
 import { useTaskMutations } from "./hooks/useTaskMutations";
 import { useTaskState } from "./hooks/useTaskState";
@@ -15,7 +15,6 @@ import { SecuredSpotsPanel } from "./components/SecuredSpotsPanel";
 import { AssistSubmissionPanel } from "./components/AssistSubmissionPanel";
 import { BulkActionPanel } from "./components/BulkActionPanel";
 import { TaskDetailModals } from "./components/TaskDetailModals";
-import { SubmissionRow } from "./components/SubmissionRow";
 import { BusinessPaymentConfirmModal } from "./components/BusinessPaymentConfirmModal";
 import { AppTestingQualifyModal } from "./components/AppTestingQualifyModal";
 import { WithdrawReviewRequestModal } from "./components/WithdrawReviewRequestModal";
@@ -68,17 +67,45 @@ export default function TaskSubmissionsPage() {
   const task = submissionsQuery.data?.data?.task;
   const submissions = submissionsQuery.data?.data?.submissions ?? [];
   const reviewRequests = submissionsQuery.data?.data?.reviewRequests ?? [];
+  const submissionsPagination = submissionsQuery.data?.data?.pagination;
   const reviewSubmissions = React.useMemo(
     () => buildReviewSubmissions(submissions, reviewRequests),
     [submissions, reviewRequests]
   );
+  const filteredReviewSubmissions = React.useMemo(() => {
+    return reviewSubmissions.filter((sub) => {
+      if (state.statusFilter) {
+        if (state.statusFilter === "pending" && sub.status !== "pending") return false;
+        if (state.statusFilter === "approved" && sub.status !== "approved") return false;
+        if (state.statusFilter === "rejected" && sub.status !== "rejected") return false;
+        if (state.statusFilter === "disputed" && sub.status !== "rejected") return false;
+        if (state.statusFilter === "needs_correction" && sub.status !== "needs_correction") return false;
+        if (!["pending", "approved", "rejected", "disputed", "needs_correction"].includes(state.statusFilter)) {
+          return false;
+        }
+      }
+      if (state.debouncedSearch) {
+        const query = state.debouncedSearch.toLowerCase().trim();
+        const matchesUsername = sub.username.toLowerCase().includes(query);
+        const matchesName = sub.user?.name?.toLowerCase().includes(query) ?? false;
+        if (!matchesUsername && !matchesName) return false;
+      }
+      return true;
+    });
+  }, [reviewSubmissions, state.statusFilter, state.debouncedSearch]);
   const displaySubmissions = React.useMemo(
-    () => [...reviewSubmissions, ...submissions],
-    [reviewSubmissions, submissions]
+    () => (state.submissionsPage === 1 ? [...filteredReviewSubmissions, ...submissions] : submissions),
+    [filteredReviewSubmissions, submissions, state.submissionsPage]
   );
+  const combinedPagination = React.useMemo(() => {
+    if (!submissionsPagination) return undefined;
+    return {
+      ...submissionsPagination,
+      total: submissionsPagination.total + filteredReviewSubmissions.length,
+    };
+  }, [submissionsPagination, filteredReviewSubmissions.length]);
   const appTesting = submissionsQuery.data?.data?.appTesting ?? null;
   const appTestingApprovedPortfolioCount = submissionsQuery.data?.data?.appTestingApprovedPortfolioCount ?? 0;
-  const submissionsPagination = submissionsQuery.data?.data?.pagination;
   const officers = officersQuery.data?.data ?? [];
   const securedSpots = securedSpotsQuery.data?.data ?? [];
 
@@ -104,7 +131,7 @@ export default function TaskSubmissionsPage() {
   const fetchAllSubmissionsForExport = React.useCallback(async () => {
     const total = submissionsPagination?.total ?? submissions.length;
     if (total <= submissions.length) {
-      return submissions;
+      return [...filteredReviewSubmissions, ...submissions];
     }
 
     const pageLimit = 250;
@@ -132,8 +159,15 @@ export default function TaskSubmissionsPage() {
       }
     }
 
-    return all;
-  }, [state.debouncedSearch, state.statusFilter, submissions, submissionsPagination?.total, taskId]);
+    return [...filteredReviewSubmissions, ...all];
+  }, [
+    filteredReviewSubmissions,
+    state.debouncedSearch,
+    state.statusFilter,
+    submissions,
+    submissionsPagination?.total,
+    taskId,
+  ]);
 
   const closeViewingSub = () => {
     state.setViewingSub(null);
@@ -163,18 +197,27 @@ export default function TaskSubmissionsPage() {
 
   const openRejectModal = (sub: Submission) => {
     const isAppTestingTask = task?.taskType === "app_testing" || task?.targetPlatform === "app_testing";
+    const isAppReview = Boolean(sub.isAppReviewSubmission || sub.appReviewRequest);
     state.setRejectModal({
       subId: sub.id,
       username: sub.username,
-      balance: isAppTestingTask ? 0 : sub.userBalance,
-      mode: isAppTestingTask ? "app_testing_reject" : "reject",
+      balance: isAppTestingTask || isAppReview ? 0 : sub.userBalance,
+      mode: isAppTestingTask ? "app_testing_reject" : isAppReview ? "app_review_reject" : "reject",
+      appReviewRequest: sub.appReviewRequest ?? null,
     });
     state.setDeductAmount("");
     state.setRejectReason("");
   };
 
   const openCorrectionModal = (sub: Submission) => {
-    state.setRejectModal({ subId: sub.id, username: sub.username, balance: sub.userBalance, mode: "correction" });
+    const isAppReview = Boolean(sub.isAppReviewSubmission || sub.appReviewRequest);
+    state.setRejectModal({
+      subId: sub.id,
+      username: sub.username,
+      balance: sub.userBalance,
+      mode: isAppReview ? "app_review_correction" : "correction",
+      appReviewRequest: sub.appReviewRequest ?? null,
+    });
     state.setDeductAmount("");
     state.setRejectReason("");
   };
@@ -464,6 +507,28 @@ export default function TaskSubmissionsPage() {
   };
 
   const rewindSubmission = (sub: Submission) => {
+    if (sub.isAppReviewSubmission || sub.appReviewRequest) {
+      const requestId = sub.appReviewRequest?.id;
+      if (!requestId) return;
+      const message =
+        sub.status === "approved"
+          ? `Rewind @${sub.username}'s approved app review back to pending? This will reverse the ₦100 review reward.`
+          : `Rewind @${sub.username}'s app review back to pending so you can review it again?`;
+      if (!window.confirm(message)) return;
+      mutations.decideBusinessReview.mutate(
+        { requestId, action: "rewind" },
+        {
+          onSuccess: () => {
+            toast.success(`@${sub.username}'s app review was rewound to pending review.`);
+            if (state.viewingSub?.id === sub.id) {
+              state.setViewingSub(null);
+            }
+          },
+          onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to rewind app review."),
+        }
+      );
+      return;
+    }
     const message =
       sub.status === "approved"
         ? `Rewind @${sub.username}'s approved submission back to pending? This will remove the task reward and approved count so you can approve, reject, or request correction again.`
@@ -672,52 +737,12 @@ export default function TaskSubmissionsPage() {
         }}
       />
 
-      <AppReviewSubmissionsPanel
-        submissions={reviewSubmissions}
-        viewingSub={state.viewingSub}
-        onReview={state.setViewingSub}
-        onCorrection={(sub) => {
-          state.setViewingSub(sub);
-          openCorrectionModal(sub);
-        }}
-        onReject={(sub) => {
-          state.setViewingSub(sub);
-          openRejectModal(sub);
-        }}
-        onRewind={(sub) => {
-          const requestId = sub.appReviewRequest?.id;
-          if (!requestId) return;
-          mutations.decideBusinessReview.mutate(
-            { requestId, action: "rewind" },
-            {
-              onSuccess: () => toast.success(`App review for @${sub.username} rewound to pending review.`),
-              onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to rewind app review."),
-            }
-          );
-        }}
-        onRemove={(sub) => {
-          const requestId = sub.appReviewRequest?.id;
-          if (!requestId) return;
-          if (
-            !window.confirm(
-              `Remove this app review submission from @${sub.username}? Wallet changes will be reversed where needed.`
-            )
-          ) {
-            return;
-          }
-          mutations.removeBusinessReview.mutate(requestId, {
-            onSuccess: () => toast.success(`App review submission from @${sub.username} removed.`),
-            onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to remove app review."),
-          });
-        }}
-      />
-
       <div id="submissions-table" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <SubmissionsTable
-          submissions={submissions}
+          submissions={displaySubmissions}
           task={task}
           reviewRequests={reviewRequests}
-          pagination={submissionsPagination}
+          pagination={combinedPagination}
           onPageChange={state.setSubmissionsPage}
           isFetching={submissionsQuery.isFetching}
           selectedIds={state.selectedIds}
@@ -735,6 +760,23 @@ export default function TaskSubmissionsPage() {
           }
           onRewindSubmission={rewindSubmission}
           onRemoveSubmission={(sub) => {
+            if (sub.isAppReviewSubmission || sub.appReviewRequest) {
+              const requestId = sub.appReviewRequest?.id;
+              if (!requestId) return;
+              if (
+                !window.confirm(
+                  `Remove this app review submission from @${sub.username}? Wallet changes will be reversed where needed.`
+                )
+              ) {
+                return;
+              }
+              mutations.removeBusinessReview.mutate(requestId, {
+                onSuccess: () => toast.success(`App review submission from @${sub.username} removed.`),
+                onError: (error) =>
+                  toast.error(error instanceof Error ? error.message : "Failed to remove app review."),
+              });
+              return;
+            }
             const message =
               (task.taskType === "app_testing" || task.targetPlatform === "app_testing") && sub.status === "qualified"
                 ? `Remove @${sub.username}'s approved app-testing portfolio? They will no longer count as qualified.`
@@ -873,90 +915,6 @@ export default function TaskSubmissionsPage() {
       )}
     </div>
   );
-}
-
-function AppReviewSubmissionsPanel({
-  submissions,
-  viewingSub,
-  onReview,
-  onCorrection,
-  onReject,
-  onRewind,
-  onRemove,
-}: {
-  submissions: Submission[];
-  viewingSub: Submission | null;
-  onReview: (submission: Submission) => void;
-  onCorrection: (submission: Submission) => void;
-  onReject: (submission: Submission) => void;
-  onRewind: (submission: Submission) => void;
-  onRemove: (submission: Submission) => void;
-}) {
-  const selectedIds = React.useMemo(() => new Set<number>(), []);
-  const noop = React.useCallback(() => {}, []);
-
-  if (submissions.length === 0) return null;
-
-  const sortedSubmissions = [...submissions].sort(
-    (a, b) =>
-      reviewSubmissionStatusPriority(a.status) - reviewSubmissionStatusPriority(b.status) ||
-      reviewSubmissionTime(b) - reviewSubmissionTime(a)
-  );
-
-  return (
-    <div className="backdrop-blur-md bg-zinc-900/30 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden">
-      <div className="p-4 border-b border-zinc-800 flex items-center justify-between gap-3 bg-zinc-950/20">
-        <div className="flex items-center gap-2">
-          <MessageSquareText className="h-4 w-4 text-blue-300" />
-          <h2 className="text-sm font-extrabold text-zinc-200 uppercase tracking-wider">Review Submissions</h2>
-        </div>
-        <Badge variant="info">{submissions.length} reviews</Badge>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead>
-            <tr className="border-b border-zinc-800 text-zinc-500 text-xs uppercase tracking-wider">
-              <th className="px-4 py-3 w-10 font-semibold">—</th>
-              <th className="px-6 py-3 font-semibold">User</th>
-              <th className="px-6 py-3 font-semibold">Balance</th>
-              <th className="px-6 py-3 font-semibold">Submission Proof &amp; Inputs</th>
-              <th className="px-6 py-3 font-semibold">Status</th>
-              <th className="px-6 py-3 font-semibold">Submitted</th>
-              <th className="px-6 py-3 font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-800/40">
-            {sortedSubmissions.map((submission) => (
-              <SubmissionRow
-                key={submission.id}
-                sub={submission}
-                submissions={sortedSubmissions}
-                selectedIds={selectedIds}
-                onSelect={noop}
-                isViewing={viewingSub?.id === submission.id}
-                onReview={() => onReview(submission)}
-                onCorrection={() => onCorrection(submission)}
-                onReject={() => onReject(submission)}
-                onRewind={() => onRewind(submission)}
-                onRemove={() => onRemove(submission)}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function reviewSubmissionStatusPriority(status: string) {
-  if (status === "pending" || status === "needs_correction" || status === "in_review") return 0;
-  if (status === "approved" || status === "rejected") return 1;
-  return 2;
-}
-
-function reviewSubmissionTime(submission: Submission) {
-  return new Date(submission.updatedAt || submission.createdAt).getTime();
 }
 
 function AppReviewRequestsPanel({
@@ -1299,6 +1257,8 @@ function buildReviewSubmissions(submissions: Submission[], reviewRequests: Busin
       const originalSubmission = submissionsById.get(request.submissionId);
       const status =
         request.status === "submitted" ? "pending" : request.status === "disputed" ? "rejected" : request.status;
+      const user = request.user ?? originalSubmission?.user ?? null;
+      const userBalance = request.userBalance ?? originalSubmission?.userBalance ?? 0;
       return {
         ...(originalSubmission ?? {
           taskId: request.taskId,
@@ -1312,12 +1272,19 @@ function buildReviewSubmissions(submissions: Submission[], reviewRequests: Busin
         id: -request.id,
         taskId: request.taskId,
         username: request.username,
+        user,
+        userBalance,
         proof: request.reviewProof || "",
         proofType: request.reviewProofType || "image",
         textResponse: request.textResponse || null,
         numberResponse: request.numberResponse || null,
         status,
-        rejectionReason: request.status === "disputed" ? "Review rejected." : null,
+        rejectionReason:
+          request.status === "disputed"
+            ? "Review rejected."
+            : request.status === "needs_correction"
+              ? "Correction requested."
+              : null,
         deductedAmount: 0,
         createdAt: request.submittedAt || request.updatedAt,
         updatedAt: request.reviewedAt || request.submittedAt || request.updatedAt,

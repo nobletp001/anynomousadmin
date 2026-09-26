@@ -62,19 +62,39 @@ export function RejectModal({
     };
   }, [isDragging, dragStart]);
 
-  const isRejectMode = rejectModal.mode === "reject";
+  const isRejectMode = rejectModal.mode === "reject" || rejectModal.mode === "app_review_reject";
   const isAppTestingRejectMode = rejectModal.mode === "app_testing_reject";
+  const isAppReviewRejectMode = rejectModal.mode === "app_review_reject";
+  const isAppReviewCorrectionMode = rejectModal.mode === "app_review_correction";
   const isAnyRejectMode = isRejectMode || isAppTestingRejectMode;
-  const tags = [
-    isAppTestingRejectMode ? "Portfolio is not strong enough" : "Screenshot is blurry/unreadable",
-    isAppTestingRejectMode ? "No relevant app testing experience" : "Wrong account/handle shown",
-    isAppTestingRejectMode
-      ? "Does not match this app testing brief"
-      : isAnyRejectMode
-        ? "No proof of follow/comment action"
-        : "Please upload a full screenshot showing follow action",
-    isAppTestingRejectMode ? "Application not selected" : "Already completed this task",
-  ];
+  const tags = isAppTestingRejectMode
+    ? [
+        "Portfolio is not strong enough",
+        "No relevant app testing experience",
+        "Does not match this app testing brief",
+        "Application not selected",
+      ]
+    : isAppReviewRejectMode
+      ? [
+          "Screenshot does not show posted review",
+          "Review text does not match assigned text",
+          "Wrong app reviewed",
+          "Screenshot is blurry/unreadable",
+        ]
+      : isAppReviewCorrectionMode
+        ? [
+            "Please post the exact assigned review text",
+            "Please upload a full screenshot showing your review on Play Store/App Store",
+            "Screenshot blurry - please re-upload clear proof",
+          ]
+        : [
+            "Screenshot is blurry/unreadable",
+            "Wrong account/handle shown",
+            isAnyRejectMode
+              ? "No proof of follow/comment action"
+              : "Please upload a full screenshot showing follow action",
+            "Already completed this task",
+          ];
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -91,9 +111,13 @@ export function RejectModal({
               <span>
                 {isAppTestingRejectMode
                   ? "Reject Portfolio"
-                  : isRejectMode
-                    ? "Reject Submission"
-                    : "Request Correction"}
+                  : isAppReviewRejectMode
+                    ? "Reject App Review"
+                    : isAppReviewCorrectionMode
+                      ? "Request Review Correction"
+                      : isRejectMode
+                        ? "Reject Submission"
+                        : "Request Correction"}
               </span>
               <span className="inline-flex items-center gap-1 text-[10px] text-zinc-550 bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 font-normal select-none">
                 <Move className="w-2.5 h-2.5" /> Drag
@@ -104,7 +128,7 @@ export function RejectModal({
         </div>
 
         <div className="p-6 space-y-4">
-          {isRejectMode && (
+          {isRejectMode && !isAppReviewRejectMode && (
             <>
               <div className="flex items-center justify-between px-4 py-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
                 <div>

@@ -257,6 +257,8 @@ export interface BusinessReviewRequest {
   reviewedBy: string | null;
   createdAt: string;
   updatedAt: string;
+  user?: UserInfo | null;
+  userBalance?: number;
 }
 
 export interface AppTestingSettings {
@@ -308,5 +310,6 @@ export interface RejectModal {
   subId: number;
   username: string;
   balance: number;
-  mode: "reject" | "correction" | "app_testing_reject";
+  mode: "reject" | "correction" | "app_testing_reject" | "app_review_reject" | "app_review_correction";
+  appReviewRequest?: BusinessReviewRequest | null;
 }

@@ -248,16 +248,17 @@ export function SubmissionsTable({
 
 function submissionStatusPriority(status: string) {
   switch (status.toLowerCase()) {
+    case "needs_correction":
+      return 0;
     case "pending":
     case "in_review":
     case "in review":
-    case "needs_correction":
-      return 0;
+      return 1;
     case "approved":
     case "rejected":
-      return 1;
-    default:
       return 2;
+    default:
+      return 3;
   }
 }
 

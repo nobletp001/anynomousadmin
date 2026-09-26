@@ -107,28 +107,43 @@ export function TaskDetailModals({
           rejectReason={state.rejectReason}
           setRejectReason={state.setRejectReason}
           onClose={closeRejectModal}
-          onSubmitReject={() =>
-            state.viewingSub?.appReviewRequest && state.rejectModal!.subId === state.viewingSub.id
-              ? mutations.decideBusinessReview.mutate({
-                  requestId: state.viewingSub.appReviewRequest.id,
-                  action: "dispute",
-                  reason: state.rejectReason,
-                })
-              : mutations.rejectSubmission.mutate({
-                  subId: state.rejectModal!.subId,
-                  reason: state.rejectReason,
-                  deducted: state.rejectModal!.mode === "app_testing_reject" ? 0 : Number(state.deductAmount) || 0,
-                })
-          }
-          onSubmitCorrection={() =>
-            state.viewingSub?.appReviewRequest && state.rejectModal!.subId === state.viewingSub.id
-              ? mutations.decideBusinessReview.mutate({
-                  requestId: state.viewingSub.appReviewRequest.id,
-                  action: "needs_correction",
-                  reason: state.rejectReason,
-                })
-              : mutations.requestCorrection.mutate({ subId: state.rejectModal!.subId, reason: state.rejectReason })
-          }
+          onSubmitReject={() => {
+            const activeRequest =
+              state.rejectModal?.appReviewRequest ??
+              (state.viewingSub?.id === state.rejectModal?.subId ? state.viewingSub?.appReviewRequest : null);
+            if (activeRequest) {
+              mutations.decideBusinessReview.mutate({
+                requestId: activeRequest.id,
+                action: "dispute",
+                reason: state.rejectReason,
+              });
+              closeRejectModal();
+              return;
+            }
+            mutations.rejectSubmission.mutate({
+              subId: state.rejectModal!.subId,
+              reason: state.rejectReason,
+              deducted:
+                state.rejectModal!.mode === "app_testing_reject" || state.rejectModal!.mode === "app_review_reject"
+                  ? 0
+                  : Number(state.deductAmount) || 0,
+            });
+          }}
+          onSubmitCorrection={() => {
+            const activeRequest =
+              state.rejectModal?.appReviewRequest ??
+              (state.viewingSub?.id === state.rejectModal?.subId ? state.viewingSub?.appReviewRequest : null);
+            if (activeRequest) {
+              mutations.decideBusinessReview.mutate({
+                requestId: activeRequest.id,
+                action: "needs_correction",
+                reason: state.rejectReason,
+              });
+              closeRejectModal();
+              return;
+            }
+            mutations.requestCorrection.mutate({ subId: state.rejectModal!.subId, reason: state.rejectReason });
+          }}
           isPending={
             mutations.rejectSubmission.isPending ||
             mutations.requestCorrection.isPending ||
