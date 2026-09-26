@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Clock, Image as ImageIcon, RotateCcw, Trash2, Undo2, Users, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Image as ImageIcon, Trash2, Undo2, Users, XCircle } from "lucide-react";
 import { BusinessReviewRequest, Submission, Task } from "../types";
 import { formatAmount, formatDate, getImagesList } from "../utils";
 
@@ -21,11 +20,7 @@ interface AppReviewSubmissionsTableProps {
 
 export function reviewRequestToSubmission(request: BusinessReviewRequest): Submission {
   const status =
-    request.status === "submitted"
-      ? "pending"
-      : request.status === "disputed"
-        ? "rejected"
-        : request.status;
+    request.status === "submitted" ? "pending" : request.status === "disputed" ? "rejected" : request.status;
   return {
     id: -request.id,
     taskId: request.taskId,
@@ -54,7 +49,7 @@ export function reviewRequestToSubmission(request: BusinessReviewRequest): Submi
 
 export function AppReviewSubmissionsTable({
   requests,
-  task,
+  task: _task,
   onReview,
   onCorrection,
   onReject,
@@ -69,6 +64,16 @@ export function AppReviewSubmissionsTable({
   const [searchFilter, setSearchFilter] = React.useState<string>("");
   const [page, setPage] = React.useState<number>(1);
   const pageSize = 20;
+
+  const updateStatusFilter = (val: string) => {
+    setStatusFilter(val);
+    setPage(1);
+  };
+
+  const updateSearchFilter = (val: string) => {
+    setSearchFilter(val);
+    setPage(1);
+  };
 
   // Status counts across all active requests
   const activeRequests = React.useMemo(
@@ -146,11 +151,6 @@ export function AppReviewSubmissionsTable({
     });
   }, [filteredRequests]);
 
-  // Reset page when filters change
-  React.useEffect(() => {
-    setPage(1);
-  }, [statusFilter, searchFilter]);
-
   const totalPages = Math.max(1, Math.ceil(sortedRequests.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const paginatedRequests = sortedRequests.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -184,7 +184,7 @@ export function AppReviewSubmissionsTable({
         <div className="mt-4 flex flex-wrap gap-2 pt-1 border-t border-zinc-800/60">
           <button
             type="button"
-            onClick={() => setStatusFilter("")}
+            onClick={() => updateStatusFilter("")}
             className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
               statusFilter === ""
                 ? "bg-zinc-100 text-zinc-950 shadow"
@@ -192,16 +192,18 @@ export function AppReviewSubmissionsTable({
             }`}
           >
             All Reviews
-            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-              statusFilter === "" ? "bg-zinc-900 text-white" : "bg-zinc-700/60 text-zinc-300"
-            }`}>
+            <span
+              className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                statusFilter === "" ? "bg-zinc-900 text-white" : "bg-zinc-700/60 text-zinc-300"
+              }`}
+            >
               {counts.total}
             </span>
           </button>
 
           <button
             type="button"
-            onClick={() => setStatusFilter("submitted")}
+            onClick={() => updateStatusFilter("submitted")}
             className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
               statusFilter === "submitted"
                 ? "bg-emerald-500 text-zinc-950 font-bold shadow"
@@ -210,16 +212,18 @@ export function AppReviewSubmissionsTable({
           >
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             Pending Review
-            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-              statusFilter === "submitted" ? "bg-zinc-950 text-emerald-400" : "bg-emerald-500/20 text-emerald-300"
-            }`}>
+            <span
+              className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                statusFilter === "submitted" ? "bg-zinc-950 text-emerald-400" : "bg-emerald-500/20 text-emerald-300"
+              }`}
+            >
               {counts.pending}
             </span>
           </button>
 
           <button
             type="button"
-            onClick={() => setStatusFilter("needs_correction")}
+            onClick={() => updateStatusFilter("needs_correction")}
             className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
               statusFilter === "needs_correction"
                 ? "bg-amber-500 text-zinc-950 font-bold shadow"
@@ -228,16 +232,18 @@ export function AppReviewSubmissionsTable({
           >
             <AlertCircle className="w-3 h-3" />
             Correction Requested
-            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-              statusFilter === "needs_correction" ? "bg-zinc-950 text-amber-400" : "bg-amber-500/20 text-amber-300"
-            }`}>
+            <span
+              className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                statusFilter === "needs_correction" ? "bg-zinc-950 text-amber-400" : "bg-amber-500/20 text-amber-300"
+              }`}
+            >
               {counts.correction}
             </span>
           </button>
 
           <button
             type="button"
-            onClick={() => setStatusFilter("requested")}
+            onClick={() => updateStatusFilter("requested")}
             className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
               statusFilter === "requested"
                 ? "bg-blue-600 text-white font-bold shadow"
@@ -246,16 +252,18 @@ export function AppReviewSubmissionsTable({
           >
             <Clock className="w-3 h-3" />
             Awaiting Submission
-            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-              statusFilter === "requested" ? "bg-zinc-950 text-blue-300" : "bg-blue-500/20 text-blue-300"
-            }`}>
+            <span
+              className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                statusFilter === "requested" ? "bg-zinc-950 text-blue-300" : "bg-blue-500/20 text-blue-300"
+              }`}
+            >
               {counts.requested}
             </span>
           </button>
 
           <button
             type="button"
-            onClick={() => setStatusFilter("approved")}
+            onClick={() => updateStatusFilter("approved")}
             className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
               statusFilter === "approved"
                 ? "bg-emerald-600 text-white font-bold shadow"
@@ -263,16 +271,18 @@ export function AppReviewSubmissionsTable({
             }`}
           >
             Approved
-            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-              statusFilter === "approved" ? "bg-zinc-950 text-emerald-400" : "bg-zinc-700/60 text-zinc-300"
-            }`}>
+            <span
+              className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                statusFilter === "approved" ? "bg-zinc-950 text-emerald-400" : "bg-zinc-700/60 text-zinc-300"
+              }`}
+            >
               {counts.approved}
             </span>
           </button>
 
           <button
             type="button"
-            onClick={() => setStatusFilter("disputed")}
+            onClick={() => updateStatusFilter("disputed")}
             className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
               statusFilter === "disputed"
                 ? "bg-red-500 text-white font-bold shadow"
@@ -280,9 +290,11 @@ export function AppReviewSubmissionsTable({
             }`}
           >
             Rejected
-            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-              statusFilter === "disputed" ? "bg-zinc-950 text-red-300" : "bg-red-500/20 text-red-300"
-            }`}>
+            <span
+              className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                statusFilter === "disputed" ? "bg-zinc-950 text-red-300" : "bg-red-500/20 text-red-300"
+              }`}
+            >
               {counts.disputed}
             </span>
           </button>
@@ -296,7 +308,7 @@ export function AppReviewSubmissionsTable({
             type="text"
             placeholder="Search review by username..."
             value={searchFilter}
-            onChange={(e) => setSearchFilter(e.target.value)}
+            onChange={(e) => updateSearchFilter(e.target.value)}
             className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-blue-500/50 transition-colors"
           />
         </div>
@@ -304,7 +316,7 @@ export function AppReviewSubmissionsTable({
           <span className="text-xs text-zinc-500">Filter Status:</span>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => updateStatusFilter(e.target.value)}
             className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500/50"
           >
             <option value="">All Review Statuses ({counts.total})</option>
@@ -358,7 +370,7 @@ export function AppReviewSubmissionsTable({
               <tr className="border-b border-zinc-800 text-zinc-500 text-xs uppercase tracking-wider">
                 <th className="px-6 py-4 font-semibold text-xs">User</th>
                 <th className="px-6 py-4 font-semibold text-xs">Balance</th>
-                <th className="px-6 py-4 font-semibold text-xs">Assigned Review &amp; Proof</th>
+                <th className="px-6 py-4 font-semibold text-xs">Review Proof</th>
                 <th className="px-6 py-4 font-semibold text-xs">Status</th>
                 <th className="px-6 py-4 font-semibold text-xs">Submitted / Requested</th>
                 <th className="px-6 py-4 font-semibold text-xs">Actions</th>
@@ -410,50 +422,33 @@ export function AppReviewSubmissionsTable({
                       {formatAmount(request.userBalance ?? 0)}
                     </td>
 
-                    {/* Proof & Assigned Review Text */}
-                    <td className="px-6 py-4 max-w-md">
-                      <div className="space-y-2 py-1">
-                        {request.reviewProof ? (
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center gap-1.5 text-blue-300 text-xs font-bold">
-                              <ImageIcon className="w-3.5 h-3.5" />
-                              App review proof ({proofImages.length})
-                            </span>
-                            <div className="flex gap-1.5">
-                              {proofImages.map((img, idx) => (
-                                <button
-                                  key={`${img}-${idx}`}
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onZoomImage(proofImages, idx);
-                                  }}
-                                  className="h-9 w-9 rounded-lg border border-zinc-700 overflow-hidden bg-zinc-900 hover:border-blue-400 transition"
-                                >
-                                  <img
-                                    src={img}
-                                    alt={`Proof ${idx + 1}`}
-                                    className="h-full w-full object-cover"
-                                  />
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-zinc-500 italic">
-                            Waiting for user to submit review screenshot
-                          </p>
-                        )}
-
-                        <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-2 text-xs text-zinc-300">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block mb-0.5">
-                            Assigned Review Instructions:
+                    {/* Proof */}
+                    <td className="px-6 py-4">
+                      {request.reviewProof ? (
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 text-blue-300 text-xs font-bold">
+                            <ImageIcon className="w-3.5 h-3.5" />
+                            Proof ({proofImages.length})
                           </span>
-                          <p className="line-clamp-2 text-[11px] text-zinc-300 font-medium">
-                            {request.reviewText}
-                          </p>
+                          <div className="flex gap-1.5">
+                            {proofImages.map((img, idx) => (
+                              <button
+                                key={`${img}-${idx}`}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onZoomImage(proofImages, idx);
+                                }}
+                                className="h-9 w-9 rounded-lg border border-zinc-700 overflow-hidden bg-zinc-900 hover:border-blue-400 transition"
+                              >
+                                <img src={img} alt={`Proof ${idx + 1}`} className="h-full w-full object-cover" />
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <p className="text-xs text-zinc-500 italic">Waiting for review screenshot</p>
+                      )}
                     </td>
 
                     {/* Status */}
